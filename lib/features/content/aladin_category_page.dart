@@ -11,6 +11,7 @@ import '../../core/state/aladin_app_prefs.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_parental_gate.dart';
+import '../../shared/widgets/aladin_category_menu.dart';
 import 'dart:async';
 import 'aladin_epg_grid_page.dart';
 
@@ -19,6 +20,9 @@ class AladinCategoryPage extends StatefulWidget {
   final int playlistId;
   final void Function(ChannelModel, List<ChannelModel>) onChannelTap;
   final VoidCallback? onBack;
+  final ValueChanged<CategoryModel>? onCategoryChanged;
+  final VoidCallback? onManageHidden;
+  final FocusNode? categoryFocusNode;
 
   const AladinCategoryPage({
     super.key,
@@ -26,6 +30,9 @@ class AladinCategoryPage extends StatefulWidget {
     required this.playlistId,
     required this.onChannelTap,
     this.onBack,
+    this.onCategoryChanged,
+    this.onManageHidden,
+    this.categoryFocusNode,
   });
 
   @override
@@ -34,6 +41,7 @@ class AladinCategoryPage extends StatefulWidget {
 
 class _AladinCategoryPageState extends State<AladinCategoryPage> {
   final List<ChannelModel> _channels = [];
+  List<CategoryModel> _categories = [];
   bool _loading = true;
   String _sortBy = 'default';
   bool _isAscending = false;
@@ -153,6 +161,24 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
     _loadAll();
   }
 
+  @override
+  void didUpdateWidget(covariant AladinCategoryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.category.id != widget.category.id) {
+      _channels.clear();
+      _loading = true;
+      final scope =
+          '${widget.playlistId}_${widget.category.contentType}_${widget.category.name}';
+      _sortBy =
+          AladinPrefs.instance.getString('category_sort_$scope') ?? 'default';
+      _isAscending =
+          AladinPrefs.instance.getBool('category_sort_ascending_$scope');
+      _hideWatched =
+          AladinPrefs.instance.getBool('category_hide_watched_$scope');
+      _loadAll();
+    }
+  }
+
   Future<void> _saveViewPreferences() async {
     final scope =
         '${widget.playlistId}_${widget.category.contentType}_${widget.category.name}';
@@ -164,15 +190,24 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
   }
 
   Future<void> _loadAll() async {
-    final batch = await ChannelService.instance.getChannelsByCategory(
-      playlistId: widget.playlistId,
-      categoryName: widget.category.name,
-      contentType: widget.category.contentType,
-      limit: 2000,
-    );
+    final results = await Future.wait([
+      ChannelService.instance.getChannelsByCategory(
+        playlistId: widget.playlistId,
+        categoryName: widget.category.name,
+        contentType: widget.category.contentType,
+        limit: 2000,
+      ),
+      ChannelService.instance.getCategories(
+        playlistId: widget.playlistId,
+        contentType: widget.category.contentType,
+      ),
+    ]);
+    final batch = results[0] as List<ChannelModel>;
+    final categories = results[1] as List<CategoryModel>;
     if (!mounted) return;
     setState(() {
       _channels.addAll(batch);
+      _categories = categories;
       _loading = false;
       _applySort();
     });
@@ -265,6 +300,18 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               ),
             ),
             actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: AladinCategoryMenuButton(
+                  categories: _categories,
+                  focusNode: widget.categoryFocusNode,
+                  current: widget.category,
+                  onSelected: (category) =>
+                      widget.onCategoryChanged?.call(category),
+                  onShowAll: widget.onBack,
+                  onManageHidden: widget.onManageHidden,
+                ),
+              ),
               IconButton(
                 tooltip: 'Kategoriyi gizle',
                 onPressed: () async {

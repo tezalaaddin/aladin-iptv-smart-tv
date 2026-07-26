@@ -31,8 +31,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        // Public release 50 follows Android versionCode 1049.
-        versionCode = 1050
+        // Public release 51 follows Android versionCode 1050.
+        versionCode = 1051
         versionName = flutter.versionName
     }
 

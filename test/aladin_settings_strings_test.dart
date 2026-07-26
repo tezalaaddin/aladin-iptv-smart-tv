@@ -76,4 +76,24 @@ void main() {
       }
     }
   });
+
+  test('+51 category navigation panel is localized in all languages', () {
+    const languages = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    const keys = [
+      'categories',
+      'openCategories',
+      'allCategories',
+      'searchCategories',
+      'items',
+      'manageHidden',
+      'pinHint',
+    ];
+    for (final language in languages) {
+      final strings = AppStrings.of(language);
+      for (final key in keys) {
+        expect(strings.v51(key), isNot(key), reason: '$language:$key');
+        expect(strings.v51(key).trim(), isNotEmpty, reason: '$language:$key');
+      }
+    }
+  });
 }

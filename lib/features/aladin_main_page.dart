@@ -12,6 +12,7 @@ import '../core/di/aladin_di.dart';
 import '../core/state/aladin_app_prefs.dart';
 import '../core/state/aladin_app_state.dart';
 import '../shared/theme/aladin_app_theme.dart';
+import '../shared/widgets/aladin_category_menu.dart';
 import 'live_tv/aladin_live_tv_page.dart';
 import 'movies/aladin_movies_page.dart';
 import 'series/aladin_series_page.dart';
@@ -33,6 +34,8 @@ class _MainPageState extends State<MainPage> {
   final FocusScopeNode _mainFocusScope = FocusScopeNode();
   final List<FocusNode> _navNodes = List.generate(7, (index) => FocusNode());
   final FocusNode _contentFocusNode = FocusNode();
+  final FocusNode _categoryMenuFocusNode =
+      FocusNode(debugLabel: 'category_menu_entry');
   bool _epgDialogShown = false;
   DateTime? _lastKeyEventTime;
 
@@ -186,6 +189,7 @@ class _MainPageState extends State<MainPage> {
   void dispose() {
     _mainFocusScope.dispose();
     _contentFocusNode.dispose();
+    _categoryMenuFocusNode.dispose();
     for (final n in _navNodes) {
       n.dispose();
     }
@@ -350,6 +354,10 @@ class _MainPageState extends State<MainPage> {
           }
         },
         onBack: () => setState(() => _selectedCategory = null),
+        onCategoryChanged: (category) =>
+            setState(() => _selectedCategory = category),
+        onManageHidden: () => showAladinHiddenContentManager(context),
+        categoryFocusNode: _categoryMenuFocusNode,
       );
     } else {
       final pages = [
@@ -357,9 +365,14 @@ class _MainPageState extends State<MainPage> {
         LiveTvPage(
           onGoToSettings: () => _goTo(6),
           onCategoryTap: _openCategory,
+          categoryFocusNode: _categoryMenuFocusNode,
         ),
-        MoviesPage(onCategoryTap: _openCategory),
-        SeriesPage(onCategoryTap: _openCategory),
+        MoviesPage(
+            onCategoryTap: _openCategory,
+            categoryFocusNode: _categoryMenuFocusNode),
+        SeriesPage(
+            onCategoryTap: _openCategory,
+            categoryFocusNode: _categoryMenuFocusNode),
         SearchPage(isActive: _index == 4),
         const FavoritesPage(),
         SettingsPage(
@@ -437,7 +450,13 @@ class _MainPageState extends State<MainPage> {
                         currentIndex: _index,
                         onTap: _goTo,
                         nodes: _navNodes,
-                        onRightPressed: () => _contentFocusNode.requestFocus(),
+                        onRightPressed: () {
+                          if (_index >= 1 && _index <= 3) {
+                            _categoryMenuFocusNode.requestFocus();
+                          } else {
+                            _contentFocusNode.requestFocus();
+                          }
+                        },
                       ),
                     Expanded(
                       child: Focus(
@@ -925,10 +944,6 @@ class _SideNavItemState extends State<_SideNavItem> {
           }
 
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            if (FocusScope.of(context)
-                .focusInDirection(TraversalDirection.right)) {
-              return KeyEventResult.handled;
-            }
             widget.onRightPressed?.call();
             return KeyEventResult.handled;
           }

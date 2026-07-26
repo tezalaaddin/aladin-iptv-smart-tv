@@ -14,6 +14,7 @@ import '../../shared/widgets/aladin_app_bar.dart';
 import '../../shared/widgets/aladin_category_row.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_empty_state.dart';
+import '../../shared/widgets/aladin_category_menu.dart';
 import '../player/aladin_player_page.dart';
 
 class AladinSeriesDetailPage extends StatefulWidget {
@@ -373,7 +374,8 @@ class _SChipState extends State<_SChip> {
 
 class SeriesPage extends StatefulWidget {
   final void Function(CategoryModel)? onCategoryTap;
-  const SeriesPage({super.key, this.onCategoryTap});
+  final FocusNode? categoryFocusNode;
+  const SeriesPage({super.key, this.onCategoryTap, this.categoryFocusNode});
   @override
   State<SeriesPage> createState() => _SeriesPageState();
 }
@@ -552,6 +554,23 @@ class _SeriesPageState extends State<SeriesPage> {
                 : CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(54, 18, 54, 4),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: AladinCategoryMenuButton(
+                                categories: _categories,
+                                focusNode: widget.categoryFocusNode,
+                                onSelected: (category) =>
+                                    widget.onCategoryTap?.call(category),
+                                onShowAll: () {},
+                                onManageHidden: () =>
+                                    showAladinHiddenContentManager(context),
+                              ),
+                            ),
+                          ),
+                        ),
                         SliverPadding(
                           padding: EdgeInsets.symmetric(
                             horizontal: MediaQuery.of(context).size.width *

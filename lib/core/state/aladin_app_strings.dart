@@ -30,6 +30,87 @@ class AppStrings {
     return values[index < 0 ? 1 : index];
   }
 
+  String v51(String key) {
+    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    final values = _v51[key];
+    if (values == null) return key;
+    final index = codes.indexOf(langCode);
+    return values[index < 0 ? 1 : index];
+  }
+
+  static const Map<String, List<String>> _v51 = {
+    'categories': [
+      'Kategoriler',
+      'Categories',
+      'Kategorien',
+      'Catégories',
+      'Categorías',
+      'Категории',
+      '分类',
+      'الفئات'
+    ],
+    'openCategories': [
+      'Kategori menüsünü aç',
+      'Open category menu',
+      'Kategoriemenü öffnen',
+      'Ouvrir les catégories',
+      'Abrir categorías',
+      'Открыть категории',
+      '打开分类菜单',
+      'فتح قائمة الفئات'
+    ],
+    'allCategories': [
+      'Tüm Kategoriler',
+      'All Categories',
+      'Alle Kategorien',
+      'Toutes les catégories',
+      'Todas las categorías',
+      'Все категории',
+      '全部分类',
+      'كل الفئات'
+    ],
+    'searchCategories': [
+      'Kategori ara',
+      'Search categories',
+      'Kategorien suchen',
+      'Rechercher une catégorie',
+      'Buscar categorías',
+      'Поиск категорий',
+      '搜索分类',
+      'البحث في الفئات'
+    ],
+    'items': [
+      'içerik',
+      'titles',
+      'Inhalte',
+      'éléments',
+      'elementos',
+      'элементов',
+      '个内容',
+      'عنصر'
+    ],
+    'manageHidden': [
+      'Gizlenenleri yönet',
+      'Manage hidden content',
+      'Ausgeblendete Inhalte verwalten',
+      'Gérer le contenu masqué',
+      'Gestionar contenido oculto',
+      'Управление скрытым',
+      '管理隐藏内容',
+      'إدارة المحتوى المخفي'
+    ],
+    'pinHint': [
+      'Uzun OK: kategoriyi sabitle · Geri: paneli kapat',
+      'Long OK: pin category · Back: close panel',
+      'OK halten: Kategorie anheften · Zurück: schließen',
+      'OK long : épingler · Retour : fermer',
+      'OK largo: fijar · Atrás: cerrar',
+      'Долгое OK: закрепить · Назад: закрыть',
+      '长按 OK：固定分类 · 返回：关闭',
+      'ضغط مطول OK: تثبيت · رجوع: إغلاق'
+    ],
+  };
+
   static const Map<String, List<String>> _v50 = {
     'noHiddenContent': [
       'Gizli içerik yok.',

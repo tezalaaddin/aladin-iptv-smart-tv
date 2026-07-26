@@ -1,0 +1,19 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+51 GELISTIRME TAKIP DOSYASI
+================================================================
+Baslangic: 26.07.2026
+Hedef surum: 2.3.1+51
+Android AAB versionCode: 1051
+GitHub durumu: TESTLER BASARILI OLURSA GONDERILECEK
+
+01 [TAMAMLANDI] Canli TV, Film ve Dizi ana ekranlarina ortak Kategoriler dugmesi eklendi.
+02 [TAMAMLANDI] Kategori detay basligi secilebilir yapildi; panelden kategori degistirme eklendi.
+03 [TAMAMLANDI] Sagdan acilan 420-510 dp TV paneli ve Geri ile onceki odaga donus eklendi.
+04 [TAMAMLANDI] Panel acilisinda mevcut kategoriye otomatik odak ve kaydirma eklendi.
+05 [TAMAMLANDI] Kategori adinda arama, sonuc yok durumu ve temizleme eylemi eklendi.
+06 [TAMAMLANDI] Kategori yaninda icerik sayisi gosterimi eklendi.
+07 [TAMAMLANDI] Uzun OK ile kategori sabitleme ve sabitleri en ustte gosterme eklendi.
+08 [TAMAMLANDI] Son kullanilan bes kategoriyi sabitlerin ardinda hizli erisimde tutma eklendi.
+09 [TAMAMLANDI] Tum Kategoriler ve Gizlenenleri Yonet kisayollari eklendi.
+10 [TAMAMLANDI] Yeni panel metinleri sekiz desteklenen dilde tanimlandi.
+11 [TAMAMLANDI] Flutter testleri 8/8 gecti; analyzer hata sayisi 0. Release AAB (65,1 MB) ve ABI bazli APK'lar TMDB anahtariyla uretildi. ARMv7 paket gercek Android TV'ye kuruldu; panel acilisi, D-pad odak gecisi, Geri davranisi ve oynaticiya gecis cokmesiz dogrulandi.
+12 [TAMAMLANDI] SKILL.md dosyasina +51 surum notlari eklendi; kaynaklar commit ve GitHub push icin hazirlandi.

@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+50
+version: 2.3.1+51
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1949,3 +1949,12 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 9. **Sekiz Dilli +50 Arayüzü:** Gizli içerik yöneticisi, dashboard özelleştirme, EPG semantiği, izleme rafı ve Watch Next durumu Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça tanımlandı; regresyon testi genişletildi.
 10. **Senkron Ayarı Teknik Kararı:** Media3 1.3.1 hattında ses/altyazı zaman damgasını güvenli ve kayıpsız kaydıran kararlı API bulunmadığı doğrulandı; kullanıcıya çalışmayan sahte bir gecikme ayarı gösterilmedi.
 11. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+50`, Play Console AAB versionCode `1050`, split ARMv7 versionCode `2050` oldu. Flutter testleri, analyzer hata taraması, release AAB/split APK ve gerçek Android TV oturumu `V2.3.1+50_GELISTIRME_TAKIP.txt` dosyasında izlenir.
+
+## V2.3.1+51 Sürüm Notları: Premium Kategori Gezintisi
+1. **Ortak Kategori Paneli:** Canlı TV, Filmler ve Diziler ekranlarına sağdan açılan ortak kategori paneli eklendi. Kategori detay ekranından da sayfadan çıkmadan başka kategoriye geçilebiliyor.
+2. **TV Kumandası Odağı:** Sol menüden sağa geçiş doğrudan Kategoriler düğmesine bağlandı. Panel mevcut kategoriye odaklanıyor, onu görünür alana kaydırıyor ve Geri tuşunda önceki odağa dönüyor.
+3. **Hızlı Bulma:** Panelde kategori adıyla arama, aramayı temizleme, sonuç bulunamadı durumu ve her kategorinin içerik sayısı eklendi.
+4. **Kişisel Kısayollar:** Uzun OK ile sabitlenen kategoriler en üstte tutuluyor. Son kullanılan beş kategori kalıcı olarak hatırlanıp sabitlerin ardında hızlı erişim sunuyor.
+5. **Yönetim Eylemleri:** Tüm Kategoriler kısayolu ve gizlenen kategori/içerikleri tek tek ya da topluca geri getiren doğrudan yönetim ekranı panele eklendi.
+6. **Sekiz Dilli Arayüz:** Yeni kategori gezinme metinleri Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça tamamlandı; yerelleştirme regresyon testi genişletildi.
+7. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+51`, Play Console AAB versionCode `1051`, split APK versionCode `2051` oldu. Flutter testleri 8/8 geçti, analyzer hata sayısı 0 bulundu, AAB ve ABI bazlı APK'lar TMDB anahtarıyla üretildi. ARMv7 paket gerçek Android TV'de panel, D-pad, Geri ve oynatıcı geçişiyle çökmesiz test edildi.
