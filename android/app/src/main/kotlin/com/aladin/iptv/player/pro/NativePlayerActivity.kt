@@ -25,6 +25,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -58,6 +59,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -366,6 +368,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_player)
@@ -1119,6 +1122,8 @@ class NativePlayerActivity : AppCompatActivity(),
                     Glide.with(this@NativePlayerActivity)
                         .load(logoUrl)
                         .override(100, 100)
+                        .format(DecodeFormat.PREFER_RGB_565)
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                         .into(ivLogo)
                 } else {
                     ivLogo.setImageResource(android.R.color.transparent)
@@ -1205,6 +1210,7 @@ class NativePlayerActivity : AppCompatActivity(),
             .placeholder(android.R.color.darker_gray)   // gri placeholder, hemen görünür
             .error(android.R.color.darker_gray)          // hata durumunda da gri kal
             .override(320, 180)                          // TV için yeterli, RAM dostu
+            .format(DecodeFormat.PREFER_RGB_565)          // 32-bit yerine 16-bit: yaklaşık yarı RAM
             .diskCacheStrategy(DiskCacheStrategy.ALL)    // disk cache: aynı poster tekrar indirilmez
             .into(ivPausePoster)
     }
