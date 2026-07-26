@@ -923,6 +923,8 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildLink(Icons.code, s.github, 'https://github.com/tezalaaddin'),
             const SizedBox(height: 8),
             _buildLink(Icons.shop, s.playStore, 'https://play.google.com/store/apps/details?id=com.aladin.iptv.player.pro'),
+            const SizedBox(height: 8),
+            _buildLink(Icons.privacy_tip, s.privacyPolicy, 'https://tezalaaddin.github.io/aladin-media-player-pro-tv/privacy-policy.md'),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,

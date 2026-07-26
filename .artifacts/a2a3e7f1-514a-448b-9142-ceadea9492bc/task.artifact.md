@@ -1,0 +1,4 @@
+- [ ] Create `privacy-policy.md` in root directory
+- [ ] Add `privacyPolicy` translation keys to `aladin_app_strings.dart`
+- [ ] Add Privacy Policy link to `aladin_settings_page.dart`
+- [ ] Commit changes to Git

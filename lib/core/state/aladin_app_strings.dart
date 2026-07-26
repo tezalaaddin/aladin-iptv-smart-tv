@@ -215,6 +215,7 @@ class AppStrings {
   String get alpha            => _t('alpha');
   String get noContentFound   => _t('noContentFound');
   String get forSmartTv       => _t('forSmartTv');
+  String get privacyPolicy    => _t('privacyPolicy');
 
   String removeFavoriteQ(String name) =>
       (_map['removeFavoriteQ'] ?? 'Remove "{name}" from favorites?').replaceAll('{name}', name);
@@ -454,6 +455,7 @@ class AppStrings {
     'forSmartTv':     'FOR SMART TV',
     'removeFavoriteQ': '"{name}" favorilerden çıkarılsın mı?',
     'removeListQ':     '"{name}" listeden kaldırılsın mı?',
+    'privacyPolicy':   'Gizlilik Politikası',
   };
 
   static const Map<String, String> _enMap = {
@@ -647,6 +649,7 @@ class AppStrings {
     'forSmartTv':     'FOR SMART TV',
     'removeFavoriteQ': 'Remove "{name}" from favorites?',
     'removeListQ':     'Remove "{name}" from list?',
+    'privacyPolicy':   'Privacy Policy',
   };
 
   static const Map<String, String> _deMap = {
@@ -831,6 +834,7 @@ class AppStrings {
     'forSmartTv':     'FÜR SMART TV',
     'removeFavoriteQ': '"{name}" aus Favoriten entfernen?',
     'removeListQ':     '"{name}" aus Liste entfernen?',
+    'privacyPolicy':   'Datenschutzerklärung',
     'sleepTimer':     'Sleep-Timer',
   };
 
@@ -1016,6 +1020,7 @@ class AppStrings {
     'forSmartTv':     'POUR SMART TV',
     'removeFavoriteQ': 'Retirer "{name}" des favoris ?',
     'removeListQ':     'Supprimer "{name}" de la liste ?',
+    'privacyPolicy':   'Politique de confidentialité',
     'sleepTimer':     'Minuterie de mise en veille',
   };
 
@@ -1201,6 +1206,7 @@ class AppStrings {
     'forSmartTv':     'PARA SMART TV',
     'removeFavoriteQ': '¿Quitar "{name}" de favoritos?',
     'removeListQ':     '¿Eliminar "{name}" de la lista?',
+    'privacyPolicy':   'Política de privacidad',
     'sleepTimer':     'Temporizador de apagado',
   };
 
@@ -1386,6 +1392,7 @@ class AppStrings {
     'forSmartTv':     'ДЛЯ SMART TV',
     'removeFavoriteQ': 'Удалить "{name}" из избранного?',
     'removeListQ':     'Удалить "{name}" из списка?',
+    'privacyPolicy':   'Политика конфиденциальности',
     'sleepTimer':     'Таймер сна',
   };
 
@@ -1571,6 +1578,7 @@ class AppStrings {
     'forSmartTv':     '适用于智能电视',
     'removeFavoriteQ': '将 "{name}" 从收藏夹中移除？',
     'removeListQ':     '将 "{name}" 从列表中移除？',
+    'privacyPolicy':   '隐私政策',
     'sleepTimer':     '睡眠定时器',
   };
 
@@ -1756,6 +1764,7 @@ class AppStrings {
     'forSmartTv':     'للتلفاز الذكي',
     'removeFavoriteQ': 'هل تريد إزالة "{name}" من المفضلة؟',
     'removeListQ':     'هل تريد إزالة "{name}" من القائمة؟',
+    'privacyPolicy':   'سياسة الخصوصية',
     'sleepTimer':     'مؤقت النوم',
   };
 }
