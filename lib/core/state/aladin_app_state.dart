@@ -26,7 +26,7 @@ class AppState extends ChangeNotifier {
   String get lang => _lang;
   bool get isTurkish => _lang == 'tr';
   AppStrings get s => AppStrings.of(_lang);
-  
+
   String? get activeSeriesPoster => _activeSeriesPoster;
   String? get activeSeriesName => _activeSeriesName;
   String? get activeSeriesOverview => _activeSeriesOverview;
@@ -91,6 +91,14 @@ class AppState extends ChangeNotifier {
 
   void playByUrl(String url) async {
     final ch = await ChannelService.instance.getByUrl(url);
+    if (ch != null) {
+      _requestedChannel = ch;
+      notifyListeners();
+    }
+  }
+
+  void playById(int id) async {
+    final ch = await ChannelService.instance.getById(id);
     if (ch != null) {
       _requestedChannel = ch;
       notifyListeners();

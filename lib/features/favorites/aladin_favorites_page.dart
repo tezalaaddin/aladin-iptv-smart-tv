@@ -15,7 +15,8 @@ class FavoritesPage extends StatefulWidget {
   State<FavoritesPage> createState() => _FavoritesPageState();
 }
 
-class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProviderStateMixin {
+class _FavoritesPageState extends State<FavoritesPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<ChannelModel> _allFavs = [];
   bool _loading = false;
@@ -38,7 +39,9 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
   @override
   void dispose() {
     _tabController.dispose();
-    try { context.read<AppState>().removeListener(_onStateChange); } catch (_) {}
+    try {
+      context.read<AppState>().removeListener(_onStateChange);
+    } catch (_) {}
     super.dispose();
   }
 
@@ -72,10 +75,13 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(s.favorites, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeFavoriteQ(ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        content: Text(s.removeFavoriteQ(ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(s.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: Text(s.cancel)),
           ElevatedButton(
+            autofocus: true,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () {
               Navigator.pop(ctx);
@@ -90,14 +96,12 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
 
   void _play(ChannelModel ch, List<ChannelModel> currentList) {
     Navigator.push(
-      context, 
-      MaterialPageRoute(
-        builder: (_) => PlayerPage(
-          channel: ch, 
-          playlist: currentList, 
-        )
-      )
-    );
+        context,
+        MaterialPageRoute(
+            builder: (_) => PlayerPage(
+                  channel: ch,
+                  playlist: currentList,
+                )));
   }
 
   @override
@@ -135,16 +139,22 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.accent))
           : FocusScope(
               child: TabBarView(
                 controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(), // Kumanda ile grid içinde gezerken tab kaymasını engelle
+                physics:
+                    const NeverScrollableScrollPhysics(), // Kumanda ile grid içinde gezerken tab kaymasını engelle
                 children: [
-                  _buildGrid(_allFavs), 
-                  _buildGrid(_allFavs.where((e) => e.contentType == 'tv').toList()), 
-                  _buildGrid(_allFavs.where((e) => e.contentType == 'movie').toList()), 
-                  _buildGrid(_allFavs.where((e) => e.contentType == 'series').toList()), 
+                  _buildGrid(_allFavs),
+                  _buildGrid(
+                      _allFavs.where((e) => e.contentType == 'tv').toList()),
+                  _buildGrid(
+                      _allFavs.where((e) => e.contentType == 'movie').toList()),
+                  _buildGrid(_allFavs
+                      .where((e) => e.contentType == 'series')
+                      .toList()),
                 ],
               ),
             ),
@@ -153,7 +163,7 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
 
   Widget _buildGrid(List<ChannelModel> list) {
     if (list.isEmpty) return _buildEmptyState(context.read<AppState>().s);
-    
+
     final double safePadding = MediaQuery.of(context).size.width * 0.04;
 
     return GridView.builder(
@@ -183,7 +193,8 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
     return AladinEmptyState(
       icon: Icons.favorite_border_rounded,
       title: s.noFavorites,
-      message: 'Kanal kartlarına uzun basarak veya oynatıcı içinden 0 tuşuna basarak favorilerinizi ekleyebilirsiniz.',
+      message:
+          'Kanal kartlarına uzun basarak veya oynatıcı içinden 0 tuşuna basarak favorilerinizi ekleyebilirsiniz.',
       buttonLabel: s.navHome,
       onAction: () => context.read<AppState>().navigateToPage(0),
     );
@@ -210,7 +221,8 @@ class _TVTabState extends State<_TVTab> {
           decoration: BoxDecoration(
             color: _focused ? Colors.white10 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _focused ? AppTheme.accent : Colors.transparent),
+            border: Border.all(
+                color: _focused ? AppTheme.accent : Colors.transparent),
           ),
           child: Text(widget.label),
         ),

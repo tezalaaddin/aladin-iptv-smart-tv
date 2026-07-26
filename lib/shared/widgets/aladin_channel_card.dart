@@ -16,7 +16,8 @@ class ChannelCard extends StatefulWidget {
   final ChannelModel channel;
   final VoidCallback onTap;
   final VoidCallback? onFavoriteTap;
-  final VoidCallback? onLongPress; // Yeni: Uzun basma (Kaldır/Favoriden Çıkar için)
+  final VoidCallback?
+      onLongPress; // Yeni: Uzun basma (Kaldır/Favoriden Çıkar için)
   final double width;
   final double height;
   final bool showEpg;
@@ -44,12 +45,15 @@ class ChannelCard extends StatefulWidget {
 
 class _ChannelCardState extends State<ChannelCard> {
   bool _focused = false;
+  DateTime? _selectPressedAt;
   EpgProgramModel? _nowPlaying;
+  EpgProgramModel? _nextPlaying;
   bool _epgLoaded = false;
   Timer? _fetchTimer;
 
   static const _kHeaders = <String, String>{
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   };
 
   @override
@@ -62,7 +66,8 @@ class _ChannelCardState extends State<ChannelCard> {
   void _checkMetadata() {
     final ch = widget.channel;
     // Sadece film ve diziler için, eğer poster yoksa fetch planla
-    if (ch.contentType != 'tv' && (ch.tmdbPoster == null || ch.tmdbPoster!.isEmpty)) {
+    if (ch.contentType != 'tv' &&
+        (ch.tmdbPoster == null || ch.tmdbPoster!.isEmpty)) {
       // 1.5 saniye bekle; eğer kullanıcı hızlıca kaydırıp geçerse fetch yapma
       _fetchTimer = Timer(const Duration(milliseconds: 1500), _fetchMetadata);
     }
@@ -74,10 +79,13 @@ class _ChannelCardState extends State<ChannelCard> {
     try {
       Map<String, dynamic>? meta;
       if (ch.contentType == 'movie') {
-        meta = await TmdbService.instance.searchMovie(ch.name, year: ch.tmdbYear);
+        meta =
+            await TmdbService.instance.searchMovie(ch.name, year: ch.tmdbYear);
       } else if (ch.contentType == 'series') {
-        final sName = ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name;
-        meta = await TmdbService.instance.searchSeries(sName, year: ch.tmdbYear);
+        final sName =
+            ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name;
+        meta =
+            await TmdbService.instance.searchSeries(sName, year: ch.tmdbYear);
       }
 
       if (meta != null && mounted) {
@@ -107,8 +115,16 @@ class _ChannelCardState extends State<ChannelCard> {
     final ch = widget.channel;
     final id = (ch.tvgId?.isNotEmpty == true) ? ch.tvgId! : ch.name;
     try {
-      final now = await EpgService.instance.getNowPlaying(id, cleanName: ch.name);
-      if (mounted) setState(() { _nowPlaying = now; _epgLoaded = true; });
+      final now =
+          await EpgService.instance.getNowPlaying(id, cleanName: ch.name);
+      final upcoming = await EpgService.instance
+          .getUpcoming(id, cleanName: ch.name, limit: 1);
+      if (mounted)
+        setState(() {
+          _nowPlaying = now;
+          _nextPlaying = upcoming.isEmpty ? null : upcoming.first;
+          _epgLoaded = true;
+        });
     } catch (_) {
       if (mounted) setState(() => _epgLoaded = true);
     }
@@ -122,7 +138,8 @@ class _ChannelCardState extends State<ChannelCard> {
   bool get _hasCatchup => (widget.channel.catchupDays ?? 0) > 0;
 
   String get _cleanName {
-    final name = (widget.channel.contentType == 'series' && widget.channel.seriesName?.isNotEmpty == true)
+    final name = (widget.channel.contentType == 'series' &&
+            widget.channel.seriesName?.isNotEmpty == true)
         ? widget.channel.seriesName!
         : widget.channel.name;
     return name.replaceFirst(RegExp(r'^\d+[\.\-\)\s]+'), '').trim();
@@ -134,12 +151,15 @@ class _ChannelCardState extends State<ChannelCard> {
     final rating = _displayRating;
     final year = widget.channel.tmdbYear;
     final cleanName = _cleanName;
-    
+
     final bool isTv = widget.channel.contentType == 'tv';
 
-    final double progress = widget.seriesProgress ?? (widget.channel.totalDurationSeconds > 0 
-        ? (widget.channel.watchedSeconds / widget.channel.totalDurationSeconds).clamp(0.01, 1.0)
-        : 0.0);
+    final double progress = widget.seriesProgress ??
+        (widget.channel.totalDurationSeconds > 0
+            ? (widget.channel.watchedSeconds /
+                    widget.channel.totalDurationSeconds)
+                .clamp(0.01, 1.0)
+            : 0.0);
 
     return RepaintBoundary(
       child: Focus(
@@ -150,43 +170,67 @@ class _ChannelCardState extends State<ChannelCard> {
             // Kart odaklandığında ekranın ortasına veya görünür alana gelmesini sağlar
             Scrollable.ensureVisible(
               context,
-              alignment: 0.5, // 0.5 değeri kartı ekranın dikey/yatay ortasına getirir
+              alignment:
+                  0.5, // 0.5 değeri kartı ekranın dikey/yatay ortasına getirir
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             );
           }
         },
         onKeyEvent: (node, event) {
-          if (event is KeyDownEvent &&
-              (event.logicalKey == LogicalKeyboardKey.select ||
-                  event.logicalKey == LogicalKeyboardKey.enter)) {
-            // Not: TV Kumandasında uzun basma tespiti GestureDetector.onLongPress ile çalışır.
-            widget.onTap();
+          final isSelect = event.logicalKey == LogicalKeyboardKey.select ||
+              event.logicalKey == LogicalKeyboardKey.enter ||
+              event.logicalKey == LogicalKeyboardKey.gameButtonA;
+          if (!isSelect) return KeyEventResult.ignored;
+
+          if (event is KeyDownEvent) {
+            _selectPressedAt ??= DateTime.now();
             return KeyEventResult.handled;
           }
-          return KeyEventResult.ignored;
+          if (event is KeyRepeatEvent) return KeyEventResult.handled;
+          if (event is KeyUpEvent) {
+            final pressedAt = _selectPressedAt;
+            _selectPressedAt = null;
+            final held = pressedAt == null
+                ? Duration.zero
+                : DateTime.now().difference(pressedAt);
+            if (held >= const Duration(milliseconds: 650) &&
+                widget.onLongPress != null) {
+              widget.onLongPress!();
+            } else {
+              widget.onTap();
+            }
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.handled;
         },
         child: GestureDetector(
           onTap: widget.onTap,
           onLongPress: widget.onLongPress, // Uzun basma desteği eklendi
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200), // Odaklanma animasyon süresi
+            duration:
+                const Duration(milliseconds: 200), // Odaklanma animasyon süresi
             curve: Curves.easeInOut,
             width: widget.width, // AppTheme.cardWidth
             height: widget.height, // AppTheme.cardHeight
-            margin: widget.margin ?? const EdgeInsets.only(right: 12), // Kartlar arası boşluk
+            margin: widget.margin ??
+                const EdgeInsets.only(right: 12), // Kartlar arası boşluk
             transformAlignment: Alignment.center,
-            transform: Matrix4.identity()..scaleByDouble(isSelected ? 1.08 : 1.0, isSelected ? 1.08 : 1.0, 1.0, 1.0), // Odaklanınca %8 büyüme
+            transform: Matrix4.identity()
+              ..scaleByDouble(isSelected ? 1.08 : 1.0, isSelected ? 1.08 : 1.0,
+                  1.0, 1.0), // Odaklanınca %8 büyüme
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10), // Kart köşe yuvarlaması
               border: Border.all(
-                color: isSelected ? Colors.redAccent : Colors.transparent, // Odak çerçevesi
+                color: isSelected
+                    ? AppTheme.accent
+                    : Colors.transparent, // Odak çerçevesi
                 width: 3.0,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.redAccent.withValues(alpha:0.4),
+                        color: AppTheme.accent.withValues(alpha: 0.4),
                         blurRadius: 12,
                         spreadRadius: 2,
                       )
@@ -199,7 +243,7 @@ class _ChannelCardState extends State<ChannelCard> {
                 fit: StackFit.expand,
                 children: [
                   _buildContent(), // Afiş veya Logo
-  
+
                   // Alt karartma gradyanı
                   Positioned.fill(
                     child: DecoratedBox(
@@ -209,45 +253,60 @@ class _ChannelCardState extends State<ChannelCard> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withValues(alpha:0.05),
-                            Colors.black.withValues(alpha:0.7),
-                            Colors.black.withValues(alpha:0.9),
+                            Colors.black.withValues(alpha: 0.05),
+                            Colors.black.withValues(alpha: 0.7),
+                            Colors.black.withValues(alpha: 0.9),
                           ],
                           stops: const [0.0, 0.4, 0.8, 1.0],
                         ),
                       ),
                     ),
                   ),
-  
+
                   // IMDb Rozeti
                   if (rating.isNotEmpty)
                     Positioned(
-                      top: 6, left: 6,
-                      child: _Badge(text: rating, label: 'IMDb', color: const Color(0xFFF5C518), textColor: Colors.black),
+                      top: 6,
+                      left: 6,
+                      child: _Badge(
+                          text: rating,
+                          label: 'IMDb',
+                          color: const Color(0xFFF5C518),
+                          textColor: Colors.black),
                     ),
-  
+
                   // Yıl Rozeti
                   if (year != null && year.isNotEmpty)
                     Positioned(
-                      top: 6, right: 6,
-                      child: _Badge(text: year, color: Colors.black54, textColor: Colors.white, isYear: true),
+                      top: 6,
+                      right: 6,
+                      child: _Badge(
+                          text: year,
+                          color: Colors.black54,
+                          textColor: Colors.white,
+                          isYear: true),
                     ),
 
                   // Catchup Rozeti
                   if (_hasCatchup)
                     Positioned(
-                      bottom: isTv ? 34 : 6, right: 6,
+                      bottom: isTv ? 34 : 6,
+                      right: 6,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
-                        child: const Icon(Icons.history, color: Colors.white, size: 12),
+                        decoration: const BoxDecoration(
+                            color: Colors.blueAccent, shape: BoxShape.circle),
+                        child: const Icon(Icons.history,
+                            color: Colors.white, size: 12),
                       ),
                     ),
-  
+
                   // İsim ve EPG Bilgisi Alanı
                   Positioned(
-                    left: 0, right: 0, bottom: 0,
-                    height: isTv ? 50 : 85, // 4 satır için yükseklik
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: isTv ? 72 : 85,
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       child: Column(
@@ -258,16 +317,19 @@ class _ChannelCardState extends State<ChannelCard> {
                             displayName: cleanName,
                             channel: widget.channel,
                             nowPlaying: _epgLoaded ? _nowPlaying : null,
+                            nextPlaying: _epgLoaded ? _nextPlaying : null,
                           ),
                         ],
                       ),
                     ),
                   ),
-  
+
                   // İzleme İlerleme Çubuğu (VOD / Dizi)
                   if (progress > 0 && widget.channel.contentType != 'tv')
                     Positioned(
-                      left: 0, right: 0, bottom: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
                       child: Container(
                         height: 4,
                         alignment: Alignment.centerLeft,
@@ -276,11 +338,11 @@ class _ChannelCardState extends State<ChannelCard> {
                           widthFactor: progress,
                           child: Container(
                             decoration: const BoxDecoration(
-                              color: Colors.redAccent,
-                              boxShadow: [
-                                BoxShadow(color: Colors.redAccent, blurRadius: 4)
-                              ]
-                            ),
+                                color: AppTheme.accent,
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: AppTheme.accent, blurRadius: 4)
+                                ]),
                           ),
                         ),
                       ),
@@ -288,16 +350,20 @@ class _ChannelCardState extends State<ChannelCard> {
 
                   // EPG İlerleme Çubuğu (Sadece TV için)
                   if (isTv && _nowPlaying != null)
-                     Positioned(
-                      left: 0, right: 0, bottom: 0,
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
                       child: _EpgProgressBar(program: _nowPlaying!),
                     ),
 
                   // ⚡ OPTIMISTIC FAVORITE INDICATOR (MADDE 18)
                   if (widget.channel.isFavorite)
                     const Positioned(
-                      top: 6, right: 6,
-                      child: Icon(Icons.favorite, color: AppTheme.accent, size: 16),
+                      top: 6,
+                      right: 6,
+                      child: Icon(Icons.favorite,
+                          color: AppTheme.accent, size: 16),
                     ),
                 ],
               ),
@@ -316,7 +382,8 @@ class _ChannelCardState extends State<ChannelCard> {
     final String? playlistUrl = (ch.logoUrl != null && ch.logoUrl!.isNotEmpty)
         ? ch.logoUrl!.split('|').first.trim()
         : null;
-    final String? githubUrl = isTv ? AladinManualLogos.urlFor(ch.name, ch.tvgId) : null;
+    final String? githubUrl =
+        isTv ? AladinManualLogos.urlFor(ch.name, ch.tvgId) : null;
     final String? vodUrl = isTv ? null : ch.tmdbPoster;
 
     final color = _getChannelColor(ch.name);
@@ -332,7 +399,8 @@ class _ChannelCardState extends State<ChannelCard> {
         memCacheHeight: isTv ? 135 : 200,
         placeholder: (_, __) => _placeholder(color),
         errorWidget: (_, __, ___) {
-          if (vodUrl != null && vodUrl.isNotEmpty) return _img(vodUrl, BoxFit.cover);
+          if (vodUrl != null && vodUrl.isNotEmpty)
+            return _img(vodUrl, BoxFit.cover);
           if (githubUrl != null) return _img(githubUrl, fit);
           return _placeholder(color);
         },
@@ -345,7 +413,10 @@ class _ChannelCardState extends State<ChannelCard> {
 
     if (imageWidget != null) {
       if (isTv) {
-        return Container(color: AppTheme.card, padding: const EdgeInsets.fromLTRB(25, 10, 25, 25), child: Center(child: imageWidget)); // TV LOGO BUYUKLUGU
+        return Container(
+            color: AppTheme.card,
+            padding: const EdgeInsets.fromLTRB(25, 10, 25, 25),
+            child: Center(child: imageWidget)); // TV LOGO BUYUKLUGU
       }
       return imageWidget;
     }
@@ -353,14 +424,26 @@ class _ChannelCardState extends State<ChannelCard> {
   }
 
   Widget _img(String url, BoxFit fit) => CachedNetworkImage(
-    imageUrl: url, httpHeaders: _kHeaders, fit: fit,
-    memCacheWidth: 200, memCacheHeight: 300,
-    placeholder: (_, __) => _placeholder(_getChannelColor(widget.channel.name)),
-    errorWidget: (_, __, ___) => _placeholder(_getChannelColor(widget.channel.name)),
-  );
+        imageUrl: url,
+        httpHeaders: _kHeaders,
+        fit: fit,
+        memCacheWidth: 200,
+        memCacheHeight: 300,
+        placeholder: (_, __) =>
+            _placeholder(_getChannelColor(widget.channel.name)),
+        errorWidget: (_, __, ___) =>
+            _placeholder(_getChannelColor(widget.channel.name)),
+      );
 
   Color _getChannelColor(String name) {
-    const palette = [Color(0xFF378ADD), Color(0xFF1D9E75), Color(0xFFD85A30), Color(0xFFD4537E), Color(0xFF7F77DD), Color(0xFFBA7517)];
+    const palette = [
+      Color(0xFF378ADD),
+      Color(0xFF1D9E75),
+      Color(0xFFD85A30),
+      Color(0xFFD4537E),
+      Color(0xFF7F77DD),
+      Color(0xFFBA7517)
+    ];
     if (name.isEmpty) return palette[0];
     final h = name.codeUnits.fold(0, (a, c) => (a * 31 + c) & 0x7fffffff);
     return palette[h % palette.length];
@@ -368,8 +451,8 @@ class _ChannelCardState extends State<ChannelCard> {
 
   Widget _placeholder(Color color) {
     final ch = widget.channel;
-    final seriesInfo = (ch.contentType == 'series' && ch.season != null) 
-        ? 'S${ch.season} E${ch.episode ?? '?'}' 
+    final seriesInfo = (ch.contentType == 'series' && ch.season != null)
+        ? 'S${ch.season} E${ch.episode ?? '?'}'
         : '';
     return Container(
       color: AppTheme.card,
@@ -383,11 +466,18 @@ class _ChannelCardState extends State<ChannelCard> {
               textAlign: TextAlign.center,
               maxLines: 4, // 4 Satır
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold),
             ),
             if (seriesInfo.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(seriesInfo, style: const TextStyle(color: AppTheme.accent, fontSize: 11, fontWeight: FontWeight.w900)),
+              Text(seriesInfo,
+                  style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900)),
             ],
           ],
         ),
@@ -400,38 +490,64 @@ class _NameBar extends StatelessWidget {
   final String displayName;
   final ChannelModel channel;
   final EpgProgramModel? nowPlaying;
-  const _NameBar({required this.displayName, required this.channel, this.nowPlaying});
+  final EpgProgramModel? nextPlaying;
+  const _NameBar(
+      {required this.displayName,
+      required this.channel,
+      this.nowPlaying,
+      this.nextPlaying});
 
   @override
   Widget build(BuildContext context) {
     final hasEpg = nowPlaying != null;
-    final seriesInfo = (channel.contentType == 'series' && channel.season != null) 
-        ? 'S${channel.season} E${channel.episode ?? '?'}' 
-        : '';
+    final seriesInfo =
+        (channel.contentType == 'series' && channel.season != null)
+            ? 'S${channel.season} E${channel.episode ?? '?'}'
+            : '';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          displayName,
-          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, height: 1.1),
-          maxLines: hasEpg ? 1 : 4, 
+          channel.contentType == 'tv'
+              ? '#${channel.sortOrder + 1}  $displayName'
+              : displayName,
+          style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              height: 1.1),
+          maxLines: hasEpg ? 1 : 4,
           overflow: TextOverflow.ellipsis,
         ),
         if (seriesInfo.isNotEmpty) ...[
           const SizedBox(height: 2),
-          Text(seriesInfo, style: const TextStyle(color: AppTheme.accent, fontSize: 9, fontWeight: FontWeight.w900)),
+          Text(seriesInfo,
+              style: const TextStyle(
+                  color: AppTheme.accent,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900)),
         ],
         if (hasEpg) ...[
           const SizedBox(height: 2),
           Text(
             'Şu an: ${nowPlaying!.title}',
-            style: const TextStyle(color: AppTheme.accent, fontSize: 9, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: AppTheme.accent,
+                fontSize: 11,
+                fontWeight: FontWeight.bold),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],
+        if (nextPlaying != null)
+          Text(
+            'Sonraki: ${nextPlaying!.title}',
+            style: const TextStyle(color: Colors.white70, fontSize: 10),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       ],
     );
   }
@@ -443,20 +559,37 @@ class _Badge extends StatelessWidget {
   final Color color;
   final Color textColor;
   final bool isYear;
-  const _Badge({required this.text, this.label, required this.color, required this.textColor, this.isYear = false});
+  const _Badge(
+      {required this.text,
+      this.label,
+      required this.color,
+      required this.textColor,
+      this.isYear = false});
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (label != null) ...[Text(label!, style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900, color: textColor)), const SizedBox(width: 3)],
-        Text(text, style: TextStyle(fontSize: isYear ? 8 : 9, fontWeight: FontWeight.w900, color: textColor)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        decoration:
+            BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (label != null) ...[
+              Text(label!,
+                  style: TextStyle(
+                      fontSize: 7,
+                      fontWeight: FontWeight.w900,
+                      color: textColor)),
+              const SizedBox(width: 3)
+            ],
+            Text(text,
+                style: TextStyle(
+                    fontSize: isYear ? 8 : 9,
+                    fontWeight: FontWeight.w900,
+                    color: textColor)),
+          ],
+        ),
+      );
 }
 
 class _EpgProgressBar extends StatefulWidget {
@@ -487,7 +620,8 @@ class _EpgProgressBarState extends State<_EpgProgressBar> {
   void _update() {
     if (!mounted) return;
     final now = DateTime.now();
-    final total = widget.program.endTime.difference(widget.program.startTime).inSeconds;
+    final total =
+        widget.program.endTime.difference(widget.program.startTime).inSeconds;
     final elapsed = now.difference(widget.program.startTime).inSeconds;
     if (total > 0) {
       setState(() => _progress = (elapsed / total).clamp(0.0, 1.0));

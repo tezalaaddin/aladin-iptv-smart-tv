@@ -16,6 +16,7 @@ import java.util.ArrayList
 import android.media.tv.TvContract
 import android.content.ContentValues
 import android.net.Uri
+import android.content.ContentUris
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "aladin/exoplayer"
@@ -35,11 +36,11 @@ class MainActivity : FlutterFragmentActivity() {
     private fun handleIntent(intent: Intent?) {
         intent?.data?.let { uri ->
             if (uri.scheme == "aladin" && uri.host == "play") {
-                val url = uri.getQueryParameter("url")
-                if (url != null) {
+                val channelId = uri.getQueryParameter("id")?.toIntOrNull()
+                if (channelId != null) {
                     // Flutter'a bu URL'yi oynatması için sinyal gönder
                     mainHandler.postDelayed({
-                        methodChannel?.invokeMethod("playUrl", mapOf("url" to url))
+                        methodChannel?.invokeMethod("playChannelId", mapOf("id" to channelId))
                     }, 1000)
                 }
             }
@@ -125,8 +126,12 @@ class MainActivity : FlutterFragmentActivity() {
                 val title = call.argument<String>("title")
                 val description = call.argument<String>("description")
                 val poster = call.argument<String>("poster")
-                val url = call.argument<String>("url")
+                val channelId = call.argument<String>("channelId")
                 val contentType = call.argument<String>("contentType") ?: "movie"
+                if (channelId.isNullOrBlank()) {
+                    result.success(false)
+                    return@setMethodCallHandler
+                }
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     try {
@@ -137,12 +142,33 @@ class MainActivity : FlutterFragmentActivity() {
                             put(TvContract.WatchNextPrograms.COLUMN_TITLE, title)
                             put(TvContract.WatchNextPrograms.COLUMN_LONG_DESCRIPTION, description)
                             put(TvContract.WatchNextPrograms.COLUMN_POSTER_ART_URI, poster)
-                            put(TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID, url)
+                            put(TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID, channelId)
                             // Bu program tıklandığında uygulamayı açması için gereken Intent URI'si
-                            put(TvContract.WatchNextPrograms.COLUMN_INTENT_URI, "aladin://play?url=$url")
+                            put(TvContract.WatchNextPrograms.COLUMN_INTENT_URI, "aladin://play?id=$channelId")
                         }
-                        val uri = contentResolver.insert(TvContract.WatchNextPrograms.CONTENT_URI, values)
-                        result.success(uri != null)
+                        var existingId: Long? = null
+                        contentResolver.query(
+                            TvContract.WatchNextPrograms.CONTENT_URI,
+                            arrayOf(TvContract.WatchNextPrograms._ID),
+                            "${TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID} = ?",
+                            arrayOf(channelId),
+                            null
+                        )?.use { cursor ->
+                            if (cursor.moveToFirst()) existingId = cursor.getLong(0)
+                        }
+                        val changed = if (existingId != null) {
+                            val existingUri = ContentUris.withAppendedId(
+                                TvContract.WatchNextPrograms.CONTENT_URI,
+                                existingId!!
+                            )
+                            contentResolver.update(existingUri, values, null, null) > 0
+                        } else {
+                            contentResolver.insert(
+                                TvContract.WatchNextPrograms.CONTENT_URI,
+                                values
+                            ) != null
+                        }
+                        result.success(changed)
                     } catch (e: Exception) {
                         result.error("WATCH_NEXT_ERROR", e.message, null)
                     }
@@ -162,7 +188,6 @@ class MainActivity : FlutterFragmentActivity() {
                                 put("name", item["name"])
                                 put("category", item["category"])
                                 put("logo", item["logo"])
-                                put("url", item["url"])
                             }
                             db.insert("search_items", null, values)
                         }

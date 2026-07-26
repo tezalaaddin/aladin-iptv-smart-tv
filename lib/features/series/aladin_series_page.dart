@@ -1,5 +1,6 @@
 import '../../core/models/aladin_category_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_playlist_model.dart';
@@ -52,7 +53,9 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
     // Eğer liste boşsa veya sadece URL'si boş olan "ana seri kaydı" varsa bölümleri çek
     // ⚡ CACHE: 24 saat kuralını uygula (shouldRefetchEpisodes)
     final onlyMainEntry = eps.length == 1 && eps.first.url.isEmpty;
-    final needsFetch = eps.isEmpty || onlyMainEntry || (eps.isNotEmpty && eps.first.shouldRefetchEpisodes);
+    final needsFetch = eps.isEmpty ||
+        onlyMainEntry ||
+        (eps.isNotEmpty && eps.first.shouldRefetchEpisodes);
 
     if (needsFetch && widget.seriesId != null) {
       final state = context.read<AppState>();
@@ -134,7 +137,8 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.accent))
           : LayoutBuilder(builder: (_, cns) {
-              final wide = cns.maxWidth > 500; // Geniş ekran (TV/Tablet) kontrolü
+              final wide =
+                  cns.maxWidth > 500; // Geniş ekran (TV/Tablet) kontrolü
               return wide ? _wideLayout(state) : _narrowLayout(state, _seasons);
             }),
     );
@@ -142,8 +146,11 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
 
   Widget _wideLayout(AppState state) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 220, child: _infoPanel(state)), // Sol bilgi paneli genişliği (220)
-      const VerticalDivider(width: 1, color: AppTheme.divider), // Dikey çizgi kalınlığı
+      SizedBox(
+          width: 220,
+          child: _infoPanel(state)), // Sol bilgi paneli genişliği (220)
+      const VerticalDivider(
+          width: 1, color: AppTheme.divider), // Dikey çizgi kalınlığı
       Expanded(child: _episodeList(state)),
     ]);
   }
@@ -167,7 +174,9 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
               borderRadius: BorderRadius.circular(8), // Afiş köşe yuvarlaması
               child: Image.network(rep!.tmdbPoster!,
                   width: double.infinity,
-                  height: compact ? 120 : 180, // Mobilde 120, TV'de 180 afiş yüksekliği
+                  height: compact
+                      ? 120
+                      : 180, // Mobilde 120, TV'de 180 afiş yüksekliği
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink())),
         const SizedBox(height: 10), // Afiş-İsim arası boşluk
@@ -178,7 +187,8 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
         if (rep?.imdbRating != null) ...[
           const SizedBox(height: 6), // Yıl-Yıldız arası boşluk
           Row(children: [
-            const Icon(Icons.star, color: AppTheme.favorite, size: 14), // Yıldız ikon boyutu
+            const Icon(Icons.star,
+                color: AppTheme.favorite, size: 14), // Yıldız ikon boyutu
             const SizedBox(width: 4), // Yıldız-Puan arası boşluk
             Text('${rep!.imdbRating}/10',
                 style: const TextStyle(
@@ -212,7 +222,8 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
     final s = context.read<AppState>().s;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 4), // Sezon çubuğu dış boşluğu
+      padding:
+          const EdgeInsets.fromLTRB(14, 8, 14, 4), // Sezon çubuğu dış boşluğu
       child: Row(children: [
         _SChip(
             label: s.all,
@@ -235,7 +246,7 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
         itemCount: _filtered.length,
         itemBuilder: (_, i) {
           final ep = _filtered[i];
-          final double progress = ep.totalDurationSeconds > 0 
+          final double progress = ep.totalDurationSeconds > 0
               ? (ep.watchedSeconds / ep.totalDurationSeconds).clamp(0.0, 1.0)
               : 0.0;
 
@@ -255,8 +266,8 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12)))),
                 title: Text(ep.name,
-                    style:
-                        const TextStyle(color: AppTheme.textPrimary, fontSize: 13),
+                    style: const TextStyle(
+                        color: AppTheme.textPrimary, fontSize: 13),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 subtitle: Row(children: [
@@ -264,14 +275,20 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
                     Text('S${ep.season}', style: AppTheme.caption),
                   if (ep.quality != null)
                     Padding(
-                        padding: const EdgeInsets.only(left: 8), // Sezon-Kalite arası boşluk
+                        padding: const EdgeInsets.only(
+                            left: 8), // Sezon-Kalite arası boşluk
                         child: Text(ep.quality!,
-                            style:
-                                AppTheme.caption.copyWith(color: AppTheme.accent))),
+                            style: AppTheme.caption
+                                .copyWith(color: AppTheme.accent))),
                 ]),
-                trailing: const Icon(Icons.play_arrow, color: AppTheme.accent), // Oynat ikon boyutu (varsayılan 24)
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => PlayerPage(channel: ep, playlist: _filtered))),
+                trailing: const Icon(Icons.play_arrow,
+                    color:
+                        AppTheme.accent), // Oynat ikon boyutu (varsayılan 24)
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            PlayerPage(channel: ep, playlist: _filtered))),
               ),
               if (progress > 0)
                 Padding(
@@ -295,26 +312,61 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
   }
 }
 
-class _SChip extends StatelessWidget {
+class _SChip extends StatefulWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
   const _SChip(
       {required this.label, required this.active, required this.onTap});
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(right: 8), // Çipler arası boşluk
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), // Çip iç boşluğu
-          decoration: BoxDecoration(
-              color: active ? AppTheme.accent : AppTheme.card,
-              borderRadius: BorderRadius.circular(20)), // Çip yuvarlaması
-          child: Text(label,
-              style: TextStyle(
-                  color: active ? Colors.white : AppTheme.textSecondary,
-                  fontSize: 12,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w400)),
+  State<_SChip> createState() => _SChipState();
+}
+
+class _SChipState extends State<_SChip> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) => Focus(
+        onFocusChange: (value) => setState(() => _focused = value),
+        onKeyEvent: (_, event) {
+          if (event is KeyDownEvent &&
+              (event.logicalKey == LogicalKeyboardKey.select ||
+                  event.logicalKey == LogicalKeyboardKey.enter ||
+                  event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
+            widget.onTap();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            margin: const EdgeInsets.only(right: 8), // Çipler arası boşluk
+            padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 6), // Çip iç boşluğu
+            decoration: BoxDecoration(
+                color: _focused
+                    ? Colors.white
+                    : (widget.active ? AppTheme.accent : AppTheme.card),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: _focused ? AppTheme.accent : Colors.transparent,
+                  width: 2,
+                )), // Çip yuvarlaması
+            child: Text(widget.label,
+                style: TextStyle(
+                    color: _focused
+                        ? Colors.black
+                        : (widget.active
+                            ? Colors.white
+                            : AppTheme.textSecondary),
+                    fontSize: 12,
+                    fontWeight: widget.active || _focused
+                        ? FontWeight.w700
+                        : FontWeight.w400)),
+          ),
         ),
       );
 }
@@ -370,7 +422,7 @@ class _SeriesPageState extends State<SeriesPage> {
 
     final cw = await ChannelService.instance.getContinueWatching(id);
     final seriesCW = cw.where((c) => c.contentType == 'series').toList();
-    
+
     final progress = await ChannelService.instance.getSeriesProgressMap(id);
 
     if (!mounted) return;
@@ -389,16 +441,25 @@ class _SeriesPageState extends State<SeriesPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
-        title: Text(s.continueWatching, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeListQ(ch.seriesName ?? ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        title: Text(s.continueWatching,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(s.removeListQ(ch.seriesName ?? ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.delete, style: const TextStyle(color: Colors.redAccent))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.delete,
+                  style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
     if (ok == true) {
-      await ChannelService.instance.updateWatched(ch.id, 0); // Progress sıfırlayarak listeden çıkarır
+      await ChannelService.instance
+          .updateWatched(ch.id, 0); // Progress sıfırlayarak listeden çıkarır
       if (_loadedId != null) _load(_loadedId!);
     }
   }
@@ -410,10 +471,17 @@ class _SeriesPageState extends State<SeriesPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(s.favorites, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeFavoriteQ(ch.seriesName ?? ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        content: Text(s.removeFavoriteQ(ch.seriesName ?? ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.delete, style: const TextStyle(color: Colors.redAccent))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.delete,
+                  style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -444,7 +512,7 @@ class _SeriesPageState extends State<SeriesPage> {
     return Consumer<AppState>(builder: (_, state, __) {
       final s = state.s;
       final noList = state.active == null;
-      
+
       if (noList) {
         return AladinEmptyState(
           icon: Icons.video_library_outlined,
@@ -461,75 +529,80 @@ class _SeriesPageState extends State<SeriesPage> {
             onRefresh:
                 state.active != null ? () => _load(state.active!.id) : null),
         body: _loading && _categories.isEmpty
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.accent))
-                : _categories.isEmpty
-                    ? Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            const Icon(Icons.video_library_outlined,
-                                size: 50, color: AppTheme.textMuted),
-                            const SizedBox(height: 12),
-                            Text(s.noSeriesFound,
-                                style: const TextStyle(
-                                    color: AppTheme.textSecondary)),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                                onPressed: () => _load(state.active!.id),
-                                autofocus: true,
-                                icon: const Icon(Icons.refresh),
-                                label: Text(s.retry)),
-                          ]))
-                    : CustomScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        slivers: [
-                            SliverPadding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: MediaQuery.of(context).size.width * 0.05, // Sol-sağ güvenli alan boşluğu
-                              ),
-                              sliver: SliverList(
-                                delegate: SliverChildListDelegate([
-                                  if (_continueWatching.isNotEmpty)
-                                    _SeriesFavStrip(
-                                      title: state.s.continueWatch,
-                                      channels: _continueWatching,
-                                      progressMap: _seriesProgress,
-                                      onTap: (ch) => _onSeriesTap(ch, state.active!.id),
-                                      onLongPress: (ch) => _confirmRemoveCW(ch),
-                                    ),
-                                  if (_favorites.isNotEmpty)
-                                    _SeriesFavStrip(
-                                      title: state.s.favorites,
-                                      channels: _favorites,
-                                      progressMap: _seriesProgress,
-                                      onTap: (ch) => _onSeriesTap(ch, state.active!.id),
-                                      onLongPress: (ch) => _confirmRemoveFavorite(ch),
-                                    ),
-                                ]),
-                              ),
-                            ),
-                            SliverPadding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: MediaQuery.of(context).size.width * 0.05, // Sol-sağ güvenli alan boşluğu
-                              ),
-                              sliver: SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                (_, i) => CategoryRow(
-                                  key: ValueKey(_categories[i].id),
-                                  category: _categories[i],
-                                  playlistId: state.active!.id,
-                                  seriesProgressMap: _seriesProgress,
-                                  onChannelTap: (ch, list) =>
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.accent))
+            : _categories.isEmpty
+                ? Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                        const Icon(Icons.video_library_outlined,
+                            size: 50, color: AppTheme.textMuted),
+                        const SizedBox(height: 12),
+                        Text(s.noSeriesFound,
+                            style:
+                                const TextStyle(color: AppTheme.textSecondary)),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                            onPressed: () => _load(state.active!.id),
+                            autofocus: true,
+                            icon: const Icon(Icons.refresh),
+                            label: Text(s.retry)),
+                      ]))
+                : CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MediaQuery.of(context).size.width *
+                                0.05, // Sol-sağ güvenli alan boşluğu
+                          ),
+                          sliver: SliverList(
+                            delegate: SliverChildListDelegate([
+                              if (_continueWatching.isNotEmpty)
+                                _SeriesFavStrip(
+                                  title: state.s.continueWatch,
+                                  channels: _continueWatching,
+                                  progressMap: _seriesProgress,
+                                  onTap: (ch) =>
                                       _onSeriesTap(ch, state.active!.id),
-                                  onCategoryTap: widget.onCategoryTap,
+                                  onLongPress: (ch) => _confirmRemoveCW(ch),
                                 ),
-                                childCount: _categories.length,
-                              )),
+                              if (_favorites.isNotEmpty)
+                                _SeriesFavStrip(
+                                  title: state.s.favorites,
+                                  channels: _favorites,
+                                  progressMap: _seriesProgress,
+                                  onTap: (ch) =>
+                                      _onSeriesTap(ch, state.active!.id),
+                                  onLongPress: (ch) =>
+                                      _confirmRemoveFavorite(ch),
+                                ),
+                            ]),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MediaQuery.of(context).size.width *
+                                0.05, // Sol-sağ güvenli alan boşluğu
+                          ),
+                          sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                            (_, i) => CategoryRow(
+                              key: ValueKey(_categories[i].id),
+                              category: _categories[i],
+                              playlistId: state.active!.id,
+                              seriesProgressMap: _seriesProgress,
+                              onChannelTap: (ch, list) =>
+                                  _onSeriesTap(ch, state.active!.id),
+                              onCategoryTap: widget.onCategoryTap,
                             ),
-                            const SliverToBoxAdapter(
-                                child: SizedBox(height: 40)), // Liste sonu boşluğu
-                          ]),
+                            childCount: _categories.length,
+                          )),
+                        ),
+                        const SliverToBoxAdapter(
+                            child: SizedBox(height: 40)), // Liste sonu boşluğu
+                      ]),
       );
     });
   }
@@ -555,25 +628,30 @@ class _SeriesFavStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 8), // Şerit başlığı dış boşluğu
+            padding: const EdgeInsets.fromLTRB(
+                14, 16, 14, 8), // Şerit başlığı dış boşluğu
             child: Text(title, style: AppTheme.headingMedium),
           ),
           SizedBox(
             height: AppTheme.listHeight, // Standart şerit yüksekliği
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 14), // Şerit içi yan boşluklar
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14), // Şerit içi yan boşluklar
               itemCount: channels.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12), // Kartlar arası boşluk
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: 12), // Kartlar arası boşluk
               clipBehavior: Clip.none,
               itemBuilder: (_, i) {
                 final ch = channels[i];
-                final prog = progressMap[ch.seriesName?.trim() ?? ch.name.trim()];
+                final prog =
+                    progressMap[ch.seriesName?.trim() ?? ch.name.trim()];
                 return ChannelCard(
                   channel: ch,
                   seriesProgress: prog,
                   onTap: () => onTap(ch),
-                  onLongPress: onLongPress != null ? () => onLongPress!(ch) : null,
+                  onLongPress:
+                      onLongPress != null ? () => onLongPress!(ch) : null,
                 );
               },
             ),

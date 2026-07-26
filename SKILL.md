@@ -1,18 +1,18 @@
 ---
-name: aladin Media Player Pro TV
+name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+44
+version: 2.3.1+47
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
 ---
-# aladin Media Player Pro TV
+# aladin IPTV Player Pro TV
 
 ## ENGLISH
 ==========
-# Technical Expertise & Project Architecture: aladin Media Player Pro TV
+# Technical Expertise & Project Architecture: aladin IPTV Player Pro TV
 
-This document outlines the advanced engineering principles, architectural patterns, and technical stack implemented in the development of **aladin Media Player Pro TV**.
+This document outlines the advanced engineering principles, architectural patterns, and technical stack implemented in the development of **aladin IPTV Player Pro TV**.
 
 ## 🏗️ System Architecture & Performance Optimization
 * **Multi-Threaded Data Processing (Isolates):** Leveraged Dart's `Isolate` (via `compute`) to handle heavy M3U parsing logic. This ensures that even with playlists containing 50,000+ entries, the UI remains responsive at 60 FPS by offloading CPU-intensive tasks to background threads.
@@ -40,11 +40,11 @@ This document outlines the advanced engineering principles, architectural patter
 
 ## TÜRKÇE
 ==========
-# aladin Media Player Pro TV
+# aladin IPTV Player Pro TV
 
-# 🛠 Teknik Yetkinlikler ve Proje Özellikleri: aladin Media Player Pro TV
+# 🛠 Teknik Yetkinlikler ve Proje Özellikleri: aladin IPTV Player Pro TV
 
-Bu dosya, **aladin Media Player Pro TV** projesinin geliştirilme sürecinde kullanılan mimari yaklaşımları, teknik becerileri ve uygulanan çözüm yöntemlerini detaylandırmaktadır.
+Bu dosya, **aladin IPTV Player Pro TV** projesinin geliştirilme sürecinde kullanılan mimari yaklaşımları, teknik becerileri ve uygulanan çözüm yöntemlerini detaylandırmaktadır.
 
 ## 🚀 Temel Mimari ve Performans (Core Architecture)
 * **İzole Veri İşleme (High-Performance Isolate Parsing):** On binlerce satırlık M3U dosyalarının UI thread'ini dondurmadan işlenmesi için Flutter `compute` altyapısı ile asenkron ayrıştırma (parsing) yönetimi.
@@ -70,7 +70,7 @@ Bu dosya, **aladin Media Player Pro TV** projesinin geliştirilme sürecinde kul
 
 ---
 
-# aladin Media Player Pro TV — Skill Manifest
+# aladin IPTV Player Pro TV — Skill Manifest
 ### Version 2.3.0 · Flutter · Android TV
 
 ---
@@ -97,7 +97,7 @@ Bu dosya, **aladin Media Player Pro TV** projesinin geliştirilme sürecinde kul
 
 ## 1. Giriş ve Amaç
 
-aladin Media Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtream Codes veya yerel .m3u dosyası olarak) getirerek 60.000'i aşkın kanalı; Android TV için tasarlanmış yüksek performanslı bir arayüzle izlemesini sağlar. Uygulama, video oynatımı için ExoPlayer (Media3) tabanlı native Android katmanını, yönetim ve UI için Flutter katmanını kullanır.
+aladin IPTV Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtream Codes veya yerel .m3u dosyası olarak) getirerek 60.000'i aşkın kanalı; Android TV için tasarlanmış yüksek performanslı bir arayüzle izlemesini sağlar. Uygulama, video oynatımı için ExoPlayer (Media3) tabanlı native Android katmanını, yönetim ve UI için Flutter katmanını kullanır.
 
 ---
 
@@ -147,7 +147,7 @@ aladin Media Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtr
 
 
 
-# aladin Media Player Pro TV — Skill Manifest
+# aladin IPTV Player Pro TV — Skill Manifest
 ### Version 2.0.0 · Flutter · Android TV
 
 ---
@@ -194,7 +194,7 @@ aladin Media Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtr
 
 ## 1. Giriş ve Amaç
 
-aladin Media Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtream Codes veya yerel .m3u dosyası olarak) getirerek 60.000'i aşkın kanalı; **Canlı TV**, **Film** ve **Dizi** olmak üzere üç ana kategoride listeleyip izlemesini sağlayan, Android TV için tasarlanmış yüksek performanslı bir IPTV oynatıcı uygulamasıdır. Uygulama içinde hiçbir içerik barındırmaz; tamamen kullanıcı tarafından sağlanan listelerle çalışır. Video oynatımı ExoPlayer (Media3) tabanlı native Android katmanında gerçekleşir; Flutter katmanı navigasyon, liste yönetimi, veritabanı ve UI'den sorumludur.
+aladin IPTV Player Pro TV, kullanıcının kendi IPTV lisansını (M3U URL, Xtream Codes veya yerel .m3u dosyası olarak) getirerek 60.000'i aşkın kanalı; **Canlı TV**, **Film** ve **Dizi** olmak üzere üç ana kategoride listeleyip izlemesini sağlayan, Android TV için tasarlanmış yüksek performanslı bir IPTV oynatıcı uygulamasıdır. Uygulama içinde hiçbir içerik barındırmaz; tamamen kullanıcı tarafından sağlanan listelerle çalışır. Video oynatımı ExoPlayer (Media3) tabanlı native Android katmanında gerçekleşir; Flutter katmanı navigasyon, liste yönetimi, veritabanı ve UI'den sorumludur.
 
 ---
 
@@ -914,7 +914,7 @@ Buraya import progress ekranının görüntüsünü ekle.
 
 ## Introduction & Purpose
 
-aladin Media Player Pro TV is a high-performance Android TV IPTV player that allows users to bring their own IPTV license (as an M3U URL, Xtream Codes credentials, or local .m3u file) and browse 60,000+ channels across **Live TV**, **Movies**, and **Series** categories. The app holds no content; it works entirely with user-provided playlists. Video playback runs in a native ExoPlayer (Media3) Android layer; Flutter handles navigation, list management, database, and UI.
+aladin IPTV Player Pro TV is a high-performance Android TV IPTV player that allows users to bring their own IPTV license (as an M3U URL, Xtream Codes credentials, or local .m3u file) and browse 60,000+ channels across **Live TV**, **Movies**, and **Series** categories. The app holds no content; it works entirely with user-provided playlists. Video playback runs in a native ExoPlayer (Media3) Android layer; Flutter handles navigation, list management, database, and UI.
 
 ---
 
@@ -1421,8 +1421,8 @@ Projenizdeki tüm "aladinIPTV" ve "aladinIptv" ifadelerini marka isminiz olan "A
 Yapılan Temel Değişiklikler:
 1.Versiyon Güncelleme: pubspec.yaml dosyası v.2.2.0+3 olarak güncellendi.
 2.Marka İsmi (Görünür İsimler):
-◦README.md başlığı ve içerikleri "Aladin Media Player Pro TV" olarak güncellendi.
-◦Uygulama içi ayarlar sayfasındaki "aladinIPTV Player Pro" yazıları (tüm dillerde) "Aladin Media Player Pro TV" olarak düzeltildi.
+◦README.md başlığı ve içerikleri "aladin IPTV Player Pro TV" olarak güncellendi.
+◦Uygulama içi ayarlar sayfasındaki "aladinIPTV Player Pro" yazıları (tüm dillerde) "aladin IPTV Player Pro TV" olarak düzeltildi.
 ◦pubspec.yaml içindeki uygulama açıklaması profesyonel hale getirildi.
 3.Teknik Uyum (Bundle IDs):
 ◦iOS ve macOS tarafındaki örnek paket adları (com.example.aladinIptvPro), Android paket adınızla aynı olacak şekilde com.aladin.iptv.player.pro olarak güncellendi. Bu, uygulamanın tüm platformlarda aynı kimliğe sahip olmasını sağlar.
@@ -1614,7 +1614,7 @@ Claude Raporu ve Play Console önerileri doğrultusunda yapılan kritik performa
    •   Akıllı Odak Tespiti: Global tuş dinleyicisine isEditable kontrolü eklenerek, odak bir metin alanındayken sayı tuşlarının sadece o alana yazması sağlandı.
 4. Arayüz ve UI Fixleri:
    •   Bayrak Desteği: Dil seçim menüsündeki seçeneklerin başına ülke emojileri (🇹🇷, 🇺🇸, 🇩🇪 vb.) eklenerek görsel kalite artırıldı.
-   •   Logo Overflow Fix: Küçük ekranlı tablet/TV'lerde yan menüdeki "Aladin Player" logosunun taşma hatası (RenderFlex overflow) Expanded ve ellipsis yapısıyla çözüldü.
+   •   Logo Overflow Fix: Küçük ekranlı tablet/TV'lerde yan menüdeki "aladin IPTV Player Pro TV" logosunun taşma hatası (RenderFlex overflow) Expanded ve ellipsis yapısıyla çözüldü.
    Teknik Özet (Geliştiriciler İçin):
    •   Build: targetSdk 36, compileSdk 36 güncellendi.
    •   Native: NativePlayerActivity içinde isLowEnd cihaz tespiti ve dinamik DefaultRenderersFactory yapılandırması uygulandı.
@@ -1725,7 +1725,7 @@ Neler Yaptım?
 4.  **Stabilite ve Hata Düzeltmeleri:** Oynatıcı bilgilerini gösterirken yaşanan uygulama çökme hatası (String format hatası) giderildi ve Tanılama verilerinin doğruluğu artırıldı.
 
 ## V2.2.0+32 Sürüm Notları:
-1.  **Bellek ve Performans (OOM Koruması):**
+1.  **Bellek ve Performans (OOM Koruması):** 
     *   `getRecentlyAdded()` ve `_enrichChannelLogos()` fonksiyonları, on binlerce kanal içeren listelerde belleğin dolmasını (OOM) önlemek için veritabanı seviyesinde limitli ve batch (paket) tabanlı çalışacak şekilde optimize edildi.
     *   `updateCategoryCountsForPlaylist` fonksiyonu, N+1 sorgu sorununu çözecek şekilde toplu işlem mimarisine geçirildi.
 2.  **Veri Güvenliği ve Kararlılık:**
@@ -1734,7 +1734,7 @@ Neler Yaptım?
 3.  **İzleme Deneyimi İyileştirmeleri:**
     *   **Dizi İlerleme Takibi:** Dizi ana sayfasındaki ilerleme çubukları, artık dizideki tüm bölümlerin gerçek izlenme ortalamasını yansıtıyor.
     *   **Akıllı Dizi Cache:** Dizi detay sayfaları, her açılışta API'ye gitmek yerine 24 saatlik önbellek (cache) kuralını uygulamaya başladı.
-4.  **Hata Yönetimi ve Temizlik:**
+4.  **Hata Yönetimi ve Temizlik:** 
     *   TMDB API anahtarı build sırasında verilmemişse, uygulamanın çökmesi yerine ilgili özelliklerin (afiş/özet) sessizce ve güvenle devre dışı kalması sağlandı.
     *   Üretim (Production) logları temizlendi; `print` komutları yerini `debugPrint`'e bıraktı.
 
@@ -1773,15 +1773,15 @@ Neler Yaptım?
     *   **Kaydırma Kilidi:** Grid içinde gezerken TabView'ın yanlışlıkla diğer sekmelere kayması (Swipe) engellendi.
 2.  **Veri Güvenliği ve Stabilite:**
     *   **Empty State Navigasyonu:** Favori listesi boş olsa dahi odağın TabBar'da kalarak kullanıcıyı hapsetmemesi sağlandı.
-
+ 
 ## V2.2.0+36 Sürüm Notları:
-1.  **Elite Deep Link & Play Request Handling:**
+1.  **Elite Deep Link & Play Request Handling:** 
     *   Android TV "Watch Next" veya sistem arama sonuçlarından gelen tıklamalar için `playUrl` desteği eklendi. Uygulama, dışarıdan gelen içeriği otomatik olarak bulup oynatıcıyı başlatabiliyor.
-2.  **Gelişmiş Geri (Back) Tuşu Mimarisi:**
+2.  **Gelişmiş Geri (Back) Tuşu Mimarisi:** 
     *   Navigasyon hiyerarşisi modernize edildi: İçerik alanındayken "Geri" -> Yan menüye odaklan; Yan menüdeyken "Geri" -> Home sekmesine git; Home sekmesindeyken "Geri" -> Çıkış onayı.
-3.  **Kesintisiz Odak (Root Focus Scope):**
+3.  **Kesintisiz Odak (Root Focus Scope):** 
     *   `main.dart` ve `MainPage` seviyesine eklenen hiyerarşik `FocusScope` yapıları ile uygulama açılışında veya sayfa geçişlerinde odağın "boşluğa" düşme ihtimali ortadan kaldırıldı.
-4.  **Hızlı Sekme Görselleştirme:**
+4.  **Hızlı Sekme Görselleştirme:** 
     *   Sayı tuşları (0-6) ile yapılan hızlı geçişlerde, yan menüdeki odak halkası (focus ring) ve seçili durumun anlık senkronizasyonu sağlandı.
 5.  **Sesli Arama & İzin Yönetimi:**
     *   `RECORD_AUDIO` izni ve sesli arama altyapısı tüm input diyaloğu bileşenlerine entegre edildi.
@@ -1809,7 +1809,7 @@ Neler Yaptım?
     *   **Kanal Kartlarında Canlı EPG:** Tüm kanal kartlarına anlık program adı ve programın ilerleme durumunu gösteren canlı bar eklendi.
     *   **Real-time Arama:** Arama sayfası baştan yazıldı; AlertDialog engeli kaldırılarak anlık klavye tetikleme ve yazarken eşzamanlı sonuç listeleme özelliğine geçildi.
 2.  **Navigasyon ve Bilgi Mimarisi:**
-    *   **Akıllı Breadcrumbs:** "ALADIN PLAYER > Filmler > Aksiyon" şeklinde hiyerarşik başlıklar ile kullanıcı navigasyon farkındalığı artırıldı.
+    *   **Akıllı Breadcrumbs:** "ALADIN IPTV PLAYER PRO TV > Filmler > Aksiyon" şeklinde hiyerarşik başlıklar ile kullanıcı navigasyon farkındalığı artırıldı.
     *   **Kategori Filtreleme:** Kategori grid sayfalarına "İzlenenleri Gizle" seçeneği eklendi.
     *   **Gelişmiş QuickList:** Player içindeki kanal listesi (6 tuşu) logolu ve program bilgili hale getirildi.
 3.  **Oynatıcı ve Akıllı Başlangıç:**
@@ -1839,22 +1839,22 @@ Neler Yaptım?
 ## V2.2.0+41 Sürüm Notları: Maksimum Performans ve Uyumluluk Güncellemesi
 **Bu sürümle birlikte, özellikle düşük donanımlı (1-2GB RAM) Android TV ve Box cihazlarda yaşanan kronik sorunlar giderilmiş ve oynatıcı motoru "Maksimum Stabilite" moduna yükseltilmiştir.**
 1. Video Stabilizasyonu (Titreme ve Jitter Fix):
-   ◦ Düşük donanımlı cihazlarda 1080p ve 4K yayınların işlemciyi yormasından kaynaklanan "titreme" ve "ileri-geri sarma" hissi yaratan senkronizasyon hataları giderildi.
-   ◦ 1-2GB RAM'li cihazlar için akıllı çözünürlük yönetimi getirilerek, stabilite için 720p (HD) kalitesine öncelik verildi.
+◦ Düşük donanımlı cihazlarda 1080p ve 4K yayınların işlemciyi yormasından kaynaklanan "titreme" ve "ileri-geri sarma" hissi yaratan senkronizasyon hataları giderildi.
+◦ 1-2GB RAM'li cihazlar için akıllı çözünürlük yönetimi getirilerek, stabilite için 720p (HD) kalitesine öncelik verildi.
 2. Gelişmiş Tampon (Buffer) Mimarisi:
-   ◦ Düşük hızlı internet bağlantılarında (örn: 2 Mbps) yaşanan donmaları engellemek için tampon bellek kapasitesi 24 MB'a çıkarıldı.
-   ◦ Oynatıcı artık yaklaşık 40 saniyelik videoyu önceden indirip hafızada tutarak ağ dalgalanmalarına karşı tam koruma sağlar.
-   ◦ Videonun açılışındaki "resim donması" sorununu çözmek için oynatma başlangıç eşiği (playback start) optimize edildi.
+◦ Düşük hızlı internet bağlantılarında (örn: 2 Mbps) yaşanan donmaları engellemek için tampon bellek kapasitesi 24 MB'a çıkarıldı.
+◦ Oynatıcı artık yaklaşık 40 saniyelik videoyu önceden indirip hafızada tutarak ağ dalgalanmalarına karşı tam koruma sağlar.
+◦ Videonun açılışındaki "resim donması" sorununu çözmek için oynatma başlangıç eşiği (playback start) optimize edildi.
 3. Ses Uyumluluğu (No Sound Fix):
-   ◦ Amlogic ve Rockchip chipsetli cihazlarda ses gelmeme sorununa neden olan 32-bit Float ses çıkış modu kapatılarak, eski tip ses donanımlarıyla tam uyumluluk sağlandı.
-   ◦ AC3, DTS ve EAC3 gibi film formatlarındaki ses kayıpları için FFmpeg kod çözücüleri optimize edildi.
+◦ Amlogic ve Rockchip chipsetli cihazlarda ses gelmeme sorununa neden olan 32-bit Float ses çıkış modu kapatılarak, eski tip ses donanımlarıyla tam uyumluluk sağlandı.
+◦ AC3, DTS ve EAC3 gibi film formatlarındaki ses kayıpları için FFmpeg kod çözücüleri optimize edildi.
 4. Hassas Cihaz Tanımlama:
-   ◦ Düşük donanım eşiği 2GB RAM olarak güncellendi. Artık piyasadaki çoğu "Stick" ve "Box" cihaz otomatik olarak koruma altına alınarak en akıcı ayarlarda çalıştırılır.
+◦ Düşük donanım eşiği 2GB RAM olarak güncellendi. Artık piyasadaki çoğu "Stick" ve "Box" cihaz otomatik olarak koruma altına alınarak en akıcı ayarlarda çalıştırılır.
 5. Live TV Arayüz Akıcılığı:
-   ◦ Canlı TV sayfasında kanallar arasında gezerken (odak değişimlerinde) listenin en başa dönmesi ve "kapanıp açılma" efekti tamamen kaldırıldı.
-   ◦ Favorilere ekleme/çıkarma işlemleri sırasında liste pozisyonunun korunması sağlandı.
+◦ Canlı TV sayfasında kanallar arasında gezerken (odak değişimlerinde) listenin en başa dönmesi ve "kapanıp açılma" efekti tamamen kaldırıldı.
+◦ Favorilere ekleme/çıkarma işlemleri sırasında liste pozisyonunun korunması sağlandı.
 6. Hibrit Kod Çözücü Yönetimi:
-   ◦ Düşük RAM'li cihazlarda görüntünün kasmaması için Video için Donanımsal (Hardware), ses uyumluluğu için ise Ses için Yazılımsal (FFmpeg) çalışan hibrit bir yapıya geçildi.
+◦ Düşük RAM'li cihazlarda görüntünün kasmaması için Video için Donanımsal (Hardware), ses uyumluluğu için ise Ses için Yazılımsal (FFmpeg) çalışan hibrit bir yapıya geçildi.
 
 ## V2.2.0+42 Sürüm Notları: Yayın Uyumluluğu ve Modernizasyon Güncellemesi
 Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Google Play Store'un en güncel Android 15 standartlarına tam uyum sağlanmıştır.
@@ -1874,15 +1874,40 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
     *   Oynatılamayan bir kanal olduğunda hata mesajında artık "Hata Veren Adres" açıkça gösteriliyor.
     *   Logcat/Terminal üzerinden yayın linklerinin teknik analizini yapmayı sağlayan debug katmanı güçlendirildi.
 
-## V2.3.0 +1 Sürüm Notlarý:
-1. **Android 16 (API 36) Deste𩺪* Google Play Store'un yeni gereksinimlerine tam uyum sa𬡭ak amacýyla 	argetSdk ve compileSdk sürümleri 36'ya yükseltildi.
-2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son sürümlerindeki güvenlik ve performans standartlarýna göre optimize edildi.
-3. **Sürüm Senkronizasyonu:** Tüm modüllerde ve dökümantasyonda sürüm bilgileri v2.3.0+43 olarak güncellendi.
-4. **GitHub Yayýnlama:** Uygulamanýn en güncel hali v2.3.0 etiketiyle GitHub reposuna gönderildi.
+## V2.3.0 +1 Sürüm Notları:
+1. **Android 16 (API 36) Desteği: Google Play Store'un yeni gereksinimlerine tam uyum sağlamak amacıyla targetSdk ve compileSdk sürümleri 36'ya yükseltildi.
+2. **Gelecek Nesil Uyumluluk: Uygulama, Android'in en son sürümlerindeki güvenlik ve performans standartlarına göre optimize edildi.
+3. **Sürüm Senkronizasyonu: Tüm modüllerde ve dokümantasyonda sürüm bilgileri v2.3.0+43 olarak güncellendi.
+4. **GitHub Yayınlama: Uygulamanın en güncel hali v2.3.0 etiketiyle GitHub reposuna gönderildi.
 
-## V2.3.1+44 Sürüm Notları:
+## V2.3.0+2 Sürüm Notları:
 1. **Play Console Optimizasyonları:** Google Play Console tarafından önerilen performans ve kullanıcı deneyimi güncellemeleri uygulandı.
 2. **Edge-to-Edge Desteği:** Android 15+ standartlarına uygun modern uçtan uca ekran (Edge-to-Edge) desteği MainActivity seviyesinde pekiştirildi.
 3. **R8 Full Mode:** Uygulama boyutunu küçülten ve performansı artıran R8 Full Mode etkinleştirildi ve optimizasyon kuralları güçlendirildi.
 4. **Hafıza Yönetimi:** `android:largeHeap="true"` ile yüksek çözünürlüklü içerik ve posterlerin yönetimi için bellek alanı optimize edildi.
-5. **Versiyon Güncelleme:** Uygulama sürümü 2.3.1+44 (Build 44) olarak güncellendi.
+5. **Versiyon Güncelleme:** Uygulama sürümü 2.3.0+2 (Build 2) olarak güncellendi.
+
+## V2.3.1+45 Sürüm Notları:
+1. **Resmî Edge-to-Edge API:** `enableEdgeToEdge()` hem Flutter ana Activity'sinde hem native oynatıcıda etkinleştirildi.
+2. **Görsel Bellek Optimizasyonu:** Native Glide görselleri boyutlandırılmış 16-bit decode ve disk cache ile yapılandırıldı.
+3. **Bütünleşik R8:** AGP 8.13.2 ve optimized resource shrinking etkinleştirildi; paket-geneli geniş keep kuralları kaldırıldı.
+4. **Versiyon Güncelleme:** Uygulama sürümü 2.3.1+45 (Build 45) olarak güncellendi.
+
+## V2.3.1+47 Sürüm Notları: TV Kumandası, Güvenlik ve Düşük RAM İyileştirmeleri
+1. **Sürüm ve Play Console:** Görünen sürüm `2.3.1+47`, Android sürüm kodu daha önce yayımlanan 1046'yı güvenli biçimde takip edecek şekilde `1047` yapıldı; API 36 ve release R8/lint kontrolleri korundu.
+2. **TV Kumandası:** Hızlı navigasyon kartları ve sezon seçimleri OK/Enter/Gamepad A ile çalışır hale getirildi. D-pad tekrarları düzeltildi, kanal kartlarına gerçek uzun basma eklendi ve yan menü içerik odağında 88 dp'ye daralacak şekilde responsive yapıldı.
+3. **Oynatıcı Kontrolleri:** Standart OK tuşuyla açılan D-pad kontrol menüsüne oynat/duraklat, kanal listesi, altyazı, ses, kalite, ekran oranı, favori, uyku zamanlayıcısı ve tanılama eklendi. Geri tuşunun panel/menü/oynatıcı sırası düzeltildi.
+4. **Yayın Uyumluluğu:** Clear DASH yayınlarına hatalı şekilde otomatik Widevine eklenmesi kaldırıldı. Canlı/VOD tampon profili URL tahmini yerine içerik türüne bağlandı. Player XML'deki çift gradient kimliği ve katman sırası düzeltildi; OSD overscan boşlukları artırıldı.
+5. **Güvenlik ve Gizlilik:** Stream URL'leri ve header'lar release loglarından ve hata ekranlarından kaldırıldı. Android TV Search ve Watch Next artık gerçek URL yerine yerel kanal kimliği kullanıyor; Watch Next tekrar kayıtları güncelleniyor. Yedekler varsayılan olarak Xtream şifresi içermiyor ve iki dilli gizlilik politikası eklendi.
+6. **Bellek ve Performans:** Native oynatıcı Intent'i seçili kanal çevresinde en fazla 101 kayıtla sınırlandı. M3U içe aktarmada bütün kanal nesnelerini RAM'de tutan liste kaldırılıp artımlı kategori sayacı eklendi. `largeHeap`, yedi sayfalı `IndexedStack` ve tam ekran blur kaldırıldı; görsel cache 24 MB'a indirildi. EPG yedi günlük aralıkla sınırlandı ve boş senkron artık başarılı sayılmıyor.
+7. **Arayüz ve Marka:** Netflix kırmızısı yerine Aladin turuncusu kullanıldı. Dört ana hızlı kart tek ekrana sığdırıldı, Canlı TV kartları yatay 16:9 düzene geçirildi; kanal numarası, şimdi/sonraki program ve EPG ilerlemesi gösterildi. Uygulama içi logo için siyah dikdörtgensiz şeffaf varyant oluşturuldu; logonun alfa dışındaki boş tuvali kırpıldı, geniş/dar menüye özel logo dosyaları eklendi ve menü öğeleri logonun hemen altından başlayacak şekilde yerleşim sıkılaştırıldı.
+8. **Mağaza Varlıkları:** 1024x500 feature graphic ve gerçek 1920x1080 TV oturumundan altı mağaza ekran görüntüsü hazırlandı; 320x180 TV banner ve launcher ikonları doğrulandı.
+9. **Testler:** Eski shimmer counter testi kaldırıldı; marka tema smoke testi ve canlı/film/dizi ayrımını doğrulayan M3U fixture testi eklendi. `flutter test`, release split APK ve AAB derlemeleri TMDB anahtarıyla geçti. ARMv7 release APK Realtek Android TV'ye güncelleme olarak kuruldu; ana ekran, daralan menü, Canlı TV, Film, Dizi, Arama, Ayarlar, oynatıcı ve geri tuşu gerçek D-pad ile çökmesiz test edildi.
+10. **Yayınlama Durumu:** Kullanıcı talebi gereği GitHub'a commit/push yapılmadı; yerel doğrulama çıktıları ve kalan uzun vadeli maddeler `V2.3.1+47_GELISTIRME_TAKIP.txt` dosyasına kaydedildi.
+11. **Dinamik İçerik ve Dolu Dashboard:** Ayarlara “Her Açılışta Listeyi Karıştır” seçeneği eklendi. Etkin olduğunda film/dizi kategorileri ve kategori içerikleri uygulamanın her soğuk açılışında yeni, oturum boyunca kararlı bir sırayla gösteriliyor. “Yeni Eklenenler” tekilleştirme hatası giderilip eksik raflar tamamlandı; Ana Sayfa'ya 15'er içeriklik Film ve Dizi rafları eklendi. Release split APK gerçek ARMv7 Android TV'de doğrulandı.
+12. **TV ile Kolay URL Girişi:** M3U ve Xtream sunucu alanları `http://` ile hazır açılır hale getirildi. Kumandayla uzun adres yazmayı azaltmak için `http://`, `https://`, `.com`, `.net`, `:8080`, `:25461` ve `/` kısayolları eklendi. Protokol düğmeleri mevcut protokolü güvenle değiştiriyor; yalnız protokolden oluşan değerler geçerli adres sayılmıyor.
+13. **Sade Ana Sayfa ve Boş Kategori Filtresi:** Sol menüyü tekrarlayan Dashboard başlığı ile Canlı TV, Filmler, Diziler ve Ara hızlı kartları kaldırıldı; içerik rafları ekranın üst bölümüne taşındı. İçerik sayısı sıfır olan eski/boş kategori kayıtları merkezi sorguda filtrelenerek Canlı TV, Film ve Dizi ekranlarından gizlendi.
+14. **Premium TV Form Odak Modu:** Ekran klavyesi açıldığında M3U/Xtream formu yalnızca düzenlenen alanı gösteren kompakt odak moduna geçirildi. Başlık altında `2/4 • Kullanıcı adı` biçiminde aktif adım ve alan adı gösteriliyor; alan etiketi giriş kutusunun içinde sürekli görünür kalıyor. Kaydet/İptal düğmeleri klavye açıkken gizleniyor, klavyedeki onay tuşu alanlar arasında ilerliyor ve son alanda form eylemlerine dönüyor.
+15. **Menü Okunabilirliği ve Onay Odağı:** Açık sol menü 250-300 dp aralığına genişletildi; tüm etiketler tek satıra sabitlenip taşma halinde üç nokta kullanıldı. Playlist etkinleştirme başta olmak üzere silme, güncelleme, arşiv ve diğer AlertDialog onaylarında başlangıç odağı birincil eylem düğmesine verildi. Paylaşılan form düğmeleri de birincil eylemi varsayılan TV odağı olarak işaretliyor.
+16. **Ayarların Uçtan Uca İşlevselliği:** Decoder `sw`/`software` kopukluğu giderildi; Donanım modu platform MediaCodec, Yazılım modu paketli FFmpeg önceliği, Otomatik mod güvenli fallback kullanıyor. Başlangıçta oynatma yalnız %3-%90 arası yarım kalmış film/bölümü doğrudan kaldığı yerden açıyor; canlı, tamamlanmış ve kaldırılmış kayıtlar dışlanıyor. EPG artık gerçek başarı sonucu döndürerek hatada yanlış başarı mesajı göstermiyor. Güncelleme servisi semantik sürümle birlikte `+build` karşılaştırıyor, hata ile güncel durumunu ayırıyor, 24 saatte bir otomatik kontrol yapıyor ve yeni sürümde Play Store'a yönlendiriyor. Dar ekran Ayarlar görünümüne eksik Kalite, Otomatik Oynatma ve Karıştırma seçenekleri eklendi; sürüm karşılaştırma testleriyle toplam 4/4 test geçti.
+17. **Ayar UX, Açıklamalar ve Yerelleştirme Tamamlama:** Decoder ve kalite seçimleri mevcut değer üzerinde odaklanarak açılıyor. Kalite ekranına yalnız adaptif/çoklu kaliteli yayınlarda uygulanabildiği açıklaması eklendi; düşük RAM cihazında yazılım decoder güvenlik nedeniyle donanıma çevrilirse kullanıcı bilgilendiriliyor. Otomatik oynatma, karıştırma ve yeni teknik geri bildirimler sekiz desteklenen dilde tamamlandı ve yerelleştirme regresyon testi eklendi. Hakkında ekranının GitHub bağlantısı yeni repoya düzeltildi. Toplam 5/5 test ve split release derlemesi geçti; ARMv7 paket gerçek TV'de çökmesiz açıldı.

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -13,10 +15,10 @@ class PlayerPage extends StatefulWidget {
   final ChannelModel channel;
   final List<ChannelModel> playlist; // Tüm kanal listesi
   final PlaylistModel? playlistModel; // Xtream yönlendirmesi için
-  
+
   const PlayerPage({
-    super.key, 
-    required this.channel, 
+    super.key,
+    required this.channel,
     required this.playlist,
     this.playlistModel,
   });
@@ -65,24 +67,34 @@ class _PlayerPageState extends State<PlayerPage> {
     try {
       final state = context.read<AppState>();
       final s = state.s;
-      
-      final index = widget.playlist.indexOf(widget.channel);
+
       // Playlist'teki boş URL'leri filtrele — native player'a sadece oynatılabilir içerik gönder
-      final playable = widget.playlist.where((e) => e.url.trim().isNotEmpty).toList();
-      final filteredIndex = playable.indexOf(widget.channel).clamp(0, playable.length - 1);
+      // Keep the Android Intent safely below Binder's transaction limit.
+      final allPlayable = widget.playlist
+          .where((e) => e.url.trim().isNotEmpty)
+          .toList(growable: false);
+      if (allPlayable.isEmpty) return;
+      final selectedIndex = allPlayable.indexOf(widget.channel);
+      final safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+      const radius = 50;
+      final start = math.max(0, safeIndex - radius);
+      final end = math.min(allPlayable.length, safeIndex + radius + 1);
+      final playable = allPlayable.sublist(start, end);
+      final filteredIndex = safeIndex - start;
 
-      final urls         = playable.map((e) => e.url).toList();
-      final names        = playable.map((e) => e.name).toList();
+      final urls = playable.map((e) => e.url).toList();
+      final names = playable.map((e) => e.name).toList();
       final descriptions = playable.map((e) => e.tmdbOverview ?? '').toList();
-      final posters      = playable.map((e) => e.tmdbPoster ?? '').toList();
-      final ratings      = playable.map((e) => e.imdbRating ?? '').toList();
-      final years        = playable.map((e) => e.tmdbYear ?? '').toList();
-      final types        = playable.map((e) => e.contentType).toList();
-      final favs         = playable.map((e) => e.isFavorite).toList();
-      final positions    = playable.map((e) => e.watchedSeconds).toList();
-      final headers      = playable.map((e) => e.streamHeaders ?? '').toList();
+      final posters = playable.map((e) => e.tmdbPoster ?? '').toList();
+      final ratings = playable.map((e) => e.imdbRating ?? '').toList();
+      final years = playable.map((e) => e.tmdbYear ?? '').toList();
+      final types = playable.map((e) => e.contentType).toList();
+      final favs = playable.map((e) => e.isFavorite).toList();
+      final positions = playable.map((e) => e.watchedSeconds).toList();
+      final headers = playable.map((e) => e.streamHeaders ?? '').toList();
 
-      final videoLimit = switch (AladinPrefs.instance.getString('preferredQuality')) {
+      final videoLimit =
+          switch (AladinPrefs.instance.getString('preferredQuality')) {
         '4k' => 2160,
         'fhd' => 1080,
         'hd' => 720,
@@ -96,19 +108,19 @@ class _PlayerPageState extends State<PlayerPage> {
       }
 
       await _exoChannel.invokeMethod('playNative', {
-        'urls':         urls,
-        'names':        names,
+        'urls': urls,
+        'names': names,
         'descriptions': descriptions,
-        'posters':      posters,
-        'ratings':      ratings,
-        'years':        years,
-        'types':        types,
-        'favs':         favs,
-        'positions':    positions,
-        'headers':      headers,
-        'index':        filteredIndex >= 0 ? filteredIndex : 0,
-        'decoderMode':  AladinPrefs.instance.getString('decoderMode') ?? 'auto',
-        'videoLimit':   videoLimit,
+        'posters': posters,
+        'ratings': ratings,
+        'years': years,
+        'types': types,
+        'favs': favs,
+        'positions': positions,
+        'headers': headers,
+        'index': filteredIndex >= 0 ? filteredIndex : 0,
+        'decoderMode': AladinPrefs.instance.getString('decoderMode') ?? 'auto',
+        'videoLimit': videoLimit,
         // Localization
         'i18n': {
           'subtitles': s.subtitles,
@@ -135,10 +147,11 @@ class _PlayerPageState extends State<PlayerPage> {
           'no_network': s.noNetwork,
           'playback_error': s.playbackError,
           'decoder_suggestion': s.decoderSuggestion,
+          'software_low_memory': s.softwareLowMemory,
           'go_to_settings': s.goToSettings,
         }
       });
-      
+
       if (mounted) Navigator.pop(context);
     } catch (e) {
       debugPrint("Native Player Hatası: $e");

@@ -40,10 +40,6 @@ class _CategoryRowState extends State<CategoryRow> {
   static const _pageSize = 100;
 
   // Layout Standards from AppTheme
-  static const double _cardWidth = AppTheme.cardWidth;
-  static const double _cardHeight = AppTheme.cardHeight;
-  static const double _rowHeight = AppTheme.listHeight;
-
   @override
   void initState() {
     super.initState();
@@ -58,7 +54,8 @@ class _CategoryRowState extends State<CategoryRow> {
   }
 
   void _onScroll() {
-    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 200) { // Sona 200px kala yeni veri çek
+    if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 200) {
+      // Sona 200px kala yeni veri çek
       _fetchNext();
     }
   }
@@ -90,53 +87,75 @@ class _CategoryRowState extends State<CategoryRow> {
 
   @override
   Widget build(BuildContext context) {
+    final cardWidth = widget.tvMode ? 240.0 : AppTheme.cardWidth;
+    final cardHeight = widget.tvMode ? 135.0 : AppTheme.cardHeight;
+    final rowHeight = widget.tvMode ? 175.0 : AppTheme.listHeight;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Kategori Başlığı ve Kanal Sayısı Alanı
       Padding(
-        padding: const EdgeInsets.fromLTRB(14, 16, 14, 8), // Başlık dış boşlukları
+        padding:
+            const EdgeInsets.fromLTRB(14, 16, 14, 8), // Başlık dış boşlukları
         child: InkWell(
           onTap: _openCategoryDetail,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.all(4.0), // Tıklama alanı iç boşluğu
             child: Row(children: [
-              Expanded(child: Text(widget.category.name, style: AppTheme.headingMedium, overflow: TextOverflow.ellipsis)),
+              Expanded(
+                  child: Text(widget.category.name,
+                      style: AppTheme.headingMedium,
+                      overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), // Kanal sayısı kutucuğu iç boşluğu
-                decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                child: Text('${widget.category.channelCount} >', style: AppTheme.caption.copyWith(color: AppTheme.accent, fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2), // Kanal sayısı kutucuğu iç boşluğu
+                decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(12)),
+                child: Text('${widget.category.channelCount} >',
+                    style: AppTheme.caption.copyWith(
+                        color: AppTheme.accent, fontWeight: FontWeight.bold)),
               ),
             ]),
           ),
         ),
       ),
-      
+
       // Yatay Kart Listesi
       SizedBox(
-        height: _rowHeight, // Şerit yüksekliği (250)
+        height: rowHeight,
         child: _loading
-            ? _Placeholder(height: _cardHeight)
+            ? _Placeholder(height: cardHeight, width: cardWidth)
             : _channels.isEmpty
                 ? const SizedBox.shrink()
                 : ListView.builder(
                     controller: _scroll,
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 14), // Şeridin sol-sağ başlangıç boşluğu
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14), // Şeridin sol-sağ başlangıç boşluğu
                     itemCount: _channels.length + (_hasMore ? 1 : 0),
-                    itemExtent: _cardWidth + 14, // Her bir kartın kapladığı toplam yatay alan (Genişlik + Boşluk)
-                    clipBehavior: Clip.none, // Kartların büyüme efekti için taşmayı kesme
+                    itemExtent: cardWidth + 14,
+                    clipBehavior:
+                        Clip.none, // Kartların büyüme efekti için taşmayı kesme
                     itemBuilder: (_, i) {
                       if (i >= _channels.length) {
-                        return const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent)));
+                        return const Center(
+                            child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: AppTheme.accent)));
                       }
                       final ch = _channels[i];
-                      final prog = widget.seriesProgressMap?[ch.seriesName?.trim() ?? ch.name.trim()];
+                      final prog = widget.seriesProgressMap?[
+                          ch.seriesName?.trim() ?? ch.name.trim()];
                       return ChannelCard(
                         key: ValueKey(ch.id),
                         channel: ch,
-                        width: _cardWidth, // 130
-                        height: _cardHeight, // 175
+                        width: cardWidth,
+                        height: cardHeight,
+                        tvMode: widget.tvMode,
                         showEpg: widget.showEpg,
                         seriesProgress: prog,
                         onTap: () => widget.onChannelTap(ch, _channels),
@@ -151,7 +170,8 @@ class _CategoryRowState extends State<CategoryRow> {
 
 class _Placeholder extends StatelessWidget {
   final double height;
-  const _Placeholder({required this.height});
+  final double width;
+  const _Placeholder({required this.height, required this.width});
 
   @override
   Widget build(BuildContext context) {
@@ -159,15 +179,14 @@ class _Placeholder extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       itemCount: 6,
-      itemExtent: 144, // Öğe genişliği
+      itemExtent: width + 14,
       itemBuilder: (_, __) => Container(
-        width: 130, 
-        height: height, 
-        margin: const EdgeInsets.only(right: 14), 
+        width: width,
+        height: height,
+        margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
-          color: AppTheme.card.withValues(alpha: 0.5), 
-          borderRadius: BorderRadius.circular(8)
-        ),
+            color: AppTheme.card.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

@@ -58,7 +58,7 @@ class _MoviesPageState extends State<MoviesPage> {
         .getCategories(playlistId: id, contentType: 'movie');
     final allFavs = await ChannelService.instance.getFavorites(id);
     final movieFavs = allFavs.where((c) => c.contentType == 'movie').toList();
-    
+
     final cw = await ChannelService.instance.getContinueWatching(id);
     final movieCW = cw.where((c) => c.contentType == 'movie').toList();
 
@@ -72,7 +72,10 @@ class _MoviesPageState extends State<MoviesPage> {
   }
 
   void _play(ChannelModel ch, List<ChannelModel> list) => Navigator.push(
-      context, MaterialPageRoute(builder: (_) => PlayerPage(channel: ch, playlist: list.isNotEmpty ? list : [ch])));
+      context,
+      MaterialPageRoute(
+          builder: (_) => PlayerPage(
+              channel: ch, playlist: list.isNotEmpty ? list : [ch])));
 
   Future<void> _confirmRemoveCW(ChannelModel ch) async {
     final s = context.read<AppState>().s;
@@ -80,16 +83,25 @@ class _MoviesPageState extends State<MoviesPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
-        title: Text(s.continueWatching, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeListQ(ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        title: Text(s.continueWatching,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(s.removeListQ(ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.delete, style: const TextStyle(color: Colors.redAccent))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.delete,
+                  style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
     if (ok == true) {
-      await ChannelService.instance.updateWatched(ch.id, 0); // Progress sıfırlayarak listeden çıkarır
+      await ChannelService.instance
+          .updateWatched(ch.id, 0); // Progress sıfırlayarak listeden çıkarır
       if (_loadedId != null) _load(_loadedId!);
     }
   }
@@ -101,10 +113,17 @@ class _MoviesPageState extends State<MoviesPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(s.favorites, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeFavoriteQ(ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        content: Text(s.removeFavoriteQ(ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.delete, style: const TextStyle(color: Colors.redAccent))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.delete,
+                  style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -119,7 +138,7 @@ class _MoviesPageState extends State<MoviesPage> {
     return Consumer<AppState>(builder: (_, state, __) {
       final s = state.s;
       final noList = state.active == null;
-      
+
       if (noList) {
         return AladinEmptyState(
           icon: Icons.movie_creation_outlined,
@@ -136,71 +155,75 @@ class _MoviesPageState extends State<MoviesPage> {
             onRefresh:
                 state.active != null ? () => _load(state.active!.id) : null),
         body: _loading && _categories.isEmpty
-                ? const Center(
-                    child: CircularProgressIndicator(color: AppTheme.accent))
-                : _categories.isEmpty
-                    ? Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                            const Icon(Icons.movie_creation_outlined,
-                                size: 50, color: AppTheme.textMuted), // Boş durum ikon boyutu
-                            const SizedBox(height: 12), // İkon-Metin arası boşluk
-                            Text(s.noMoviesFound,
-                                style: const TextStyle(
-                                    color: AppTheme.textSecondary)),
-                            const SizedBox(height: 16), // Metin-Buton arası boşluk
-                            ElevatedButton.icon(
-                                onPressed: () => _load(state.active!.id),
-                                autofocus: true,
-                                icon: const Icon(Icons.refresh),
-                                label: Text(s.retry)),
-                          ]))
-                    : CustomScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        slivers: [
-                            SliverPadding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: MediaQuery.of(context).size.width * 0.05, // Yan güvenli alan boşluğu
-                              ),
-                              sliver: SliverList(
-                                delegate: SliverChildListDelegate([
-                                  if (_continueWatching.isNotEmpty)
-                                    _MovieFavStrip(
-                                      title: state.s.continueWatch,
-                                      channels: _continueWatching,
-                                      onTap: (ch) => _play(ch, _continueWatching),
-                                      onLongPress: (ch) => _confirmRemoveCW(ch),
-                                    ),
-                                  if (_favorites.isNotEmpty)
-                                    _MovieFavStrip(
-                                      title: state.s.favorites,
-                                      channels: _favorites,
-                                      onTap: (ch) => _play(ch, _favorites),
-                                      onLongPress: (ch) => _confirmRemoveFavorite(ch),
-                                    ),
-                                ]),
-                              ),
-                            ),
-                            SliverPadding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: MediaQuery.of(context).size.width * 0.05, // Yan güvenli alan boşluğu
-                              ),
-                              sliver: SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                (_, i) => CategoryRow(
-                                  key: ValueKey(_categories[i].id),
-                                  category: _categories[i],
-                                  playlistId: state.active!.id,
-                                  onChannelTap: (ch, list) => _play(ch, list),
-                                  onCategoryTap: widget.onCategoryTap,
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.accent))
+            : _categories.isEmpty
+                ? Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                        const Icon(Icons.movie_creation_outlined,
+                            size: 50,
+                            color: AppTheme.textMuted), // Boş durum ikon boyutu
+                        const SizedBox(height: 12), // İkon-Metin arası boşluk
+                        Text(s.noMoviesFound,
+                            style:
+                                const TextStyle(color: AppTheme.textSecondary)),
+                        const SizedBox(height: 16), // Metin-Buton arası boşluk
+                        ElevatedButton.icon(
+                            onPressed: () => _load(state.active!.id),
+                            autofocus: true,
+                            icon: const Icon(Icons.refresh),
+                            label: Text(s.retry)),
+                      ]))
+                : CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MediaQuery.of(context).size.width *
+                                0.05, // Yan güvenli alan boşluğu
+                          ),
+                          sliver: SliverList(
+                            delegate: SliverChildListDelegate([
+                              if (_continueWatching.isNotEmpty)
+                                _MovieFavStrip(
+                                  title: state.s.continueWatch,
+                                  channels: _continueWatching,
+                                  onTap: (ch) => _play(ch, _continueWatching),
+                                  onLongPress: (ch) => _confirmRemoveCW(ch),
                                 ),
-                                childCount: _categories.length,
-                              )),
+                              if (_favorites.isNotEmpty)
+                                _MovieFavStrip(
+                                  title: state.s.favorites,
+                                  channels: _favorites,
+                                  onTap: (ch) => _play(ch, _favorites),
+                                  onLongPress: (ch) =>
+                                      _confirmRemoveFavorite(ch),
+                                ),
+                            ]),
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: MediaQuery.of(context).size.width *
+                                0.05, // Yan güvenli alan boşluğu
+                          ),
+                          sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                            (_, i) => CategoryRow(
+                              key: ValueKey(_categories[i].id),
+                              category: _categories[i],
+                              playlistId: state.active!.id,
+                              onChannelTap: (ch, list) => _play(ch, list),
+                              onCategoryTap: widget.onCategoryTap,
                             ),
-                            const SliverToBoxAdapter(
-                                child: SizedBox(height: 40)), // Liste sonu boşluğu
-                          ]),
+                            childCount: _categories.length,
+                          )),
+                        ),
+                        const SliverToBoxAdapter(
+                            child: SizedBox(height: 40)), // Liste sonu boşluğu
+                      ]),
       );
     });
   }
@@ -224,21 +247,26 @@ class _MovieFavStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 16, 14, 8), // Şerit başlığı dış boşluğu
+            padding: const EdgeInsets.fromLTRB(
+                14, 16, 14, 8), // Şerit başlığı dış boşluğu
             child: Text(title, style: AppTheme.headingMedium),
           ),
           SizedBox(
             height: AppTheme.listHeight, // Standart şerit yüksekliği
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 14), // Şerit içi yan boşluklar
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14), // Şerit içi yan boşluklar
               itemCount: channels.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12), // Kartlar arası boşluk
+              separatorBuilder: (_, __) =>
+                  const SizedBox(width: 12), // Kartlar arası boşluk
               clipBehavior: Clip.none,
               itemBuilder: (_, i) => ChannelCard(
                 channel: channels[i],
                 onTap: () => onTap(channels[i]),
-                onLongPress: onLongPress != null ? () => onLongPress!(channels[i]) : null,
+                onLongPress: onLongPress != null
+                    ? () => onLongPress!(channels[i])
+                    : null,
               ),
             ),
           ),

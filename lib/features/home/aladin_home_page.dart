@@ -20,6 +20,8 @@ class _HomePageState extends State<HomePage> {
   List<ChannelModel> _favorites = [];
   List<ChannelModel> _recentlyAdded = [];
   List<ChannelModel> _discovery = [];
+  List<ChannelModel> _movieShelf = [];
+  List<ChannelModel> _seriesShelf = [];
   Map<String, double> _seriesProgress = {};
   bool _loading = true;
 
@@ -40,9 +42,14 @@ class _HomePageState extends State<HomePage> {
     final cw = await ChannelService.instance.getContinueWatching(id, limit: 15);
     final favs = await ChannelService.instance.getFavorites(id);
     final added = await ChannelService.instance.getRecentlyAdded(id, limit: 15);
-    final disc = await ChannelService.instance.getRandomDiscovery(id, limit: 15);
+    final disc =
+        await ChannelService.instance.getRandomDiscovery(id, limit: 15);
+    final movies =
+        await ChannelService.instance.getHomeShelf(id, 'movie', limit: 15);
+    final series =
+        await ChannelService.instance.getHomeShelf(id, 'series', limit: 15);
     final prog = await ChannelService.instance.getSeriesProgressMap(id);
-    
+
     favs.sort((a, b) => b.id.compareTo(a.id));
     final recentFavs = favs.take(15).toList();
 
@@ -50,17 +57,33 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _continueWatching = cw;
         _favorites = recentFavs;
-        _recentlyAdded = added;
+        _recentlyAdded = _fillShelf(added, [movies, series, disc], 15);
         _discovery = disc;
+        _movieShelf = movies;
+        _seriesShelf = series;
         _seriesProgress = prog;
         _loading = false;
       });
     }
   }
 
+  List<ChannelModel> _fillShelf(List<ChannelModel> primary,
+      List<List<ChannelModel>> fallbacks, int limit) {
+    final result = <ChannelModel>[];
+    final seen = <int>{};
+    for (final source in [primary, ...fallbacks]) {
+      for (final item in source) {
+        if (seen.add(item.id)) result.add(item);
+        if (result.length >= limit) return result;
+      }
+    }
+    return result;
+  }
+
   void _onTap(ChannelModel ch) {
     if (ch.contentType == 'series') {
-      final name = ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name;
+      final name =
+          ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -91,82 +114,18 @@ class _HomePageState extends State<HomePage> {
     final s = state.s;
 
     if (state.active == null) {
-      return const Center(child: Icon(Icons.home, size: 100, color: AppTheme.textMuted));
+      return const Center(
+          child: Icon(Icons.home, size: 100, color: AppTheme.textMuted));
     }
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: _loading 
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.accent))
           : CustomScrollView(
               slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.active?.name.toUpperCase() ?? '',
-                          style: const TextStyle(
-                            color: AppTheme.accent, 
-                            fontWeight: FontWeight.w900, 
-                            letterSpacing: 2,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'DASHBOARD',
-                          style: TextStyle(
-                            color: Colors.white, 
-                            fontSize: 42, 
-                            fontWeight: FontWeight.w900, 
-                            letterSpacing: -1.5,
-                            height: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Quick Navigation Row
-                SliverToBoxAdapter(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                    child: Row(
-                      children: [
-                        _QuickNavCard(
-                          icon: Icons.live_tv, 
-                          label: s.navLiveTV, 
-                          color: Colors.redAccent, 
-                          onTap: () => state.navigateToPage(1),
-                        ),
-                        _QuickNavCard(
-                          icon: Icons.movie, 
-                          label: s.navMovies, 
-                          color: Colors.blueAccent, 
-                          onTap: () => state.navigateToPage(2),
-                        ),
-                        _QuickNavCard(
-                          icon: Icons.video_library, 
-                          label: s.navSeries, 
-                          color: Colors.orangeAccent, 
-                          onTap: () => state.navigateToPage(3),
-                        ),
-                        _QuickNavCard(
-                          icon: Icons.search, 
-                          label: s.navSearch, 
-                          color: Colors.tealAccent, 
-                          onTap: () => state.navigateToPage(4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 if (_continueWatching.isNotEmpty)
                   _SliverHorizontalSection(
                     title: s.continueWatching,
@@ -174,7 +133,6 @@ class _HomePageState extends State<HomePage> {
                     seriesProgressMap: _seriesProgress,
                     onTap: _onTap,
                   ),
-
                 if (_favorites.isNotEmpty)
                   _SliverHorizontalSection(
                     title: s.favorites,
@@ -182,7 +140,6 @@ class _HomePageState extends State<HomePage> {
                     seriesProgressMap: _seriesProgress,
                     onTap: _onTap,
                   ),
-
                 if (_recentlyAdded.isNotEmpty)
                   _SliverHorizontalSection(
                     title: s.recentlyAdded,
@@ -190,7 +147,20 @@ class _HomePageState extends State<HomePage> {
                     seriesProgressMap: _seriesProgress,
                     onTap: _onTap,
                   ),
-
+                if (_movieShelf.isNotEmpty)
+                  _SliverHorizontalSection(
+                    title: s.navMovies,
+                    items: _movieShelf,
+                    seriesProgressMap: _seriesProgress,
+                    onTap: _onTap,
+                  ),
+                if (_seriesShelf.isNotEmpty)
+                  _SliverHorizontalSection(
+                    title: s.navSeries,
+                    items: _seriesShelf,
+                    seriesProgressMap: _seriesProgress,
+                    onTap: _onTap,
+                  ),
                 if (_discovery.isNotEmpty)
                   _SliverHorizontalSection(
                     title: s.discover,
@@ -198,63 +168,9 @@ class _HomePageState extends State<HomePage> {
                     seriesProgressMap: _seriesProgress,
                     onTap: _onTap,
                   ),
-                  
                 const SliverToBoxAdapter(child: SizedBox(height: 50)),
               ],
             ),
-    );
-  }
-}
-
-class _QuickNavCard extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _QuickNavCard({required this.icon, required this.label, required this.color, required this.onTap});
-
-  @override
-  State<_QuickNavCard> createState() => _QuickNavCardState();
-}
-
-class _QuickNavCardState extends State<_QuickNavCard> {
-  bool _focused = false;
-  @override
-  Widget build(BuildContext context) {
-    return Focus(
-      onFocusChange: (v) => setState(() => _focused = v),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 170,
-          height: 90,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: _focused ? widget.color : AppTheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _focused ? Colors.white : Colors.white.withOpacity(0.05), width: 2.5),
-            boxShadow: _focused ? [BoxShadow(color: widget.color.withOpacity(0.4), blurRadius: 15, spreadRadius: 1)] : null,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, color: _focused ? Colors.white : widget.color, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: _focused ? Colors.white : Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -299,7 +215,8 @@ class _SliverHorizontalSection extends StatelessWidget {
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final ch = items[index];
-                final prog = seriesProgressMap?[ch.seriesName?.trim() ?? ch.name.trim()];
+                final prog =
+                    seriesProgressMap?[ch.seriesName?.trim() ?? ch.name.trim()];
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: ChannelCard(

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:isar_community/isar.dart';
@@ -5,6 +6,7 @@ import 'package:fuzzy/fuzzy.dart';
 import '../database/aladin_isar_service.dart';
 import '../models/aladin_channel_model.dart';
 import '../models/aladin_category_model.dart';
+import '../state/aladin_app_prefs.dart';
 
 class ChannelService {
   ChannelService._();
@@ -25,13 +27,14 @@ class ChannelService {
           .limit(1000)
           .findAll();
 
-      final data = items.map((e) => {
-        'id': e.id.toString(),
-        'name': e.name,
-        'category': e.categoryName,
-        'logo': e.logoUrl ?? '',
-        'url': e.url,
-      }).toList();
+      final data = items
+          .map((e) => {
+                'id': e.id.toString(),
+                'name': e.name,
+                'category': e.categoryName,
+                'logo': e.logoUrl ?? '',
+              })
+          .toList();
 
       try {
         await _exoChannel.invokeMethod('syncSearchData', {'items': data});
@@ -49,7 +52,7 @@ class ChannelService {
           'title': ch.name,
           'description': ch.tmdbOverview ?? ch.categoryName,
           'poster': ch.tmdbPoster ?? ch.logoUrl ?? '',
-          'url': ch.url,
+          'channelId': ch.id.toString(),
           'contentType': ch.contentType,
         });
       } catch (e) {
@@ -60,15 +63,33 @@ class ChannelService {
 
   // ── Categories ─────────────────────────────────────────────────────────────
 
+  int _seedFor(String scope) {
+    var hash = 2166136261;
+    for (final unit in scope.codeUnits) {
+      hash = ((hash ^ unit) * 16777619) & 0x7fffffff;
+    }
+    return (AladinPrefs.instance.launchShuffleSeed ^ hash) & 0x7fffffff;
+  }
+
+  bool _shouldShuffle(String type) =>
+      AladinPrefs.instance.shuffleOnLaunch &&
+      (type == 'movie' || type == 'series');
+
   Future<List<CategoryModel>> getCategories(
-          {required int playlistId, required String contentType}) =>
-      _db.categoryModels
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .and()
-          .contentTypeEqualTo(contentType)
-          .sortBySortOrder()
-          .findAll();
+      {required int playlistId, required String contentType}) async {
+    final items = await _db.categoryModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .and()
+        .contentTypeEqualTo(contentType)
+        .sortBySortOrder()
+        .findAll();
+    items.removeWhere((category) => category.channelCount <= 0);
+    if (_shouldShuffle(contentType)) {
+      items.shuffle(Random(_seedFor('categories:$playlistId:$contentType')));
+    }
+    return items;
+  }
 
   // ── Channels per category (paginated) ─────────────────────────────────────
 
@@ -88,13 +109,20 @@ class ChannelService {
           .categoryNameEqualTo(categoryName.trim())
           .and()
           .contentTypeEqualTo('series')
-          .group((q) => q.urlEqualTo('').or().episodeEqualTo(1).or().episodeIsNull())
+          .group((q) =>
+              q.urlEqualTo('').or().episodeEqualTo(1).or().episodeIsNull())
           .sortBySortOrder()
           .offset(offset)
           .limit(limit)
           .findAll();
 
-      if (reps.isNotEmpty) return reps;
+      if (reps.isNotEmpty) {
+        if (_shouldShuffle(contentType)) {
+          reps.shuffle(Random(_seedFor(
+              'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
+        }
+        return reps;
+      }
 
       // Fallback if no "main" records found (e.g. strange M3U)
       final all = await _db.channelModels
@@ -116,13 +144,18 @@ class ChannelService {
         }
       }
 
+      if (_shouldShuffle(contentType)) {
+        results.shuffle(Random(_seedFor(
+            'content:$playlistId:$contentType:${categoryName.trim()}')));
+      }
+
       if (offset >= results.length) return [];
       int end = offset + limit;
       if (end > results.length) end = results.length;
       return results.sublist(offset, end);
     }
 
-    return _db.channelModels
+    final items = await _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
@@ -133,6 +166,11 @@ class ChannelService {
         .offset(offset)
         .limit(limit)
         .findAll();
+    if (_shouldShuffle(contentType)) {
+      items.shuffle(Random(_seedFor(
+          'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
+    }
+    return items;
   }
 
   // ── Favorites ──────────────────────────────────────────────────────────────
@@ -156,7 +194,8 @@ class ChannelService {
 
   Future<void> setFavoriteByUrl(String url, bool isFavorite) async {
     await _db.writeTxn(() async {
-      final matches = await _db.channelModels.filter().urlEqualTo(url).findAll();
+      final matches =
+          await _db.channelModels.filter().urlEqualTo(url).findAll();
       for (final ch in matches) {
         ch.isFavorite = isFavorite;
         await _db.channelModels.put(ch);
@@ -175,33 +214,59 @@ class ChannelService {
           .limit(limit)
           .findAll();
 
-  Future<ChannelModel?> getLastWatched(int playlistId) =>
-      _db.channelModels
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .lastWatchedIsNotNull()
-          .sortByLastWatchedDesc()
-          .findFirst();
+  Future<ChannelModel?> getLastWatched(int playlistId) => _db.channelModels
+      .filter()
+      .playlistIdEqualTo(playlistId)
+      .lastWatchedIsNotNull()
+      .sortByLastWatchedDesc()
+      .findFirst();
+
+  /// The latest unfinished VOD episode/movie that can safely resume.
+  /// Live channels and completed items are deliberately excluded.
+  Future<ChannelModel?> getLastResumable(int playlistId) async {
+    final candidates = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .lastWatchedIsNotNull()
+        .sortByLastWatchedDesc()
+        .limit(30)
+        .findAll();
+    for (final ch in candidates) {
+      if (ch.contentType == 'tv' || ch.url.trim().isEmpty) continue;
+      if (ch.watchedSeconds <= 0 || ch.totalDurationSeconds <= 0) continue;
+      final progress = ch.watchedSeconds / ch.totalDurationSeconds;
+      if (progress >= 0.03 && progress <= 0.90) return ch;
+    }
+    return null;
+  }
 
   Future<void> updateWatched(int channelId, int seconds) async {
     await _db.writeTxn(() async {
       final ch = await _db.channelModels.get(channelId);
       if (ch != null) {
-        ch.lastWatched = DateTime.now();
-        ch.watchedSeconds = seconds;
+        if (seconds <= 0) {
+          ch.lastWatched = null;
+          ch.watchedSeconds = 0;
+          ch.totalDurationSeconds = 0;
+        } else {
+          ch.lastWatched = DateTime.now();
+          ch.watchedSeconds = seconds;
+        }
         await _db.channelModels.put(ch);
       }
     });
   }
 
-  Future<void> updateProgressByUrl(String url, int seconds, int totalSeconds) async {
+  Future<void> updateProgressByUrl(
+      String url, int seconds, int totalSeconds) async {
     if (totalSeconds <= 0) return;
-    
+
     await _db.writeTxn(() async {
-      final matches = await _db.channelModels.filter().urlEqualTo(url).findAll();
+      final matches =
+          await _db.channelModels.filter().urlEqualTo(url).findAll();
       for (final ch in matches) {
         final percent = (seconds / totalSeconds) * 100;
-        
+
         // Kullanıcı isteği: %3 - %90 arası izleme takibi
         if (percent >= 3 && percent <= 90) {
           ch.lastWatched = DateTime.now();
@@ -214,7 +279,7 @@ class ChannelService {
           ch.totalDurationSeconds = totalSeconds;
         }
         await _db.channelModels.put(ch);
-        
+
         // ⚡ PRO FEATURE: Sync to Android TV "Watch Next"
         if (ch.contentType != 'tv') {
           addToWatchNext(ch);
@@ -240,7 +305,8 @@ class ChannelService {
     for (final ch in watchedSeries) {
       if (ch.url.isEmpty || ch.totalDurationSeconds <= 0) continue;
       final key = ch.seriesName?.trim() ?? ch.name.trim();
-      final progress = (ch.watchedSeconds / ch.totalDurationSeconds).clamp(0.0, 1.0);
+      final progress =
+          (ch.watchedSeconds / ch.totalDurationSeconds).clamp(0.0, 1.0);
       stats.putIfAbsent(key, () => []).add(progress);
     }
 
@@ -253,7 +319,8 @@ class ChannelService {
 
   /// Returns items that are partially watched (between 3% and 90%)
   /// UPDATED: Only one entry per Series (the latest one)
-  Future<List<ChannelModel>> getContinueWatching(int playlistId, {int limit = 20}) async {
+  Future<List<ChannelModel>> getContinueWatching(int playlistId,
+      {int limit = 20}) async {
     final allRecent = await _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
@@ -277,8 +344,10 @@ class ChannelService {
 
       // 2. Dizi Tekilleştirme (Sadece en son izlenen bölüm)
       if (ch.contentType == 'series') {
-        final seriesKey = ch.seriesName?.trim().toLowerCase() ?? ch.name.trim().toLowerCase();
-        if (seenSeries.contains(seriesKey)) continue; // Daha yenisi zaten eklendi
+        final seriesKey =
+            ch.seriesName?.trim().toLowerCase() ?? ch.name.trim().toLowerCase();
+        if (seenSeries.contains(seriesKey))
+          continue; // Daha yenisi zaten eklendi
         seenSeries.add(seriesKey);
       }
 
@@ -299,7 +368,7 @@ class ChannelService {
       {required int playlistId, required String query, int limit = 50}) async {
     final trimmed = query.trim();
     if (trimmed.length < 2) return [];
-    
+
     return _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
@@ -315,11 +384,11 @@ class ChannelService {
     final trimmed = query.trim();
     if (trimmed.length < 3) return [];
 
-    // Strategy: 
+    // Strategy:
     // 1. Get first word of the query to filter results from DB
     // 2. Perform fuzzy match on this smaller subset (more likely to contain matches)
     final firstWord = trimmed.split(' ').first;
-    
+
     final subset = await _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
@@ -358,7 +427,8 @@ class ChannelService {
         .playlistIdEqualTo(playlistId)
         .and()
         .contentTypeEqualTo('series')
-        .group((q) => q.urlEqualTo('').or().episodeEqualTo(1).or().episodeIsNull())
+        .group(
+            (q) => q.urlEqualTo('').or().episodeEqualTo(1).or().episodeIsNull())
         .sortBySortOrder()
         .findAll();
 
@@ -383,7 +453,8 @@ class ChannelService {
     return results;
   }
 
-  Future<List<ChannelModel>> getSeriesEpisodes(int playlistId, String sName) async {
+  Future<List<ChannelModel>> getSeriesEpisodes(
+      int playlistId, String sName) async {
     final trimmed = sName.trim();
     return _db.channelModels
         .filter()
@@ -418,20 +489,60 @@ class ChannelService {
     return query.sortBySeason().thenByEpisode().findAll();
   }
 
-  Future<List<ChannelModel>> getRecentlyAdded(int playlistId, {int limit = 20}) async {
-    // ⚡ PRO OPTIMIZATION: Use Isar's native distinctBy for deduplication
-    final results = await _db.channelModels
-        .where()
+  Future<List<ChannelModel>> getRecentlyAdded(int playlistId,
+      {int limit = 20}) async {
+    // Read a bounded newest window, then deduplicate series without collapsing
+    // every movie whose seriesName is null into a single result.
+    final total =
+        await _db.channelModels.filter().playlistIdEqualTo(playlistId).count();
+    if (total == 0) return [];
+    final candidates = await _db.channelModels
+        .filter()
         .playlistIdEqualTo(playlistId)
-        .distinctBySeriesName()
-        .limit(limit)
+        .offset(max(0, total - limit * 8))
+        .limit(limit * 8)
         .findAll();
-
-    return results;
+    return _dedupeForShelf(candidates.reversed, limit);
   }
 
-  Future<List<ChannelModel>> getRandomDiscovery(int playlistId, {int limit = 20}) async {
-    final total = await _db.channelModels.filter().playlistIdEqualTo(playlistId).count();
+  Future<List<ChannelModel>> getHomeShelf(int playlistId, String contentType,
+      {int limit = 20}) async {
+    final query = _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .and()
+        .contentTypeEqualTo(contentType);
+    final total = await query.count();
+    if (total == 0) return [];
+    final fetchLimit = min(total, limit * (contentType == 'series' ? 12 : 4));
+    final maxOffset = max(0, total - fetchLimit);
+    final offset = maxOffset == 0
+        ? 0
+        : _seedFor('home:$playlistId:$contentType') % (maxOffset + 1);
+    final candidates = await query.offset(offset).limit(fetchLimit).findAll();
+    candidates.shuffle(Random(_seedFor('home-items:$playlistId:$contentType')));
+    return _dedupeForShelf(candidates, limit);
+  }
+
+  List<ChannelModel> _dedupeForShelf(
+      Iterable<ChannelModel> candidates, int limit) {
+    final seen = <String>{};
+    final result = <ChannelModel>[];
+    for (final ch in candidates) {
+      final seriesName = ch.seriesName?.trim();
+      final key = ch.contentType == 'series'
+          ? 'series:${(seriesName?.isNotEmpty == true ? seriesName! : ch.name).toLowerCase()}'
+          : 'id:${ch.id}';
+      if (seen.add(key)) result.add(ch);
+      if (result.length >= limit) break;
+    }
+    return result;
+  }
+
+  Future<List<ChannelModel>> getRandomDiscovery(int playlistId,
+      {int limit = 20}) async {
+    final total =
+        await _db.channelModels.filter().playlistIdEqualTo(playlistId).count();
     if (total == 0) return [];
 
     final fetchLimit = limit * 5;
@@ -450,7 +561,10 @@ class ChannelService {
     final filtered = <ChannelModel>[];
     for (final ch in all) {
       if (ch.contentType == 'series') {
-        final key = (ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name).toLowerCase();
+        final key = (ch.seriesName?.trim().isNotEmpty == true
+                ? ch.seriesName!
+                : ch.name)
+            .toLowerCase();
         if (seenSeries.add(key)) {
           filtered.add(ch);
         }
@@ -468,7 +582,10 @@ class ChannelService {
 
   /// Optimized category count update
   Future<void> updateCategoryCountsForPlaylist(int playlistId) async {
-    final cats = await _db.categoryModels.filter().playlistIdEqualTo(playlistId).findAll();
+    final cats = await _db.categoryModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .findAll();
     if (cats.isEmpty) return;
 
     final Map<int, int> finalCounts = {};
@@ -492,7 +609,10 @@ class ChannelService {
       for (var ch in batch) {
         final catKey = ch.categoryName;
         if (ch.contentType == 'series') {
-          final sName = (ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name).toLowerCase();
+          final sName = (ch.seriesName?.trim().isNotEmpty == true
+                  ? ch.seriesName!
+                  : ch.name)
+              .toLowerCase();
           seriesUniqueNames.putIfAbsent(catKey, () => {}).add(sName);
         } else {
           tvMovieCounts[catKey] = (tvMovieCounts[catKey] ?? 0) + 1;
@@ -550,7 +670,10 @@ class ChannelService {
             .and()
             .contentTypeEqualTo('series')
             .and()
-            .group((q) => q.seriesNameEqualTo(seriesName.trim()).or().nameEqualTo(seriesName.trim()))
+            .group((q) => q
+                .seriesNameEqualTo(seriesName.trim())
+                .or()
+                .nameEqualTo(seriesName.trim()))
             .findAll();
 
         for (final ep in episodes) {

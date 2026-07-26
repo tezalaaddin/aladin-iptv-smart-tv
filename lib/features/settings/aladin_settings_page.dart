@@ -18,21 +18,26 @@ class SettingsThemeTokens {
   static const double radius = 12.0;
   static const double spacing = 20.0;
   static const Duration animDuration = Duration(milliseconds: 140);
-  
-  static List<BoxShadow> focusShadow(Color color) => [
-    BoxShadow(
-      color: color.withOpacity(0.15),
-      blurRadius: 12,
-      spreadRadius: 1,
-    ),
-  ];
 
-  static BoxDecoration cardDecoration({bool focused = false, bool active = false}) {
+  static List<BoxShadow> focusShadow(Color color) => [
+        BoxShadow(
+          color: color.withOpacity(0.15),
+          blurRadius: 12,
+          spreadRadius: 1,
+        ),
+      ];
+
+  static BoxDecoration cardDecoration(
+      {bool focused = false, bool active = false}) {
     return BoxDecoration(
-      color: focused ? Colors.white : (active ? AppTheme.accent.withOpacity(0.08) : AppTheme.card),
+      color: focused
+          ? Colors.white
+          : (active ? AppTheme.accent.withOpacity(0.08) : AppTheme.card),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: focused ? Colors.white : (active ? AppTheme.accent : Colors.transparent),
+        color: focused
+            ? Colors.white
+            : (active ? AppTheme.accent : Colors.transparent),
         width: 1.5,
       ),
       boxShadow: focused ? focusShadow(AppTheme.accent) : null,
@@ -45,7 +50,8 @@ enum ImportType { m3u, xtream, local }
 class SettingsPage extends StatefulWidget {
   final VoidCallback? onPlaylistSelected;
   final bool isActive;
-  const SettingsPage({super.key, this.onPlaylistSelected, this.isActive = false});
+  const SettingsPage(
+      {super.key, this.onPlaylistSelected, this.isActive = false});
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -58,9 +64,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Focus Management
   late final FocusNode _pageFocusNode = FocusNode(debugLabel: 'settings_page');
-  late final List<FocusNode> _leftNodes = List.generate(7, (i) => FocusNode(debugLabel: 'left_$i'));
+  late final List<FocusNode> _leftNodes =
+      List.generate(8, (i) => FocusNode(debugLabel: 'left_$i'));
   final List<FocusNode> _playlistNodes = [];
-  
+
   final ScrollController _leftScroll = ScrollController();
   final ScrollController _rightScroll = ScrollController();
 
@@ -72,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _initPackageInfo();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && widget.isActive) {
         _leftNodes[0].requestFocus();
@@ -96,7 +103,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _updatePlaylistNodes(int count) {
     if (_playlistNodes.length == count) return;
-    
+
     if (_playlistNodes.length < count) {
       for (int i = _playlistNodes.length; i < count; i++) {
         _playlistNodes.add(FocusNode(debugLabel: 'playlist_$i'));
@@ -115,7 +122,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final state = context.read<AppState>();
 
     // Back / Escape handling
-    if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.backspace || key == LogicalKeyboardKey.goBack) {
+    if (key == LogicalKeyboardKey.escape ||
+        key == LogicalKeyboardKey.backspace ||
+        key == LogicalKeyboardKey.goBack) {
       if (!_inLeftPanel) {
         setState(() => _inLeftPanel = true);
         _leftNodes[_leftFocusedIndex].requestFocus();
@@ -128,11 +137,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (key == LogicalKeyboardKey.arrowRight && _inLeftPanel) {
       if (state.playlists.isNotEmpty) {
         setState(() => _inLeftPanel = false);
-        _playlistNodes[_rightFocusedIndex.clamp(0, state.playlists.length - 1)].requestFocus();
+        _playlistNodes[_rightFocusedIndex.clamp(0, state.playlists.length - 1)]
+            .requestFocus();
         return KeyEventResult.handled;
       }
     }
-    
+
     if (key == LogicalKeyboardKey.arrowLeft && !_inLeftPanel) {
       setState(() => _inLeftPanel = true);
       _leftNodes[_leftFocusedIndex].requestFocus();
@@ -160,8 +170,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   String _toggleProtocol(String url) {
     url = url.trim();
-    if (url.startsWith('https://')) return url.replaceFirst('https://', 'http://');
-    if (url.startsWith('http://')) return url.replaceFirst('http://', 'https://');
+    if (url.startsWith('https://'))
+      return url.replaceFirst('https://', 'http://');
+    if (url.startsWith('http://'))
+      return url.replaceFirst('http://', 'https://');
     return 'http://$url';
   }
 
@@ -195,24 +207,46 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (_) => AladinFormDialog(
         title: s.addM3uTitle,
         fields: [
-          AladinField(label: s.m3uUrl, hint: 'http://...', icon: Icons.link),
-          AladinField(label: s.playlistName, hint: s.playlistName, icon: Icons.edit_note),
+          AladinField(
+            label: s.m3uUrl,
+            initialValue: 'http://',
+            hint: 'http://...',
+            icon: Icons.link,
+            quickTokens: const [
+              'http://',
+              'https://',
+              '.com',
+              '.net',
+              ':8080',
+              '/',
+            ],
+          ),
+          AladinField(
+              label: s.playlistName,
+              hint: s.playlistName,
+              icon: Icons.edit_note),
         ],
       ),
     );
 
-    if (result != null && result[0].isNotEmpty) {
-      String url = result[0].replaceAll(RegExp(r'[\u200b-\u200d\ufeff]'), '').trim();
+    if (result != null && _hasUrlHost(result[0])) {
+      String url =
+          result[0].replaceAll(RegExp(r'[\u200b-\u200d\ufeff]'), '').trim();
       final name = result[1].isEmpty ? s.tabM3U : result[1];
-      
-      setState(() { _importing = true; _status = s.connecting; });
+
+      setState(() {
+        _importing = true;
+        _status = s.connecting;
+      });
       try {
         PlaylistModel? p;
         try {
           p = await PlaylistService.instance.importM3U(
               url: url,
               name: name,
-              onProgress: (p, c) { if (mounted) setState(() => _status = _pt(p, c)); });
+              onProgress: (p, c) {
+                if (mounted) setState(() => _status = _pt(p, c));
+              });
         } catch (e) {
           final altUrl = _toggleProtocol(url);
           if (altUrl != url) {
@@ -221,7 +255,9 @@ class _SettingsPageState extends State<SettingsPage> {
             p = await PlaylistService.instance.importM3U(
                 url: url,
                 name: name,
-                onProgress: (p, c) { if (mounted) setState(() => _status = _pt(p, c)); });
+                onProgress: (p, c) {
+                  if (mounted) setState(() => _status = _pt(p, c));
+                });
           } else {
             rethrow;
           }
@@ -245,17 +281,38 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (_) => AladinFormDialog(
         title: s.addXtreamTitle,
         fields: [
-          AladinField(label: s.server, hint: 'http://...', icon: Icons.dns),
+          AladinField(
+            label: s.server,
+            initialValue: 'http://',
+            hint: 'http://...',
+            icon: Icons.dns,
+            quickTokens: const [
+              'http://',
+              'https://',
+              '.com',
+              '.net',
+              ':8080',
+              ':25461',
+              '/',
+            ],
+          ),
           AladinField(label: s.username, icon: Icons.person),
           AladinField(label: s.password, obscure: true, icon: Icons.lock),
-          AladinField(label: s.playlistName, hint: s.username, icon: Icons.badge),
+          AladinField(
+              label: s.playlistName, hint: s.username, icon: Icons.badge),
         ],
       ),
     );
 
-    if (result != null && result[0].isNotEmpty && result[1].isNotEmpty && result[2].isNotEmpty) {
+    if (result != null &&
+        _hasUrlHost(result[0]) &&
+        result[1].isNotEmpty &&
+        result[2].isNotEmpty) {
       String server = result[0].trim();
-      setState(() { _importing = true; _status = s.validating; });
+      setState(() {
+        _importing = true;
+        _status = s.validating;
+      });
       try {
         PlaylistModel? p;
         try {
@@ -264,7 +321,9 @@ class _SettingsPageState extends State<SettingsPage> {
               username: result[1],
               password: result[2],
               name: result[3].isEmpty ? result[1] : result[3],
-              onProgress: (p, c) { if (mounted) setState(() => _status = _pt(p, c)); });
+              onProgress: (p, c) {
+                if (mounted) setState(() => _status = _pt(p, c));
+              });
         } catch (e) {
           final altServer = _toggleProtocol(server);
           if (altServer != server) {
@@ -275,7 +334,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 username: result[1],
                 password: result[2],
                 name: result[3].isEmpty ? result[1] : result[3],
-                onProgress: (p, c) { if (mounted) setState(() => _status = _pt(p, c)); });
+                onProgress: (p, c) {
+                  if (mounted) setState(() => _status = _pt(p, c));
+                });
           } else {
             rethrow;
           }
@@ -288,6 +349,11 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) setState(() => _importing = false);
       }
     }
+  }
+
+  bool _hasUrlHost(String value) {
+    final normalized = value.trim().replaceFirst(RegExp(r'^https?://'), '');
+    return normalized.isNotEmpty;
   }
 
   Future<void> _openLocalForm() async {
@@ -305,13 +371,18 @@ class _SettingsPageState extends State<SettingsPage> {
         builder: (_) => AladinInputDialog(title: s.playlistName, hint: s.local),
       );
 
-      setState(() { _importing = true; _status = s.reading; });
+      setState(() {
+        _importing = true;
+        _status = s.reading;
+      });
       try {
         final p = await PlaylistService.instance.importM3U(
             url: path,
             name: nameResult ?? s.local,
             isLocalFile: true,
-            onProgress: (p, c) { if (mounted) setState(() => _status = _pt(p, c)); });
+            onProgress: (p, c) {
+              if (mounted) setState(() => _status = _pt(p, c));
+            });
         await state.refresh();
         if (mounted) _showActivationDialog(p, s, state);
       } catch (e) {
@@ -341,7 +412,7 @@ class _SettingsPageState extends State<SettingsPage> {
               policy: OrderedTraversalPolicy(),
               child: CustomScrollView(
                 controller: _leftScroll,
-              slivers: [
+                slivers: [
                   _buildHeader(s),
                   _buildSectionHeader(s.newPlaylistAdd),
                   SliverPadding(
@@ -354,16 +425,34 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.setupWizard,
                           subtitle: s.setupWizardSub,
                           onTap: _startImportWizard,
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 0; }); _ensureVisible(_leftNodes[0]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 0;
+                              });
+                            _ensureVisible(_leftNodes[0]);
+                          },
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[1],
                           icon: Icons.sync,
                           title: s.epgUpdate,
-                          subtitle: AladinEpgEngine.instance.daysSinceSync >= 999 ? s.epgNeverSynced : s.epgLastSync(AladinEpgEngine.instance.daysSinceSync),
+                          subtitle:
+                              AladinEpgEngine.instance.daysSinceSync >= 999
+                                  ? s.epgNeverSynced
+                                  : s.epgLastSync(
+                                      AladinEpgEngine.instance.daysSinceSync),
                           onTap: _epgSyncing ? null : _forceEpgSync,
                           loading: _epgSyncing,
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 1; }); _ensureVisible(_leftNodes[1]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 1;
+                              });
+                            _ensureVisible(_leftNodes[1]);
+                          },
                         ),
                       ]),
                     ),
@@ -377,9 +466,20 @@ class _SettingsPageState extends State<SettingsPage> {
                           focusNode: _leftNodes[2],
                           icon: Icons.language,
                           title: s.langTitle,
-                          subtitle: (AppStrings.getLanguageNames()[state.lang] ?? '').split(' ').skip(1).join(' '),
+                          subtitle:
+                              (AppStrings.getLanguageNames()[state.lang] ?? '')
+                                  .split(' ')
+                                  .skip(1)
+                                  .join(' '),
                           onTap: () => _showLanguageDialog(state, s),
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 2; }); _ensureVisible(_leftNodes[2]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 2;
+                              });
+                            _ensureVisible(_leftNodes[2]);
+                          },
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[3],
@@ -387,7 +487,14 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.decoderMode,
                           subtitle: _getDecoderName(s),
                           onTap: () => _showDecoderDialog(s),
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 3; }); _ensureVisible(_leftNodes[3]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 3;
+                              });
+                            _ensureVisible(_leftNodes[3]);
+                          },
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[4],
@@ -395,27 +502,77 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.quality,
                           subtitle: _getQualityName(s),
                           onTap: () => _showQualityDialog(s),
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 4; }); _ensureVisible(_leftNodes[4]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 4;
+                              });
+                            _ensureVisible(_leftNodes[4]);
+                          },
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[5],
                           icon: Icons.play_circle_filled,
-                          title: 'Başlangıçta Oynat', 
-                          subtitle: AladinPrefs.instance.getBool('auto_play_last') ? 'Aktif' : 'Kapalı',
+                          title: s.autoPlayStartup,
+                          subtitle:
+                              AladinPrefs.instance.getBool('auto_play_last')
+                                  ? s.autoPlayActiveSub
+                                  : s.autoPlayInactiveSub,
                           onTap: () async {
-                            final cur = AladinPrefs.instance.getBool('auto_play_last');
-                            await AladinPrefs.instance.setBool('auto_play_last', !cur);
+                            final cur =
+                                AladinPrefs.instance.getBool('auto_play_last');
+                            await AladinPrefs.instance
+                                .setBool('auto_play_last', !cur);
                             setState(() {});
                           },
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 5; }); _ensureVisible(_leftNodes[5]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 5;
+                              });
+                            _ensureVisible(_leftNodes[5]);
+                          },
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[6],
+                          icon: Icons.shuffle,
+                          title: s.shuffleLaunch,
+                          subtitle: AladinPrefs.instance.shuffleOnLaunch
+                              ? s.shuffleActiveSub
+                              : s.shuffleInactiveSub,
+                          onTap: () async {
+                            await AladinPrefs.instance.setBool(
+                              'shuffle_on_launch',
+                              !AladinPrefs.instance.shuffleOnLaunch,
+                            );
+                            setState(() {});
+                          },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 6;
+                              });
+                            _ensureVisible(_leftNodes[6]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[7],
                           icon: Icons.info_outline,
                           title: s.about,
-                          subtitle: '${s.version} ${_packageInfo?.version ?? '...'} (${_packageInfo?.buildNumber ?? ''})',
+                          subtitle:
+                              '${s.version} ${_packageInfo?.version ?? '...'} (${_packageInfo?.buildNumber ?? ''})',
                           onTap: () => _showAboutDialog(s),
-                          onFocus: (v) { if(v) setState(() { _inLeftPanel = true; _leftFocusedIndex = 6; }); _ensureVisible(_leftNodes[6]); },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 7;
+                              });
+                            _ensureVisible(_leftNodes[7]);
+                          },
                         ),
                       ]),
                     ),
@@ -458,7 +615,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 (_, i) => _PTile(
                   p: state.playlists[i],
                   active: state.active?.id == state.playlists[i].id,
-                  onSelect: () => _showPlaylistMenu(state.playlists[i], s, state),
+                  onSelect: () =>
+                      _showPlaylistMenu(state.playlists[i], s, state),
                   onMenu: () => _showPlaylistMenu(state.playlists[i], s, state),
                 ),
                 childCount: state.playlists.length,
@@ -479,14 +637,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 _SetupTile(
                   icon: Icons.sync,
                   title: s.epgUpdate,
-                  subtitle: AladinEpgEngine.instance.daysSinceSync >= 999 ? s.epgNeverSynced : s.epgLastSync(AladinEpgEngine.instance.daysSinceSync),
+                  subtitle: AladinEpgEngine.instance.daysSinceSync >= 999
+                      ? s.epgNeverSynced
+                      : s.epgLastSync(AladinEpgEngine.instance.daysSinceSync),
                   onTap: _epgSyncing ? null : _forceEpgSync,
                   loading: _epgSyncing,
                 ),
                 _SetupTile(
                   icon: Icons.language,
                   title: s.langTitle,
-                  subtitle: (AppStrings.getLanguageNames()[state.lang] ?? '').split(' ').skip(1).join(' '),
+                  subtitle: (AppStrings.getLanguageNames()[state.lang] ?? '')
+                      .split(' ')
+                      .skip(1)
+                      .join(' '),
                   onTap: () => _showLanguageDialog(state, s),
                 ),
                 _SetupTile(
@@ -494,6 +657,40 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: s.decoderMode,
                   subtitle: _getDecoderName(s),
                   onTap: () => _showDecoderDialog(s),
+                ),
+                _SetupTile(
+                  icon: Icons.high_quality,
+                  title: s.quality,
+                  subtitle: _getQualityName(s),
+                  onTap: () => _showQualityDialog(s),
+                ),
+                _SetupTile(
+                  icon: Icons.play_circle_filled,
+                  title: s.autoPlayStartup,
+                  subtitle: AladinPrefs.instance.getBool('auto_play_last')
+                      ? s.autoPlayActiveSub
+                      : s.autoPlayInactiveSub,
+                  onTap: () async {
+                    final current =
+                        AladinPrefs.instance.getBool('auto_play_last');
+                    await AladinPrefs.instance
+                        .setBool('auto_play_last', !current);
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _SetupTile(
+                  icon: Icons.shuffle,
+                  title: s.shuffleLaunch,
+                  subtitle: AladinPrefs.instance.shuffleOnLaunch
+                      ? s.shuffleActiveSub
+                      : s.shuffleInactiveSub,
+                  onTap: () async {
+                    await AladinPrefs.instance.setBool(
+                      'shuffle_on_launch',
+                      !AladinPrefs.instance.shuffleOnLaunch,
+                    );
+                    if (mounted) setState(() {});
+                  },
                 ),
                 _SetupTile(
                   icon: Icons.info_outline,
@@ -534,9 +731,15 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(s.savedPlaylists.toUpperCase(), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.5)),
+          Text(s.savedPlaylists.toUpperCase(),
+              style: const TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  letterSpacing: 1.5)),
           const SizedBox(height: 8),
-          Text(s.listSavedCount(state.playlists.length), style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+          Text(s.listSavedCount(state.playlists.length),
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
         ],
       ),
     );
@@ -570,11 +773,14 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircularProgressIndicator(color: AppTheme.accent, strokeWidth: 3),
+                const CircularProgressIndicator(
+                    color: AppTheme.accent, strokeWidth: 3),
                 const SizedBox(height: 32),
                 Text(s.updating, style: AppTheme.headingLarge),
                 const SizedBox(height: 12),
-                Text(_status, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16)),
+                Text(_status,
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 16)),
               ],
             ),
           ),
@@ -591,61 +797,96 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (context) => _ImportTypeSelectorDialog(s: s),
     );
-    
+
     prevFocus?.requestFocus();
     if (type == null) return;
-    
+
     switch (type) {
-      case ImportType.m3u: await _openM3UForm(); break;
-      case ImportType.xtream: await _openXtreamForm(); break;
-      case ImportType.local: await _openLocalForm(); break;
+      case ImportType.m3u:
+        await _openM3UForm();
+        break;
+      case ImportType.xtream:
+        await _openXtreamForm();
+        break;
+      case ImportType.local:
+        await _openLocalForm();
+        break;
     }
   }
 
   Widget _buildHeader(AppStrings s) => SliverToBoxAdapter(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 48, 32, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.settings, color: AppTheme.accent, size: 20),
-              const SizedBox(width: 12),
-              Text(s.navSettings.toUpperCase(), style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w900, letterSpacing: 2)),
+              Row(
+                children: [
+                  const Icon(Icons.settings, color: AppTheme.accent, size: 20),
+                  const SizedBox(width: 12),
+                  Text(s.navSettings.toUpperCase(),
+                      style: const TextStyle(
+                          color: AppTheme.accent,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(s.appAndListMgmt, style: AppTheme.headingLarge),
+              const SizedBox(height: 8),
+              Container(
+                  width: 60,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(2))),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(s.appAndListMgmt, style: AppTheme.headingLarge),
-          const SizedBox(height: 8),
-          Container(width: 60, height: 4, decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2))),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
   Widget _buildSectionHeader(String title) => SliverToBoxAdapter(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(32, 32, 32, 12),
-      child: Row(
-        children: [
-          Container(width: 4, height: 16, decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 12),
-          Text(title, style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 1.2)),
-        ],
-      ),
-    ),
-  );
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 32, 32, 12),
+          child: Row(
+            children: [
+              Container(
+                  width: 4,
+                  height: 16,
+                  decoration: BoxDecoration(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(2))),
+              const SizedBox(width: 12),
+              Text(title,
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      letterSpacing: 1.2)),
+            ],
+          ),
+        ),
+      );
 
   Widget _statusRow() => Container(
-    padding: const EdgeInsets.all(16),
-    color: AppTheme.accent.withOpacity(0.1),
-    child: Row(children: [
-      if (_importing) const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent)),
-      const SizedBox(width: 12),
-      Expanded(child: Text(_status, style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 13))),
-    ]),
-  );
+        padding: const EdgeInsets.all(16),
+        color: AppTheme.accent.withOpacity(0.1),
+        child: Row(children: [
+          if (_importing)
+            const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppTheme.accent)),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Text(_status,
+                  style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13))),
+        ]),
+      );
 
   void _showErrorDialog(String error, AppStrings s) {
     showDialog(
@@ -653,8 +894,14 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(s.errorUrlTitle),
-        content: Text(error.contains('Handshake') ? s.httpsError : s.errorUrlMsg),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(s.done))],
+        content:
+            Text(error.contains('Handshake') ? s.httpsError : s.errorUrlMsg),
+        actions: [
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(context),
+              child: Text(s.done))
+        ],
       ),
     );
   }
@@ -668,8 +915,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text(s.playlistLoadedTitle),
         content: Text(s.playlistLoadedMsg),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
           ElevatedButton(
+            autofocus: true,
             onPressed: () {
               Navigator.pop(context);
               state.selectPlaylist(p);
@@ -685,8 +934,17 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _forceEpgSync() async {
     final s = context.read<AppState>().s;
     setState(() => _epgSyncing = true);
-    try { await AladinEpgEngine.instance.forceSync(); }
-    finally { if (mounted) { setState(() => _epgSyncing = false); _snack(s.epgUpdated); } }
+    try {
+      final success = await AladinEpgEngine.instance.forceSync();
+      if (!success && mounted) _snack(s.error);
+    } finally {
+      if (mounted) {
+        setState(() => _epgSyncing = false);
+        if (AladinEpgEngine.instance.syncStatus == 'ok') {
+          _snack(s.epgUpdated);
+        }
+      }
+    }
   }
 
   String _getDecoderName(AppStrings s) {
@@ -716,17 +974,21 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildDecoderOption(String value, String label, AppStrings s) {
     final current = AladinPrefs.instance.getString('decoderMode') ?? 'auto';
-    return SimpleDialogOption(
-      onPressed: () async {
-        await AladinPrefs.instance.setString('decoderMode', value);
-        if (mounted) setState(() {});
-        Navigator.pop(context);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(
-          label,
-          style: TextStyle(color: current == value ? AppTheme.accent : Colors.white),
+    return Focus(
+      autofocus: current == value,
+      child: SimpleDialogOption(
+        onPressed: () async {
+          await AladinPrefs.instance.setString('decoderMode', value);
+          if (mounted) setState(() {});
+          Navigator.pop(context);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+                color: current == value ? AppTheme.accent : Colors.white),
+          ),
         ),
       ),
     );
@@ -751,6 +1013,16 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: AppTheme.card,
         title: Text(s.quality),
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            child: Text(
+              s.qualityAdaptiveHint,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+          ),
           _buildQualityOption('auto', s.autoDecoder),
           _buildQualityOption('4k', '4K (2160p)'),
           _buildQualityOption('fhd', 'FHD (1080p)'),
@@ -762,18 +1034,23 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildQualityOption(String value, String label) {
-    final current = AladinPrefs.instance.getString('preferredQuality') ?? 'auto';
-    return SimpleDialogOption(
-      onPressed: () async {
-        await AladinPrefs.instance.setString('preferredQuality', value);
-        if (mounted) setState(() {});
-        Navigator.pop(context);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(
-          label,
-          style: TextStyle(color: current == value ? AppTheme.accent : Colors.white),
+    final current =
+        AladinPrefs.instance.getString('preferredQuality') ?? 'auto';
+    return Focus(
+      autofocus: current == value,
+      child: SimpleDialogOption(
+        onPressed: () async {
+          await AladinPrefs.instance.setString('preferredQuality', value);
+          if (mounted) setState(() {});
+          Navigator.pop(context);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+                color: current == value ? AppTheme.accent : Colors.white),
+          ),
         ),
       ),
     );
@@ -782,14 +1059,27 @@ class _SettingsPageState extends State<SettingsPage> {
   void _showLanguageDialog(AppState state, AppStrings s) {
     final langs = AppStrings.getLanguageNames();
     final prevFocus = FocusManager.instance.primaryFocus;
-    showDialog(context: context, builder: (context) => SimpleDialog(
-      backgroundColor: AppTheme.card,
-      title: Text(s.langTitle),
-      children: langs.entries.map((e) => SimpleDialogOption(
-        onPressed: () { state.setLang(e.key); Navigator.pop(context); },
-        child: Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(e.value, style: TextStyle(color: state.lang == e.key ? AppTheme.accent : Colors.white))),
-      )).toList(),
-    )).then((_) => prevFocus?.requestFocus());
+    showDialog(
+        context: context,
+        builder: (context) => SimpleDialog(
+              backgroundColor: AppTheme.card,
+              title: Text(s.langTitle),
+              children: langs.entries
+                  .map((e) => SimpleDialogOption(
+                        onPressed: () {
+                          state.setLang(e.key);
+                          Navigator.pop(context);
+                        },
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text(e.value,
+                                style: TextStyle(
+                                    color: state.lang == e.key
+                                        ? AppTheme.accent
+                                        : Colors.white))),
+                      ))
+                  .toList(),
+            )).then((_) => prevFocus?.requestFocus());
   }
 
   void _showPlaylistMenu(PlaylistModel p, AppStrings s, AppState state) {
@@ -798,7 +1088,9 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (context) => SimpleDialog(
         backgroundColor: AppTheme.card,
-        title: Text(p.name, style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
+        title: Text(p.name,
+            style: const TextStyle(
+                color: AppTheme.accent, fontWeight: FontWeight.bold)),
         children: [
           SimpleDialogOption(
             onPressed: () {
@@ -806,30 +1098,60 @@ class _SettingsPageState extends State<SettingsPage> {
               state.selectPlaylist(p);
               widget.onPlaylistSelected?.call();
             },
-            child: Row(children: [const Icon(Icons.play_circle_outline, color: Colors.greenAccent), const SizedBox(width: 12), Text(s.activateNow)]),
+            child: Row(children: [
+              const Icon(Icons.play_circle_outline, color: Colors.greenAccent),
+              const SizedBox(width: 12),
+              Text(s.activateNow)
+            ]),
           ),
           SimpleDialogOption(
-            onPressed: () { Navigator.pop(context); _refreshPlaylist(p, state, s); },
-            child: Row(children: [const Icon(Icons.sync, color: Colors.white70), const SizedBox(width: 12), Text(s.update)]),
+            onPressed: () {
+              Navigator.pop(context);
+              _refreshPlaylist(p, state, s);
+            },
+            child: Row(children: [
+              const Icon(Icons.sync, color: Colors.white70),
+              const SizedBox(width: 12),
+              Text(s.update)
+            ]),
           ),
           SimpleDialogOption(
-            onPressed: () { Navigator.pop(context); _renamePlaylist(p, state, s); },
-            child: Row(children: [const Icon(Icons.edit, color: Colors.white70), const SizedBox(width: 12), Text(s.playlistRename)]),
+            onPressed: () {
+              Navigator.pop(context);
+              _renamePlaylist(p, state, s);
+            },
+            child: Row(children: [
+              const Icon(Icons.edit, color: Colors.white70),
+              const SizedBox(width: 12),
+              Text(s.playlistRename)
+            ]),
           ),
           SimpleDialogOption(
-            onPressed: () { Navigator.pop(context); _deletePlaylist(p, state, s); },
-            child: Row(children: [const Icon(Icons.delete_outline, color: Colors.redAccent), const SizedBox(width: 12), Text(s.delete, style: const TextStyle(color: Colors.redAccent))]),
+            onPressed: () {
+              Navigator.pop(context);
+              _deletePlaylist(p, state, s);
+            },
+            child: Row(children: [
+              const Icon(Icons.delete_outline, color: Colors.redAccent),
+              const SizedBox(width: 12),
+              Text(s.delete, style: const TextStyle(color: Colors.redAccent))
+            ]),
           ),
         ],
       ),
     ).then((_) => prevFocus?.requestFocus());
   }
 
-  Future<void> _refreshPlaylist(PlaylistModel p, AppState state, AppStrings s) async {
-    setState(() { _importing = true; _status = '${p.name} ${s.updating}...'; });
+  Future<void> _refreshPlaylist(
+      PlaylistModel p, AppState state, AppStrings s) async {
+    setState(() {
+      _importing = true;
+      _status = '${p.name} ${s.updating}...';
+    });
     try {
       try {
-        await PlaylistService.instance.refreshPlaylist(p.id, onProgress: (pr, c) {
+        await PlaylistService.instance.refreshPlaylist(p.id,
+            onProgress: (pr, c) {
           if (mounted) setState(() => _status = _pt(pr, c));
         });
       } catch (e) {
@@ -840,7 +1162,8 @@ class _SettingsPageState extends State<SettingsPage> {
           altUrl = _toggleProtocol(p.url);
         }
 
-        if (altUrl != null && altUrl != (p.type == 'xtream' ? p.xtreamServer : p.url)) {
+        if (altUrl != null &&
+            altUrl != (p.type == 'xtream' ? p.xtreamServer : p.url)) {
           if (mounted) setState(() => _status = s.altProtocolTry);
           if (p.type == 'xtream') {
             final pass = await PlaylistService.instance.getPass(p.id);
@@ -850,13 +1173,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   username: p.xtreamUsername!,
                   password: pass,
                   name: p.name,
-                  onProgress: (pr, c) { if (mounted) setState(() => _status = _pt(pr, c)); });
+                  onProgress: (pr, c) {
+                    if (mounted) setState(() => _status = _pt(pr, c));
+                  });
             }
           } else {
             await PlaylistService.instance.importM3U(
                 url: altUrl,
                 name: p.name,
-                onProgress: (pr, c) { if (mounted) setState(() => _status = _pt(pr, c)); });
+                onProgress: (pr, c) {
+                  if (mounted) setState(() => _status = _pt(pr, c));
+                });
           }
         } else {
           rethrow;
@@ -871,10 +1198,12 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _renamePlaylist(PlaylistModel p, AppState state, AppStrings s) async {
+  Future<void> _renamePlaylist(
+      PlaylistModel p, AppState state, AppStrings s) async {
     final newName = await showDialog<String>(
       context: context,
-      builder: (_) => AladinInputDialog(title: s.playlistRename, initialValue: p.name, hint: s.newName),
+      builder: (_) => AladinInputDialog(
+          title: s.playlistRename, initialValue: p.name, hint: s.newName),
     );
     if (newName != null && newName.isNotEmpty) {
       await PlaylistService.instance.rename(p.id, newName);
@@ -883,7 +1212,8 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _deletePlaylist(PlaylistModel p, AppState state, AppStrings s) async {
+  Future<void> _deletePlaylist(
+      PlaylistModel p, AppState state, AppStrings s) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -891,8 +1221,13 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text(s.delete),
         content: Text('${p.name} ${s.playlistDeleteQ}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(s.delete, style: const TextStyle(color: Colors.red))),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(s.delete, style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -914,17 +1249,28 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(s.settingsTitle, style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.w900, fontSize: 20)),
+            Text(s.settingsTitle,
+                style: const TextStyle(
+                    color: AppTheme.accent,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20)),
             const SizedBox(height: 4),
-            Text('${s.version} ${_packageInfo?.version} (${_packageInfo?.buildNumber})', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+            Text(
+                '${s.version} ${_packageInfo?.version} (${_packageInfo?.buildNumber})',
+                style: const TextStyle(color: Colors.white70, fontSize: 13)),
             const SizedBox(height: 16),
-            Text(s.developer, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(s.developer,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            _buildLink(Icons.code, s.github, 'https://github.com/tezalaaddin'),
+            _buildLink(Icons.code, s.github,
+                'https://github.com/tezalaaddin/aladin-iptv-smart-tv'),
             const SizedBox(height: 8),
-            _buildLink(Icons.shop, s.playStore, 'https://play.google.com/store/apps/details?id=com.aladin.iptv.player.pro'),
+            _buildLink(Icons.shop, s.playStore,
+                'https://play.google.com/store/apps/details?id=com.aladin.iptv.player.pro'),
             const SizedBox(height: 8),
-            _buildLink(Icons.privacy_tip, s.privacyPolicy, 'https://tezalaaddin.github.io/aladin-media-player-pro-tv/privacy-policy.md'),
+            _buildLink(Icons.privacy_tip, s.privacyPolicy,
+                'https://github.com/tezalaaddin/aladin-iptv-smart-tv/blob/main/PRIVACY_POLICY.md'),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -936,7 +1282,12 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(s.close))],
+        actions: [
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(context),
+              child: Text(s.close))
+        ],
       ),
     );
   }
@@ -944,9 +1295,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _handleUpdateCheck(AppStrings s) async {
     Navigator.pop(context);
     _snack(s.checkingUpdates);
-    
+
     final update = await UpdateService.instance.checkUpdate();
-    
+
     if (update != null && update['hasUpdate'] == true) {
       if (!mounted) return;
       showDialog(
@@ -954,27 +1305,45 @@ class _SettingsPageState extends State<SettingsPage> {
         builder: (context) => AlertDialog(
           backgroundColor: AppTheme.card,
           title: Text(s.checkUpdates),
-          content: Text('${s.version} ${update['version']} ${s.loaded}. ${s.playlistLoadedMsg}'),
+          content: Text(
+              '${s.version} ${update['version']} ${s.loaded}. ${s.playlistLoadedMsg}'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
             ElevatedButton(
+              autofocus: true,
               onPressed: () {
                 Navigator.pop(context);
-                launchUrl(Uri.parse(update['url']), mode: LaunchMode.externalApplication);
+                _openStoreUpdate(update['url']?.toString());
               },
               child: Text(s.download),
             ),
           ],
         ),
       );
+    } else if (update?['error'] == true) {
+      _snack(s.error);
     } else {
       _snack(s.upToDate);
     }
   }
 
+  Future<void> _openStoreUpdate(String? fallbackUrl) async {
+    final market = Uri.parse('market://details?id=com.aladin.iptv.player.pro');
+    if (await canLaunchUrl(market)) {
+      await launchUrl(market, mode: LaunchMode.externalApplication);
+      return;
+    }
+    await launchUrl(
+      Uri.parse(fallbackUrl ?? UpdateService.playStoreUrl),
+      mode: LaunchMode.externalApplication,
+    );
+  }
+
   Widget _buildLink(IconData icon, String label, String url) {
     return InkWell(
-      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      onTap: () =>
+          launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -982,7 +1351,11 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             Icon(icon, size: 16, color: AppTheme.accent),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline, fontSize: 14)),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                    fontSize: 14)),
           ],
         ),
       ),
@@ -990,7 +1363,10 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _playlistList(AppState state, AppStrings s) {
-    if (state.playlists.isEmpty) return Center(child: Text(s.noPlaylistsAdded, style: const TextStyle(color: AppTheme.textMuted)));
+    if (state.playlists.isEmpty)
+      return Center(
+          child: Text(s.noPlaylistsAdded,
+              style: const TextStyle(color: AppTheme.textMuted)));
     return ListView.builder(
       controller: _rightScroll,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1023,7 +1399,14 @@ class _SetupTile extends StatefulWidget {
   final bool loading;
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocus;
-  const _SetupTile({required this.icon, required this.title, required this.subtitle, this.onTap, this.loading = false, this.focusNode, this.onFocus});
+  const _SetupTile(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      this.onTap,
+      this.loading = false,
+      this.focusNode,
+      this.onFocus});
 
   @override
   State<_SetupTile> createState() => _SetupTileState();
@@ -1043,8 +1426,11 @@ class _SetupTileState extends State<_SetupTile> {
           widget.onFocus?.call(v);
         },
         onKeyEvent: (node, event) {
-          if (event is KeyDownEvent && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter)) {
-            widget.onTap?.call(); return KeyEventResult.handled;
+          if (event is KeyDownEvent &&
+              (event.logicalKey == LogicalKeyboardKey.select ||
+                  event.logicalKey == LogicalKeyboardKey.enter)) {
+            widget.onTap?.call();
+            return KeyEventResult.handled;
           }
           return KeyEventResult.ignored;
         },
@@ -1059,17 +1445,37 @@ class _SetupTileState extends State<_SetupTile> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: _focused ? AppTheme.accent : Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(widget.icon, color: _focused ? Colors.white : AppTheme.accent),
+                  decoration: BoxDecoration(
+                      color: _focused
+                          ? AppTheme.accent
+                          : Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Icon(widget.icon,
+                      color: _focused ? Colors.white : AppTheme.accent),
                 ),
                 const SizedBox(width: 20),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(widget.title, style: TextStyle(color: _focused ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(height: 4),
-                  Text(widget.subtitle, style: TextStyle(color: _focused ? Colors.black54 : AppTheme.textMuted, fontSize: 14)),
-                ])),
-                if (widget.loading) const CircularProgressIndicator(strokeWidth: 2)
-                else Icon(Icons.chevron_right, color: _focused ? Colors.black26 : Colors.white12),
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(widget.title,
+                          style: TextStyle(
+                              color: _focused ? Colors.black : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18)),
+                      const SizedBox(height: 4),
+                      Text(widget.subtitle,
+                          style: TextStyle(
+                              color: _focused
+                                  ? Colors.black54
+                                  : AppTheme.textMuted,
+                              fontSize: 14)),
+                    ])),
+                if (widget.loading)
+                  const CircularProgressIndicator(strokeWidth: 2)
+                else
+                  Icon(Icons.chevron_right,
+                      color: _focused ? Colors.black26 : Colors.white12),
               ],
             ),
           ),
@@ -1086,7 +1492,13 @@ class _PTile extends StatefulWidget {
   final VoidCallback onMenu;
   final FocusNode? focusNode;
   final ValueChanged<bool>? onFocus;
-  const _PTile({required this.p, required this.active, required this.onSelect, required this.onMenu, this.focusNode, this.onFocus});
+  const _PTile(
+      {required this.p,
+      required this.active,
+      required this.onSelect,
+      required this.onMenu,
+      this.focusNode,
+      this.onFocus});
 
   @override
   State<_PTile> createState() => _PTileState();
@@ -1107,11 +1519,14 @@ class _PTileState extends State<_PTile> {
         },
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter) {
-              widget.onSelect(); return KeyEventResult.handled;
+            if (event.logicalKey == LogicalKeyboardKey.select ||
+                event.logicalKey == LogicalKeyboardKey.enter) {
+              widget.onSelect();
+              return KeyEventResult.handled;
             }
             if (event.logicalKey == LogicalKeyboardKey.contextMenu) {
-              widget.onMenu(); return KeyEventResult.handled;
+              widget.onMenu();
+              return KeyEventResult.handled;
             }
           }
           return KeyEventResult.ignored;
@@ -1122,12 +1537,15 @@ class _PTileState extends State<_PTile> {
             duration: SettingsThemeTokens.animDuration,
             padding: const EdgeInsets.all(16),
             transform: Matrix4.identity()..scale(_focused ? 1.02 : 1.0),
-            decoration: SettingsThemeTokens.cardDecoration(focused: _focused, active: widget.active),
+            decoration: SettingsThemeTokens.cardDecoration(
+                focused: _focused, active: widget.active),
             child: Row(children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: widget.p.type == 'xtream' ? Colors.blue.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                  color: widget.p.type == 'xtream'
+                      ? Colors.blue.withOpacity(0.1)
+                      : Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -1143,26 +1561,48 @@ class _PTileState extends State<_PTile> {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(widget.p.name, style: TextStyle(color: _focused ? Colors.black : Colors.white, fontWeight: widget.active ? FontWeight.bold : FontWeight.normal), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                            child: Text(widget.p.name,
+                                style: TextStyle(
+                                    color:
+                                        _focused ? Colors.black : Colors.white,
+                                    fontWeight: widget.active
+                                        ? FontWeight.bold
+                                        : FontWeight.normal),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis)),
                         if (widget.active) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(color: AppTheme.accent, borderRadius: BorderRadius.circular(4)),
-                            child: Text(context.read<AppState>().s.active, style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                                color: AppTheme.accent,
+                                borderRadius: BorderRadius.circular(4)),
+                            child: Text(context.read<AppState>().s.active,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      s.playlistStats(tv: widget.p.tvCount, movie: widget.p.movieCount, series: widget.p.seriesCount),
-                      style: TextStyle(color: _focused ? Colors.black54 : AppTheme.textMuted, fontSize: 11),
+                      s.playlistStats(
+                          tv: widget.p.tvCount,
+                          movie: widget.p.movieCount,
+                          series: widget.p.seriesCount),
+                      style: TextStyle(
+                          color: _focused ? Colors.black54 : AppTheme.textMuted,
+                          fontSize: 11),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: _focused ? Colors.black26 : Colors.white12),
+              Icon(Icons.chevron_right,
+                  color: _focused ? Colors.black26 : Colors.white12),
             ]),
           ),
         ),
@@ -1176,7 +1616,8 @@ class _ImportTypeSelectorDialog extends StatefulWidget {
   const _ImportTypeSelectorDialog({required this.s});
 
   @override
-  State<_ImportTypeSelectorDialog> createState() => _ImportTypeSelectorDialogState();
+  State<_ImportTypeSelectorDialog> createState() =>
+      _ImportTypeSelectorDialogState();
 }
 
 class _ImportTypeSelectorDialogState extends State<_ImportTypeSelectorDialog> {
@@ -1238,7 +1679,12 @@ class _TypeCard extends StatefulWidget {
   final VoidCallback onTap;
   final FocusNode? focusNode;
 
-  const _TypeCard({required this.icon, required this.title, required this.subtitle, required this.onTap, this.focusNode});
+  const _TypeCard(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      required this.onTap,
+      this.focusNode});
 
   @override
   State<_TypeCard> createState() => _TypeCardState();
@@ -1252,8 +1698,11 @@ class _TypeCardState extends State<_TypeCard> {
       focusNode: widget.focusNode,
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.select)) {
-          widget.onTap(); return KeyEventResult.handled;
+        if (event is KeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.enter ||
+                event.logicalKey == LogicalKeyboardKey.select)) {
+          widget.onTap();
+          return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
       },
@@ -1268,11 +1717,20 @@ class _TypeCardState extends State<_TypeCard> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(widget.icon, size: 56, color: _focused ? AppTheme.accent : Colors.white54),
+              Icon(widget.icon,
+                  size: 56, color: _focused ? AppTheme.accent : Colors.white54),
               const SizedBox(height: 20),
-              Text(widget.title, style: TextStyle(color: _focused ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(widget.title,
+                  style: TextStyle(
+                      color: _focused ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
               const SizedBox(height: 8),
-              Text(widget.subtitle, style: TextStyle(color: _focused ? Colors.black54 : AppTheme.textMuted, fontSize: 12), textAlign: TextAlign.center),
+              Text(widget.subtitle,
+                  style: TextStyle(
+                      color: _focused ? Colors.black54 : AppTheme.textMuted,
+                      fontSize: 12),
+                  textAlign: TextAlign.center),
             ],
           ),
         ),

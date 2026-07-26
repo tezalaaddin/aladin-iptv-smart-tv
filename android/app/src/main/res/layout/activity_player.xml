@@ -4,28 +4,19 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- Arka Plan Gradyanı (Okunabilirlik için) -->
-    <View
-        android:id="@+id/v_bottom_gradient"
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/native_player_view"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/gradient_bottom"
-        android:visibility="visible" />
+        android:layout_height="match_parent"
+        android:focusable="false" />
 
-    <!-- Arka Plan Gradyanı (Okunabilirlik için) -->
+    <!-- PlayerView'dan sonra çizilir; OSD metninin okunabilirliğini artırır. -->
     <View
         android:id="@+id/v_bottom_gradient"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
-
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/native_player_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:focusable="false" />
 
     <!-- Status / Loading Overlay -->
     <TextView
@@ -52,8 +43,8 @@
         android:layout_gravity="bottom"
         android:layout_marginBottom="60dp"
         android:orientation="vertical"
-        android:paddingLeft="40dp"
-        android:paddingRight="40dp">
+        android:paddingLeft="48dp"
+        android:paddingRight="48dp">
 
         <SeekBar
             android:id="@+id/player_seekbar"
@@ -86,7 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_marginBottom="100dp"
-        android:layout_marginHorizontal="40dp"
+        android:layout_marginHorizontal="48dp"
         android:background="@android:color/transparent"
         android:orientation="vertical"
         android:padding="0dp"
@@ -123,9 +114,9 @@
         android:background="#99000000"
         android:orientation="horizontal"
         android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:paddingLeft="40dp"
-        android:paddingRight="40dp"
+        android:paddingBottom="20dp"
+        android:paddingLeft="48dp"
+        android:paddingRight="48dp"
         android:gravity="center_vertical"
         android:visibility="gone">
 

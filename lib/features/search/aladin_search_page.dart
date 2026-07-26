@@ -26,6 +26,7 @@ class _SearchPageState extends State<SearchPage> {
   List<ChannelModel> _similarResults = [];
   bool _searching = false;
   Timer? _deb;
+  int _searchGeneration = 0;
 
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _clearSearch() {
+    _searchGeneration++;
     _controller.clear();
     setState(() {
       _query = '';
@@ -73,27 +75,35 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _doSearch(String q) async {
+    final generation = ++_searchGeneration;
     final query = q.trim();
     if (query.isEmpty) {
-      setState(() { _results = []; _similarResults = []; _searching = false; });
+      setState(() {
+        _results = [];
+        _similarResults = [];
+        _searching = false;
+      });
       return;
     }
     setState(() => _searching = true);
     final active = context.read<AppState>().active;
     if (active == null) return;
-    
-    final r = await ChannelService.instance.search(playlistId: active.id, query: query);
-    
+
+    final r = await ChannelService.instance
+        .search(playlistId: active.id, query: query);
+
     List<ChannelModel> similar = [];
     if (r.isEmpty) {
-      similar = await ChannelService.instance.searchSimilar(playlistId: active.id, query: query);
+      similar = await ChannelService.instance
+          .searchSimilar(playlistId: active.id, query: query);
     }
 
-    if (mounted) setState(() { 
-      _results = r; 
-      _similarResults = similar;
-      _searching = false; 
-    });
+    if (mounted && generation == _searchGeneration)
+      setState(() {
+        _results = r;
+        _similarResults = similar;
+        _searching = false;
+      });
   }
 
   @override
@@ -116,21 +126,30 @@ class _SearchPageState extends State<SearchPage> {
                     controller: _controller,
                     focusNode: _searchFocusNode,
                     onChanged: _onChanged,
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
                       hintText: s.searchHint,
-                      prefixIcon: const Icon(Icons.search, color: AppTheme.accent),
-                      suffixIcon: _query.isNotEmpty ? IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white54),
-                        onPressed: _clearSearch,
-                      ) : null,
+                      prefixIcon:
+                          const Icon(Icons.search, color: AppTheme.accent),
+                      suffixIcon: _query.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: Colors.white54),
+                              onPressed: _clearSearch,
+                            )
+                          : null,
                       filled: true,
                       fillColor: AppTheme.card,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16), 
-                        borderSide: const BorderSide(color: Colors.white, width: 2)
-                      ),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide:
+                              const BorderSide(color: Colors.white, width: 2)),
                     ),
                   ),
                 ),
@@ -147,7 +166,8 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: FocusScope(
               child: _searching
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppTheme.accent))
                   : (_results.isEmpty && _similarResults.isEmpty)
                       ? _buildEmptyState(s)
                       : _buildResultGrid(s),
@@ -170,7 +190,10 @@ class _SearchPageState extends State<SearchPage> {
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
               child: Text(
                 'Benzer Seçenekler', // I should use s.similarOptions if exists
-                style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 18),
+                style: const TextStyle(
+                    color: AppTheme.accent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
               ),
             ),
           ),
@@ -188,7 +211,11 @@ class _SearchPageState extends State<SearchPage> {
                 final ch = all[i];
                 return ChannelCard(
                   channel: ch,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerPage(channel: ch, playlist: [ch]))),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              PlayerPage(channel: ch, playlist: [ch]))),
                 );
               },
               childCount: all.length,
@@ -206,8 +233,11 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           Icon(Icons.search_off_rounded, size: 80, color: Colors.white10),
           const SizedBox(height: 24),
-          Text(_query.isNotEmpty ? s.noResultsFound : s.typeToSearch, 
-            style: const TextStyle(color: AppTheme.textMuted, fontSize: 18, fontWeight: FontWeight.w500)),
+          Text(_query.isNotEmpty ? s.noResultsFound : s.typeToSearch,
+              style: const TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -230,7 +260,9 @@ class _VoiceBtnState extends State<_VoiceBtn> {
     return Focus(
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter)) {
+        if (event is KeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.select ||
+                event.logicalKey == LogicalKeyboardKey.enter)) {
           _openMic();
           return KeyEventResult.handled;
         }
@@ -245,9 +277,11 @@ class _VoiceBtnState extends State<_VoiceBtn> {
           decoration: BoxDecoration(
             color: _focused ? Colors.white : AppTheme.card,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _focused ? Colors.white : Colors.white10, width: 2),
+            border: Border.all(
+                color: _focused ? Colors.white : Colors.white10, width: 2),
           ),
-          child: Icon(Icons.mic, color: _focused ? Colors.black : AppTheme.accent),
+          child:
+              Icon(Icons.mic, color: _focused ? Colors.black : AppTheme.accent),
         ),
       ),
     );

@@ -61,7 +61,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
       }
       return;
     }
-    
+
     // Playlist değişmişse veya henüz yüklenmemişse yükle.
     // Fokus değişimleri gibi AppState bildirimlerinde tüm sayfayı yeniden yüklemeyi engeller.
     if (a.id != _loadedId) {
@@ -73,7 +73,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
     final allFavs = await ChannelService.instance.getFavorites(id);
     final tvFavs = allFavs.where((c) => c.contentType == 'tv').toList();
     if (!mounted) return;
-    
+
     setState(() {
       _favorites = tvFavs;
     });
@@ -81,7 +81,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
 
   Future<void> _load(int id) async {
     if (!mounted) return;
-    
+
     // Eğer zaten bu ID yüklenmişse ve sadece verileri tazelemek istiyorsak loader göstermeyebiliriz
     // Ama ilk defa yükleniyorsa loader gösteriyoruz.
     final bool isFirstLoad = _categories.isEmpty;
@@ -89,12 +89,12 @@ class _LiveTvPageState extends State<LiveTvPage> {
     setState(() {
       if (isFirstLoad) _loading = true;
       _loadedId = id;
-      _reloadCount++; 
+      _reloadCount++;
     });
 
     final cats = await ChannelService.instance
         .getCategories(playlistId: id, contentType: 'tv');
-    
+
     await _loadFavorites(id);
 
     if (!mounted) return;
@@ -109,7 +109,10 @@ class _LiveTvPageState extends State<LiveTvPage> {
       _showCatchupDialog(ch, list);
     } else {
       await Navigator.push(
-          context, MaterialPageRoute(builder: (_) => PlayerPage(channel: ch, playlist: list.isNotEmpty ? list : [ch])));
+          context,
+          MaterialPageRoute(
+              builder: (_) => PlayerPage(
+                  channel: ch, playlist: list.isNotEmpty ? list : [ch])));
       // Oyuncudan geri dönüldüğünde favoriler değişmiş olabilir, tazele.
       if (mounted && _loadedId != null) _loadFavorites(_loadedId!);
     }
@@ -122,20 +125,31 @@ class _LiveTvPageState extends State<LiveTvPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(ch.name, style: const TextStyle(color: Colors.white)),
-        content: Text('Bu kanal için geçmiş yayın arşivi mevcut. Ne yapmak istersiniz?', style: const TextStyle(color: AppTheme.textSecondary)),
+        content: Text(
+            'Bu kanal için geçmiş yayın arşivi mevcut. Ne yapmak istersiniz?',
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerPage(channel: ch, playlist: list.isNotEmpty ? list : [ch])));
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => PlayerPage(
+                          channel: ch,
+                          playlist: list.isNotEmpty ? list : [ch])));
               if (mounted && _loadedId != null) _loadFavorites(_loadedId!);
             },
             child: const Text('CANLI İZLE'),
           ),
           ElevatedButton(
+            autofocus: true,
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => AladinCatchupPage(channel: ch)));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => AladinCatchupPage(channel: ch)));
             },
             child: const Text('ARŞİVE GÖZ AT'),
           ),
@@ -159,10 +173,17 @@ class _LiveTvPageState extends State<LiveTvPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(s.favorites, style: const TextStyle(color: Colors.white)),
-        content: Text(s.removeFavoriteQ(ch.name), style: const TextStyle(color: AppTheme.textSecondary)),
+        content: Text(s.removeFavoriteQ(ch.name),
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.delete, style: const TextStyle(color: Colors.redAccent))),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          TextButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(s.delete,
+                  style: const TextStyle(color: Colors.redAccent))),
         ],
       ),
     );
@@ -202,7 +223,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
                               size: 50, color: AppTheme.textMuted),
                           const SizedBox(height: 12),
                           Text(
-                            state.s.noPlaylistSelected, 
+                            state.s.noPlaylistSelected,
                             style:
                                 const TextStyle(color: AppTheme.textSecondary),
                           ),
@@ -211,8 +232,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
                             onPressed: widget.onGoToSettings,
                             autofocus: true,
                             icon: const Icon(Icons.add),
-                            label: Text(
-                                state.s.addPlaylist),
+                            label: Text(state.s.addPlaylist),
                           ),
                         ],
                       ),
@@ -222,7 +242,8 @@ class _LiveTvPageState extends State<LiveTvPage> {
                       slivers: [
                         SliverPadding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: MediaQuery.of(context).size.width * 0.05,
+                            horizontal:
+                                MediaQuery.of(context).size.width * 0.05,
                           ),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
@@ -231,15 +252,16 @@ class _LiveTvPageState extends State<LiveTvPage> {
                                   title: state.s.favorites,
                                   channels: _favorites,
                                   onTap: (ch) => _play(ch, _favorites),
-                                  onLongPress: (ch) => _confirmRemoveFavorite(ch),
+                                  onLongPress: (ch) =>
+                                      _confirmRemoveFavorite(ch),
                                 ),
                             ]),
                           ),
                         ),
-
                         SliverPadding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: MediaQuery.of(context).size.width * 0.05,
+                            horizontal:
+                                MediaQuery.of(context).size.width * 0.05,
                           ),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate(
@@ -248,17 +270,17 @@ class _LiveTvPageState extends State<LiveTvPage> {
                                     '${_categories[i].id}_r$_reloadCount'),
                                 category: _categories[i],
                                 playlistId: state.active!.id,
-                                onChannelTap: (ch, list) => _play(ch, list), // Listeyi de gönderiyoruz
+                                onChannelTap: (ch, list) =>
+                                    _play(ch, list), // Listeyi de gönderiyoruz
                                 onCategoryTap: widget.onCategoryTap,
                                 onFavorite: _toggleFav,
                                 tvMode: true,
-                                showEpg: true, 
+                                showEpg: true,
                               ),
                               childCount: _categories.length,
                             ),
                           ),
                         ),
-
                         const SliverToBoxAdapter(child: SizedBox(height: 40)),
                       ],
                     ),
@@ -290,7 +312,7 @@ class _HorizStrip extends StatelessWidget {
             child: Text(title, style: AppTheme.headingMedium),
           ),
           SizedBox(
-            height: AppTheme.listHeight, // Standart şerit yüksekliği
+            height: 175,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -300,8 +322,12 @@ class _HorizStrip extends StatelessWidget {
               itemBuilder: (_, i) => ChannelCard(
                 channel: channels[i],
                 tvMode: true,
+                width: 240,
+                height: 135,
                 onTap: () => onTap(channels[i]),
-                onLongPress: onLongPress != null ? () => onLongPress!(channels[i]) : null,
+                onLongPress: onLongPress != null
+                    ? () => onLongPress!(channels[i])
+                    : null,
               ),
             ),
           ),

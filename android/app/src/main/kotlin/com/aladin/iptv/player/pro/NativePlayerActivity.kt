@@ -1,6 +1,7 @@
 package com.aladin.iptv.player.pro
 
 import android.app.PictureInPictureParams
+import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -25,6 +26,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -293,9 +295,8 @@ class NativePlayerActivity : AppCompatActivity(),
             pbLoading.visibility = View.GONE
             mainHandler.removeCallbacks(hideRunnable)
             channelInfoLayout.visibility = View.VISIBLE
-            val currentUrl = channelUrls?.getOrNull(currentIndex) ?: ""
             showStatus(
-                "${t("error_detailed", "Bu içerik şu an açılamıyor. İnternet bağlantınızı kontrol edin.")} $currentUrl\n\n${t("retry_ok", "Yeniden denemek için OK basın")}",
+                "${t("error_detailed", "Bu içerik şu an açılamıyor. İnternet bağlantınızı kontrol edin.")}\n\n${t("retry_ok", "Yeniden denemek için OK basın")}",
                 true
             )
         }
@@ -467,14 +468,19 @@ class NativePlayerActivity : AppCompatActivity(),
         if (player != null) return
 
         val decoderMode = intent.getStringExtra("DECODER_MODE") ?: "auto"
-        val url = channelUrls?.getOrNull(currentIndex) ?: ""
-        val isLive = isLiveUrl(url)
+        val isLive = channelTypes?.getOrNull(currentIndex) == "tv"
 
         // 1. RenderersFactory — Optimized for low-end TVs
-        var extensionMode = if (decoderMode == "software" || preferSoftwareDecoder) {
-            DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
-        } else {
-            DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+        var extensionMode = when (decoderMode) {
+            // Hardware: platform MediaCodec only. FFmpeg remains disabled.
+            "hw" -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF
+            // Software: prefer the bundled FFmpeg extension, retaining codec fallback.
+            "sw", "software" -> DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+            else -> if (preferSoftwareDecoder) {
+                DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+            } else {
+                DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+            }
         }
 
         // 🎬 TV PERFORMANCE FIX:
@@ -483,6 +489,13 @@ class NativePlayerActivity : AppCompatActivity(),
         // to ensure smooth playback. Most "No Sound" issues are fixed by the float output flag below.
         if (isLowMem && extensionMode == DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER) {
             extensionMode = DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
+            if (decoderMode == "sw" || decoderMode == "software") {
+                Toast.makeText(
+                    this,
+                    t("software_low_memory", "Düşük bellek nedeniyle donanım kod çözücü kullanılıyor"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
         val renderersFactory = DefaultRenderersFactory(this)
@@ -621,8 +634,7 @@ class NativePlayerActivity : AppCompatActivity(),
                 }
                 retryCount >= MAX_RETRIES -> {
                     retryCount = 0
-                    val currentUrl = channelUrls?.getOrNull(currentIndex) ?: ""
-                    showStatus("${t("error", "Yayın Açılamadı")}\n$currentUrl")
+                    showStatus(t("error", "Yayın Açılamadı"))
                     nextChannelOnError()
                 }
                 else -> {
@@ -730,15 +742,6 @@ class NativePlayerActivity : AppCompatActivity(),
         val type = channelTypes?.getOrNull(currentIndex) ?: "tv"
         val videoLimit = intent.getIntExtra("VIDEO_LIMIT", 0)
 
-        // 🔍 DEBUG: Log the current stream URL and its properties to Logcat/Terminal
-        val headerStrForLog = channelHeaders?.getOrNull(currentIndex)
-        Log.d(TAG, "─────────────────────────────────────────────────────────────")
-        Log.d(TAG, "PLAYING CHANNEL: $name")
-        Log.d(TAG, "URL: $url")
-        Log.d(TAG, "TYPE: $type")
-        Log.d(TAG, "HEADERS: ${headerStrForLog ?: "None"}")
-        Log.d(TAG, "─────────────────────────────────────────────────────────────")
-
         // Apply quality limit if set (ABR control)
         if (videoLimit > 0) {
             trackSelector.parameters = trackSelector.buildUponParameters()
@@ -763,15 +766,6 @@ class NativePlayerActivity : AppCompatActivity(),
             .setUri(url)
             .setMimeType(detectMimeType(url))
             .setMediaMetadata(metadata)
-
-        if (url.contains(".mpd") || url.contains("widevine", ignoreCase = true)) {
-            // Placeholder for Widevine DRM config. Real Pro apps might get this from API.
-            mediaItemBuilder.setDrmConfiguration(
-                MediaItem.DrmConfiguration.Builder(C.WIDEVINE_UUID)
-                    // .setLicenseUri("https://your-license-server.com") // Optional
-                    .build()
-            )
-        }
 
         // NEW: External Subtitle Support Infrastructure
         val subtitleUrl = intent.getStringExtra("EXTERNAL_SUBTITLE_URL")
@@ -843,6 +837,39 @@ class NativePlayerActivity : AppCompatActivity(),
         }
     }
 
+    /** Remote-first menu: every essential action is reachable with D-pad + OK. */
+    private fun showControlMenu() {
+        val labels = arrayOf(
+            if (player?.isPlaying == true) "Duraklat" else "Oynat",
+            "Kanal listesi",
+            t("subtitles", "Altyazı"),
+            t("audio", "Ses"),
+            t("quality", "Kalite"),
+            t("aspect", "Ekran oranı"),
+            t("favorites_short", "Favori"),
+            t("sleep_timer", "Uyku zamanlayıcısı"),
+            "Tanılama"
+        )
+        AlertDialog.Builder(this)
+            .setTitle(channelNames?.getOrNull(currentIndex) ?: "Oynatıcı")
+            .setItems(labels) { dialog, which ->
+                dialog.dismiss()
+                when (which) {
+                    0 -> togglePlayPause()
+                    1 -> showQuickList()
+                    2 -> cycleTracks(C.TRACK_TYPE_TEXT)
+                    3 -> cycleTracks(C.TRACK_TYPE_AUDIO)
+                    4 -> cycleTracks(C.TRACK_TYPE_VIDEO)
+                    5 -> cycleAspectRatio()
+                    6 -> toggleFavorite()
+                    7 -> cycleSleepTimer()
+                    8 -> toggleDiagnostics()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     // ── Key Handling ──────────────────────────────────────────────────────────
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         val size = channelUrls?.size ?: 1
@@ -872,7 +899,7 @@ class NativePlayerActivity : AppCompatActivity(),
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                 if (isPersistentError) {
                     bufferingRetryCount = 0; isPersistentError = false; prepareAndPlay()
-                } else togglePlayPause()
+                } else showControlMenu()
                 return true
             }
             KeyEvent.KEYCODE_PROG_RED, KeyEvent.KEYCODE_F1,
@@ -894,6 +921,15 @@ class NativePlayerActivity : AppCompatActivity(),
             }
             KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> { toggleFavorite(); return true }
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
+                if (autoPlayOverlay.visibility == View.VISIBLE) {
+                    cancelAutoPlay(); return true
+                }
+                if (quickListLayout.visibility == View.VISIBLE) {
+                    quickListLayout.visibility = View.GONE; return true
+                }
+                if (diagnosticsLayout.visibility == View.VISIBLE) {
+                    diagnosticsLayout.visibility = View.GONE; return true
+                }
                 saveCurrentPosition(); finish(); return true
             }
         }
@@ -1342,19 +1378,6 @@ class NativePlayerActivity : AppCompatActivity(),
             lower.contains(".mkv")  -> MimeTypes.VIDEO_MATROSKA
             else                    -> null // Let ExoPlayer detect automatically (prevents "Input does not start with #EXTM3U" error)
         }
-    }
-
-    /**
-     * Heuristic to determine if a URL is likely a live stream (no seekable duration).
-     * Used to choose the right LoadControl profile before the player is created.
-     */
-    private fun isLiveUrl(url: String): Boolean {
-        val lower = url.lowercase()
-        // RTSP and most plain HLS without explicit VOD markers are live
-        return lower.startsWith("rtsp://") ||
-               lower.startsWith("rtp://")  ||
-               lower.startsWith("udp://")  ||
-               (!lower.contains(".mp4") && !lower.contains(".mkv") && !lower.contains(".avi"))
     }
 
     private fun t(key: String, default: String) = intent.getStringExtra("i18n_$key") ?: default

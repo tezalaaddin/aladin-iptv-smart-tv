@@ -50,14 +50,13 @@ class AladinSearchProvider : ContentProvider() {
             val name = dbCursor.getString(dbCursor.getColumnIndexOrThrow("name"))
             val category = dbCursor.getString(dbCursor.getColumnIndexOrThrow("category"))
             val logo = dbCursor.getString(dbCursor.getColumnIndexOrThrow("logo"))
-            val url = dbCursor.getString(dbCursor.getColumnIndexOrThrow("url"))
 
             cursor.addRow(arrayOf(
                 id,
                 name,
                 category,
                 logo,
-                "aladin://play?url=$url"
+                "aladin://play?id=$id"
             ))
         }
         dbCursor.close()
@@ -69,9 +68,9 @@ class AladinSearchProvider : ContentProvider() {
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0
 
-    class DatabaseHelper(context: android.content.Context) : SQLiteOpenHelper(context, "search_index.db", null, 1) {
+    class DatabaseHelper(context: android.content.Context) : SQLiteOpenHelper(context, "search_index.db", null, 2) {
         override fun onCreate(db: SQLiteDatabase) {
-            db.execSQL("CREATE TABLE search_items (id INTEGER PRIMARY KEY, name TEXT, category TEXT, logo TEXT, url TEXT)")
+            db.execSQL("CREATE TABLE search_items (id INTEGER PRIMARY KEY, name TEXT, category TEXT, logo TEXT)")
             db.execSQL("CREATE INDEX idx_name ON search_items(name)")
         }
         override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {

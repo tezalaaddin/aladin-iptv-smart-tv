@@ -13,6 +13,18 @@ class AladinPrefs {
   Map<String, dynamic> _cache = {};
   bool _loaded = false;
   Timer? _saveTimer;
+  int _launchShuffleSeed = 0;
+
+  int get launchShuffleSeed => _launchShuffleSeed;
+  bool get shuffleOnLaunch => getBool('shuffle_on_launch');
+
+  /// Creates one stable seed for this process. Lists stay stable while the app
+  /// is open, but receive a new order after the next cold launch.
+  void beginLaunchSession() {
+    _launchShuffleSeed = shuffleOnLaunch
+        ? DateTime.now().microsecondsSinceEpoch & 0x7fffffff
+        : 0;
+  }
 
   Future<File> get _file async {
     final dir = await getApplicationDocumentsDirectory();
@@ -25,7 +37,8 @@ class AladinPrefs {
       final f = await _file;
       if (await f.exists()) {
         final raw = await f.readAsString();
-        _cache = Map<String, dynamic>.from((raw.isNotEmpty) ? jsonDecode(raw) : {});
+        _cache =
+            Map<String, dynamic>.from((raw.isNotEmpty) ? jsonDecode(raw) : {});
         await _migrate();
       }
     } catch (e) {
@@ -74,9 +87,11 @@ class AladinPrefs {
     if (_cache[key] == val) return;
     _cache[key] = val;
     _saveDebounced();
+    if (key == 'shuffle_on_launch') beginLaunchSession();
   }
 
-  int getInt(String key, {int def = 0}) => (_cache[key] as num?)?.toInt() ?? def;
+  int getInt(String key, {int def = 0}) =>
+      (_cache[key] as num?)?.toInt() ?? def;
   Future<void> setInt(String key, int val) async {
     if (_cache[key] == val) return;
     _cache[key] = val;

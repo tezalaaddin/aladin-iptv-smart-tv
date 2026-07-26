@@ -1,0 +1,242 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+47 GELISTIRME TAKIP DOSYASI
+================================================================
+
+Baslangic tarihi: 26.07.2026
+Hedef surum: 2.3.1+47
+GitHub durumu: Testler tamamlanana kadar GONDERILMEYECEK
+
+Durumlar:
+- [BEKLIYOR] Henuz uygulanmadi.
+- [DEVAM EDIYOR] Uygulama veya dogrulama suruyor.
+- [TAMAMLANDI] Kodlandi ve ilgili otomatik testleri gecti.
+- [TV TESTI TAMAMLANDI] Gercek Android TV kumanda testi de gecti.
+- [DOGRULANAMADI] Teknik veya harici bir engel nedeniyle tamamlanamadi.
+
+----------------------------------------------------------------
+A. KRITIK TV KUMANDASI VE ODAK YONETIMI
+----------------------------------------------------------------
+
+A01 [TV TESTI TAMAMLANDI] Ana ekran hizli navigasyon kartlarinda OK/Enter destegi.
+A02 [TAMAMLANDI] Dizi sezon secicilerini tam D-pad erisilebilir yapma.
+A03 [TAMAMLANDI] Kumandada uzun basma ile favori islemlerini gercek KeyEvent ile destekleme.
+A04 [TV TESTI TAMAMLANDI] D-pad tus tekrarlarini yutmak yerine kontrollu hizli gezinme saglama.
+A05 [TV TESTI TAMAMLANDI] Satirlar arasinda asagi/yukari geciste gorunur ve tahmin edilebilir odak.
+A06 [TV TESTI TAMAMLANDI] Tum gorunur buton, dialog ve kartlar icin OK/Enter/Gamepad A destegi.
+A07 [TV TESTI TAMAMLANDI] Geri tusunda kategori, dialog, panel, sayfa ve cikis sirasini tutarli yapma.
+A08 [TV TESTI TAMAMLANDI] Oynatici ozelliklerini standart bes yonlu D-pad panelinden erisilebilir yapma.
+A09 [TV TESTI TAMAMLANDI] Numara/renk tuslarini zorunluluk olmaktan cikarip istege bagli kisayol yapma.
+A10 [TV TESTI TAMAMLANDI] Odak gostergelerini tum ekranlarda belirgin ve tutarli hale getirme.
+
+----------------------------------------------------------------
+B. OYNATICI VE IPTV UYUMLULUGU
+----------------------------------------------------------------
+
+B01 [TAMAMLANDI] Clear DASH yayinlara otomatik Widevine eklenmesini kaldirma.
+B02 [BEKLIYOR] DRM'yi yalnizca lisans adresi ve DRM bilgisi varsa etkinlestirme.
+B03 [TAMAMLANDI] Canli/VOD tespitini URL yerine icerik turu ve Media3 timeline ile yapma.
+B04 [TAMAMLANDI] Buffer profillerini canli, catch-up ve VOD icin ayirma.
+B05 [TAMAMLANDI] 24 MB buffer aciklamasi ile gercek LoadControl davranisini uyumlu hale getirme.
+B06 [BEKLIYOR] Dusuk RAM cihazlarda 720p sinirini kullanici tercihine saygili hale getirme.
+B07 [TV TESTI TAMAMLANDI] Oynatici alt tus rehberine overscan guvenli alani ekleme.
+B08 [TV TESTI TAMAMLANDI] Native player XML'deki cift gradient kimligini ve katman sirasini duzeltme.
+B09 [BEKLIYOR] Hata/retry davranisinda decoder ve ag hatalarini ayirma.
+B10 [BEKLIYOR] Ses, altyazi, kalite ve ekran orani tercihlerinin hatirlanmasi.
+B11 [BEKLIYOR] Son kanala donme ve kanal gecmisi destegi.
+B12 [BEKLIYOR] Kanal degisiminde kullaniciya mini bilgi/kanal paneli sunma.
+B13 [TV TESTI TAMAMLANDI] Oynatici hata mesajlarini kullanici dostu ve guvenli hale getirme.
+B14 [TV TESTI TAMAMLANDI] Uyku zamanlayicisini D-pad kontrol paneline ekleme.
+B15 [TV TESTI TAMAMLANDI] Rebuffer, dropped-frame ve decoder tanilama verilerini iyilestirme.
+
+----------------------------------------------------------------
+C. GUVENLIK VE GIZLILIK
+----------------------------------------------------------------
+
+C01 [TAMAMLANDI] Release loglarindan tam stream URL'lerini kaldirma/sansurleme.
+C02 [TAMAMLANDI] Release loglarindan User-Agent, Referer, token ve header bilgilerini kaldirma.
+C03 [TV TESTI TAMAMLANDI] Hata ekraninda Xtream kullanici adi/sifre iceren URL gostermeme.
+C04 [TAMAMLANDI] Android TV Global Search veritabaninda gercek URL yerine kanal kimligi saklama.
+C05 [TAMAMLANDI] Watch Next deep-linklerinde gercek URL yerine opak kanal kimligi kullanma.
+C06 [TAMAMLANDI] Deep-link oynatmayi kanal kimligi uzerinden guvenli cozumleme.
+C07 [TAMAMLANDI] Playlist yedek disari aktarmada sifre guvenligi ve acik kullanici onayi.
+C08 [TAMAMLANDI] Gizlilik politikasini gercek yerel veri akisiyla uyumlu hale getirme.
+C09 [TAMAMLANDI] Hassas verilerin Intent ve sistem servislerine gereksiz aktarimini kaldirma.
+
+----------------------------------------------------------------
+D. BELLEK, IMPORT VE VERITABANI PERFORMANSI
+----------------------------------------------------------------
+
+D01 [TAMAMLANDI] M3U import sirasinda tum ChannelModel nesnelerini allChannels listesinde tutmama.
+D02 [TAMAMLANDI] Kategori sayaclarini import sirasinda akilli map/sayac ile olusturma.
+D03 [BEKLIYOR] Uzak M3U indirmesini streamed response ile isleme.
+D04 [BEKLIYOR] M3U parser kopyalarini ve ara Map bellek maliyetini azaltma.
+D05 [BEKLIYOR] XMLTV/EPG parse islemini buyuk DOM yerine dusuk bellekli akis modeline yaklastirma.
+D06 [TAMAMLANDI] EPG verisini kullanisli zaman araligiyla sinirlama.
+D07 [TAMAMLANDI] Basarisiz/bos EPG senkronunu basarili olarak isaretlememe.
+D08 [TAMAMLANDI] IndexedStack ile yedi agir sayfayi ayni anda yasatma maliyetini azaltma.
+D09 [TV TESTI TAMAMLANDI] Dusuk cihazlarda dinamik blur efektini kapatma veya hafifletme.
+D10 [TAMAMLANDI] Poster/image cache limiti dusuk RAM TV profili icin 24 MB yapildi.
+D11 [TAMAMLANDI] largeHeap kaldirildi; gercek bellek optimizasyonlari uygulandi.
+D12 [TAMAMLANDI] Seri fallback sorgularinda filtreli Isar sorgulari kullaniliyor.
+D13 [TV TESTI TAMAMLANDI] Arama isteklerinde eski sonuc race-condition sorununu engelleme.
+
+----------------------------------------------------------------
+E. ANDROID INTENT, SEARCH VE WATCH NEXT
+----------------------------------------------------------------
+
+E01 [TAMAMLANDI] 2.000 ogeyi tum metadatasi ile Activity Intent'ine gondermeyi kaldirma.
+E02 [TV TESTI TAMAMLANDI] Native oynaticiya en fazla 101 kanallik pencere aktarma.
+E03 [TAMAMLANDI] Global Search indeksini guvenli kanal kimlikleriyle sinirlama.
+E04 [TAMAMLANDI] Watch Next kayitlarini duplicate olusturmadan guncelleme.
+E05 [BEKLIYOR] Watch Next ilerleme ve tamamlanma bilgisini dogru senkronlama.
+
+----------------------------------------------------------------
+F. UI, MARKA VE RESPONSIVE TV TASARIMI
+----------------------------------------------------------------
+
+F01 [TV TESTI TAMAMLANDI] Kirmizi Netflix temasini yeni turuncu Aladin marka paletiyle uyumlu hale getirme.
+F02 [TV TESTI TAMAMLANDI] Uygulama ici logoda siyah dikdortgen gorunumunu kaldirma/uyumlu hale getirme.
+F03 [TV TESTI TAMAMLANDI] Sol menuyu 1080p TV'de daha dar ve responsive hale getirme.
+F04 [TV TESTI TAMAMLANDI] Icerik odaginda daralan, menu odaginda genisleyen yan menu davranisi.
+F05 [TV TESTI TAMAMLANDI] Ana ekran hizli kartlarinin ekrandan tasmasini engelleme.
+F06 [TV TESTI TAMAMLANDI] Canli TV icin portre poster yerine yatay kanal/EPG sunumu.
+F07 [TV TESTI TAMAMLANDI] Kanal kartinda kanal numarasi, simdi/sonraki ve program ilerlemesi.
+F08 [TV TESTI TAMAMLANDI] Tum ekranlarda edge-to-edge ve overscan guvenli alan tutarliligi.
+F09 [TV TESTI TAMAMLANDI] TV izleme mesafesine uygun minimum yazi boyutlari.
+F10 [BEKLIYOR] Ham playlist basliklarini temizleme ve yanlis film/dizi siniflandirmasini azaltma.
+F11 [BEKLIYOR] Bos, yukleniyor ve hata ekranlarini ortak tasarim sistemine alma.
+F12 [TV TESTI TAMAMLANDI] Animasyon surelerini dusuk TV donanimina uygun hale getirme.
+F13 [BEKLIYOR] Yuksek kontrast ve buyuk metin modu.
+F14 [BEKLIYOR] Tum odaklanabilir kontrollere Semantics/Tooltip aciklamalari ekleme.
+F15 [TAMAMLANDI] Uygulama adinin yazim ve buyuk/kucuk harf tutarliligi.
+
+----------------------------------------------------------------
+G. PROFESYONEL IPTV KULLANIM OZELLIKLERI
+----------------------------------------------------------------
+
+G01 [BEKLIYOR] Tam EPG timeline/grid veya gelismis EPG paneli.
+G02 [BEKLIYOR] Kullanici tarafindan kanal siralama/favori siralama temeli.
+G03 [BEKLIYOR] Gizli/yetiskin kategoriler icin PIN korumasi.
+G04 [TV TESTI TAMAMLANDI] Arama, favori ve son izlenenler arasinda tutarli oynatma listesi davranisi.
+G05 [BEKLIYOR] Kanal ve icerik turune gore varsayilan oynatma profili.
+G06 [TV TESTI TAMAMLANDI] Minimal kumandalar icin ekranda kesfedilebilir kontrol yardimi.
+
+----------------------------------------------------------------
+H. TEST, KALITE VE PLAY STORE VARLIKLARI
+----------------------------------------------------------------
+
+H01 [TAMAMLANDI] Shimmer ornek counter testini kaldirma.
+H02 [TAMAMLANDI] Gercek uygulama smoke/widget testleri.
+H03 [TAMAMLANDI] M3U parser fixture testleri.
+H04 [BEKLIYOR] Xtream parser ve kategori fixture testleri.
+H05 [BEKLIYOR] XMLTV saat dilimi ve bos senkron testleri.
+H06 [BEKLIYOR] Baslik temizleme ve icerik siniflandirma testleri.
+H07 [BEKLIYOR] D-pad ana ekran, menu, sezon ve ayarlar widget testleri.
+H08 [BEKLIYOR] Clear DASH ve DRM ayrimi testleri.
+H09 [BEKLIYOR] Intent veri boyutu/regresyon testi.
+H10 [BEKLIYOR] Flutter analyze uyarilarini anlamli seviyeye indirme.
+H11 [TAMAMLANDI] Android release lint kontrollerini yeniden etkinlestirme.
+H12 [TAMAMLANDI] Release split APK derlemesi.
+H13 [TAMAMLANDI] Release AAB derlemesi.
+H14 [TV TESTI TAMAMLANDI] Realtek Android TV 1080p tam D-pad regresyon testi.
+H15 [TV TESTI TAMAMLANDI] Oynatici canli yayin ve kontrol menusu TV testi; harici altyazi/DRM kaynagi yoktu.
+H16 [TAMAMLANDI] 320x180 TV banner ve launcher icon son kontrolu.
+H17 [TAMAMLANDI] 1024x500 Play Store feature graphic hazirlama.
+H18 [TAMAMLANDI] 6 adet 1920x1080 gercek TV magazasi ekran goruntusu.
+
+----------------------------------------------------------------
+I. SURUM VE DOKUMANTASYON
+----------------------------------------------------------------
+
+I01 [TAMAMLANDI] pubspec 2.3.1+47 ve Android versionCode 1047 yapildi.
+I02 [TAMAMLANDI] Uygulanan +47 degisiklikleri bu dosyada isaretlendi; kalanlar acik birakildi.
+I03 [TAMAMLANDI] SKILL.md dosyasinin en altina mevcut yapisini bozmadan V2.3.1+47 notlari eklendi.
+I04 [TAMAMLANDI] Test sonu raporu ve bilinen sinirlamalari yazma.
+I05 [TAMAMLANDI] Kullanici onayi gelmeden GitHub'a push yapilmadi.
+
+================================================================
+NOTLAR
+================================================================
+
+- Bu dosya uygulama gelistirme boyunca guncellenecektir.
+- Bir maddenin [TAMAMLANDI] olmasi kod ve otomatik dogrulamanin gectigini belirtir.
+- TV davranisi gerektiren maddeler ancak gercek cihazda dogrulandiktan sonra
+  [TV TESTI TAMAMLANDI] olarak isaretlenecektir.
+- Harici servis, playlist veya cihaz ozelligi gerektiren testler dogrulanamazsa
+  gerekcesi bu dosyanin sonundaki test raporuna yazilacaktir.
+
+================================================================
+V2.3.1+47 TEST SONU RAPORU - 26.07.2026
+================================================================
+
+- flutter test: BASARILI (2/2).
+- flutter analyze: Derlemeyi engelleyen error yok; 70 adet mevcut warning/info
+  (agirlikla Isar generated experimental API ve Flutter deprecation/lint borcu).
+- release split APK: BASARILI (armeabi-v7a, arm64-v8a, x86_64).
+- release AAB: BASARILI (63.4 MB).
+- Realtek Android TV / armeabi-v7a: release guncellemesi BASARILI.
+- TV D-pad: ana ekran, acilir/daralir menu, Canli TV, Filmler, Diziler,
+  Arama, Ayarlar, oynatici kontrol menusu ve geri sirasi BASARILI.
+- Test boyunca FATAL EXCEPTION gorulmedi.
+- GitHub: KULLANICI TALIMATI GEREGI GONDERILMEDI.
+
+EK GELISTIRMELER - 26.07.2026:
+- J01 [TAMAMLANDI] Ayarlara "Her Acilista Listeyi Karistir" secenegi eklendi.
+- J02 [TAMAMLANDI] Film/dizi kategori ve kategori icerik siralari, tek oturumda
+  sabit kalacak ve her soguk acilista degisecek oturum tohumu ile karistirildi.
+- J03 [TAMAMLANDI] Yeni Eklenenler sorgusundaki null seriesName tekillestirme
+  sorunu giderildi; raf eksik kaldiginda diger havuzlardan 15 ogeye tamamlandi.
+- J04 [TAMAMLANDI] Dashboard'a 15'er ogelik Film ve Dizi raflari eklendi.
+- J05 [TV TESTI TAMAMLANDI] ARMv7 release APK Realtek TV'ye kuruldu; Dashboard
+  dolu raflarla acildi ve uygulama cokmeden calisti.
+- J06 [TAMAMLANDI] M3U ve Xtream sunucu alanlari http:// ile baslatildi;
+  http://, https://, .com, .net, :8080, :25461 ve / TV giris kisayollari eklendi.
+- J07 [TAMAMLANDI] Protokol kisayollari mevcut protokolu guvenle degistiriyor;
+  yalniz http:// veya https:// girilmesi gecerli adres olarak kabul edilmiyor.
+- J08 [TAMAMLANDI] Dashboard basligi ve sol menuyu tekrarlayan Canli TV, Film,
+  Dizi ve Ara hizli kartlari kaldirildi; icerik raflari ekranin ustune tasindi.
+- J09 [TAMAMLANDI] Icerik sayisi sifir olan bos kategoriler merkezi sorguda
+  gizlendi; Canli TV, Film ve Dizi ekranlarinda gosterilmiyor.
+- J10 [TAMAMLANDI] TV klavyesi acikken cok alanli formlar premium odak moduna
+  gecirildi: yalniz aktif alan, adim numarasi ve alan adi goruntuleniyor.
+- J11 [TAMAMLANDI] Klavye acikken gereksiz Kaydet/Iptal alani gizlendi; klavye
+  onay tusu sonraki alana, son alanda form eylemlerine geciyor.
+- J12 [TAMAMLANDI] Acik sol menu 250-300 dp araligina genisletildi; butun menu
+  etiketleri tek satira sabitlendi ve tasma durumunda uc nokta eklendi.
+- J13 [TAMAMLANDI] Playlist etkinlestirme, silme, guncelleme, arsiv ve diger
+  onay pencerelerinde acilis odagi birincil onay butonuna verildi.
+- J14 [TAMAMLANDI] Decoder sw/software deger uyusmazligi giderildi; Donanim
+  platform MediaCodec, Yazilim FFmpeg oncelikli, Otomatik fallback moduna baglandi.
+- J15 [TAMAMLANDI] Baslangicta oynatma yalniz %3-%90 arasi yarim kalmis film
+  veya bolumu kaldigi yerden aciyor; canli, bitmis ve sifir URL kayitlari dislandi.
+- J16 [TAMAMLANDI] Izleme listesinden kaldirma artik lastWatched kaydini temizliyor;
+  silinen kaydin yeniden otomatik acilmasi engellendi.
+- J17 [TAMAMLANDI] EPG senkronu bool basari sonucu donduruyor; hata halinde
+  yanlis "EPG guncellendi" bildirimi kaldirildi.
+- J18 [TAMAMLANDI] Hakkinda guncelleme kontrolu semantik surum ve +build
+  numarasini karsilastiriyor, hata ile guncel durumunu ayiriyor ve Play Store'u aciyor.
+- J19 [TAMAMLANDI] Uygulama 24 saatte bir sessiz guncelleme kontrolu yapiyor;
+  yeni surum bulunursa odagi onayda olan Play Store bildirimi gosteriyor.
+- J20 [TAMAMLANDI] Dar/responsive Ayarlar ekranina Kalite, Baslangicta Oynat
+  ve Her Acilista Karistir secenekleri eklendi.
+- J21 [TV TESTI TAMAMLANDI] 4/4 Flutter testi ve split release derlemesi gecti;
+  ARMv7 APK Realtek TV'ye kuruldu ve acilista FATAL EXCEPTION gorulmedi.
+- J22 [TAMAMLANDI] Decoder ve kalite diyaloglari mevcut secenek uzerinde aciliyor;
+  TV kullanicisi secili degeri aramak zorunda kalmiyor.
+- J23 [TAMAMLANDI] Kalite ayarina adaptif yayin siniri aciklamasi, dusuk RAM'de
+  yazilim decoder yerine donanim kullanildiginda yerellestirilmis bildirim eklendi.
+- J24 [TAMAMLANDI] Otomatik oynatma, karistirma, kalite ve decoder geri bildirimleri
+  TR/EN/DE/FR/ES/RU/ZH/AR dillerinde tamamlandi; dil regresyon testi eklendi.
+- J25 [TAMAMLANDI] Hakkinda GitHub baglantisi dogrudan yeni proje reposuna duzeltildi.
+- J26 [TV TESTI TAMAMLANDI] Toplam 5/5 Flutter testi gecti; yeni ARMv7 release
+  Realtek TV'ye kuruldu ve acilista FATAL EXCEPTION gorulmedi.
+
+KALAN UZUN VADELI / AYRI SURUM GEREKTIREN MADDELER:
+- B02: Gercek DRM lisans URL'si icin playlist/model semasi bulunmadigindan yalniz
+  hatali otomatik Widevine kaldirildi; lisansli DRM entegrasyonu acik.
+- B06, B10, B11: cihaz/kanal bazli kalite-track tercihi ve ayrintili kanal gecmisi.
+- D03-D05: tam satir-akisli M3U ve event-stream XMLTV parser mimarisi.
+- E05: Watch Next ilerleme/tamamlanma alanlarinin periyodik guncellenmesi.
+- F10-F11, F13-F14: siniflandirma, ortak durum ekrani ve genis erisilebilirlik modu.
+- G01-G03, G05: tam EPG grid, kullanici kanal siralama ve PIN UI entegrasyonu.
+- H04-H10: daha genis fixture/widget/native regresyon test paketi ve lint borcunun
+  sifira indirilmesi.

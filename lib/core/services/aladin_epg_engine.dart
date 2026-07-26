@@ -17,11 +17,16 @@ class AladinEpgEngine extends ChangeNotifier {
   AladinEpgEngine._();
   static final AladinEpgEngine instance = AladinEpgEngine._();
 
-  static const _kTr1GzUrl = 'https://epgshare01.online/epgshare01/epg_ripper_TR1.xml.gz';
-  static const _kTr1TxtUrl = 'https://epgshare01.online/epgshare01/epg_ripper_TR1.txt';
-  static const _kTr3GzUrl = 'https://epgshare01.online/epgshare01/epg_ripper_TR3.xml.gz';
-  static const _kTr3TxtUrl = 'https://epgshare01.online/epgshare01/epg_ripper_TR3.txt';
-  static const _kFallbackUrl = 'https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz';
+  static const _kTr1GzUrl =
+      'https://epgshare01.online/epgshare01/epg_ripper_TR1.xml.gz';
+  static const _kTr1TxtUrl =
+      'https://epgshare01.online/epgshare01/epg_ripper_TR1.txt';
+  static const _kTr3GzUrl =
+      'https://epgshare01.online/epgshare01/epg_ripper_TR3.xml.gz';
+  static const _kTr3TxtUrl =
+      'https://epgshare01.online/epgshare01/epg_ripper_TR3.txt';
+  static const _kFallbackUrl =
+      'https://epgshare01.online/epgshare01/epg_ripper_ALL_SOURCES1.xml.gz';
 
   static const _kSyncKeyMs = 'epg_last_sync_ms';
   static const _kSyncStatus = 'epg_sync_status';
@@ -32,19 +37,22 @@ class AladinEpgEngine extends ChangeNotifier {
   bool get isSyncing => _syncing;
   double get progress => _progress;
 
-  String get syncStatus => AladinPrefs.instance.getString(_kSyncStatus) ?? 'idle';
+  String get syncStatus =>
+      AladinPrefs.instance.getString(_kSyncStatus) ?? 'idle';
 
   int get daysSinceSync {
     final lastMs = AladinPrefs.instance.getInt(_kSyncKeyMs);
     if (lastMs == 0) return 999;
-    return ((DateTime.now().millisecondsSinceEpoch - lastMs) / (1000 * 60 * 60 * 24)).floor();
+    return ((DateTime.now().millisecondsSinceEpoch - lastMs) /
+            (1000 * 60 * 60 * 24))
+        .floor();
   }
 
   bool get needsUpdate => daysSinceSync >= 6;
 
-  Future<void> forceSync() async {
-    if (_syncing) return;
-    await _doSync();
+  Future<bool> forceSync() async {
+    if (_syncing) return false;
+    return _doSync();
   }
 
   static String normalizeId(String id) {
@@ -53,53 +61,87 @@ class AladinEpgEngine extends ChangeNotifier {
     s = s.replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '');
     s = s.replaceAll(RegExp(r'^[A-Za-z]{1,6}\s*[|:]\s*'), '');
     s = s.replaceAll(RegExp(r'\.[a-zA-Z]{2,3}$'), '');
-    const tr = {'İ':'I','ı':'i','Ş':'S','ş':'s','Ğ':'G','ğ':'g','Ü':'U','ü':'u','Ö':'O','ö':'o','Ç':'C','ç':'c'};
-    for (final e in tr.entries) { s = s.replaceAll(e.key, e.value); }
-    s = s.replaceAll(RegExp(r'\b(4K|UHD|FHD|1080[PpIi]|HD\+?|720[Pp]|SD|HEVC|H\.?265|H\.?264|AVC|MPEG2)\b', caseSensitive: false), '');
+    const tr = {
+      'İ': 'I',
+      'ı': 'i',
+      'Ş': 'S',
+      'ş': 's',
+      'Ğ': 'G',
+      'ğ': 'g',
+      'Ü': 'U',
+      'ü': 'u',
+      'Ö': 'O',
+      'ö': 'o',
+      'Ç': 'C',
+      'ç': 'c'
+    };
+    for (final e in tr.entries) {
+      s = s.replaceAll(e.key, e.value);
+    }
+    s = s.replaceAll(
+        RegExp(
+            r'\b(4K|UHD|FHD|1080[PpIi]|HD\+?|720[Pp]|SD|HEVC|H\.?265|H\.?264|AVC|MPEG2)\b',
+            caseSensitive: false),
+        '');
     s = s.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
     return s.toLowerCase();
   }
 
-  Future<void> _doSync() async {
-    if (EpgService.instance.isPaused) return;
-    
+  Future<bool> _doSync() async {
+    if (EpgService.instance.isPaused) return false;
+
     final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity.contains(ConnectivityResult.none)) return;
+    if (connectivity.contains(ConnectivityResult.none)) return false;
 
     _syncing = true;
     _progress = 0.05;
     notifyListeners();
     await AladinPrefs.instance.setString(_kSyncStatus, 'syncing');
 
+    var success = false;
     try {
       final db = IsarService.instance.db;
       final sharedBestPrograms = <String, _BestProgramCandidate>{};
       final syncSessionId = DateTime.now().millisecondsSinceEpoch;
 
-      _progress = 0.1; notifyListeners();
-      await _trySource(_kTr1GzUrl, sharedBestPrograms) || await _trySource(_kTr1TxtUrl, sharedBestPrograms);
-      
-      _progress = 0.4; notifyListeners();
-      await _trySource(_kTr3GzUrl, sharedBestPrograms) || await _trySource(_kTr3TxtUrl, sharedBestPrograms);
+      _progress = 0.1;
+      notifyListeners();
+      await _trySource(_kTr1GzUrl, sharedBestPrograms) ||
+          await _trySource(_kTr1TxtUrl, sharedBestPrograms);
+
+      _progress = 0.4;
+      notifyListeners();
+      await _trySource(_kTr3GzUrl, sharedBestPrograms) ||
+          await _trySource(_kTr3TxtUrl, sharedBestPrograms);
 
       if (sharedBestPrograms.isEmpty) {
-        _progress = 0.6; notifyListeners();
+        _progress = 0.6;
+        notifyListeners();
         await _trySource(_kFallbackUrl, sharedBestPrograms);
       }
 
       if (sharedBestPrograms.isNotEmpty) {
         // ⚡ PRO FEATURE: SWAP PATTERN
         // 1. Write new data with sessionId
-        _progress = 0.8; notifyListeners();
+        _progress = 0.8;
+        notifyListeners();
         await _commitBestPrograms(sharedBestPrograms, syncSessionId);
-        
-        // 2. Only if everything succeeded, delete OLD data
-        await db.writeTxn(() => db.epgProgramModels.filter().not().syncSessionEqualTo(syncSessionId).deleteAll());
-      }
 
-      await AladinPrefs.instance.setInt(_kSyncKeyMs, DateTime.now().millisecondsSinceEpoch);
-      await AladinPrefs.instance.setString(_kSyncStatus, 'ok');
-      _progress = 1.0;
+        // 2. Only if everything succeeded, delete OLD data
+        await db.writeTxn(() => db.epgProgramModels
+            .filter()
+            .not()
+            .syncSessionEqualTo(syncSessionId)
+            .deleteAll());
+        await AladinPrefs.instance
+            .setInt(_kSyncKeyMs, DateTime.now().millisecondsSinceEpoch);
+        await AladinPrefs.instance.setString(_kSyncStatus, 'ok');
+        _progress = 1.0;
+        success = true;
+      } else {
+        await AladinPrefs.instance.setString(_kSyncStatus, 'error');
+        throw StateError('EPG kaynakları kullanılabilir program döndürmedi.');
+      }
     } catch (e) {
       debugPrint('[EPG] _doSync error: $e');
       await AladinPrefs.instance.setString(_kSyncStatus, 'error');
@@ -111,20 +153,27 @@ class AladinEpgEngine extends ChangeNotifier {
         notifyListeners();
       });
     }
+    return success;
   }
 
-  Future<bool> _trySource(String url, Map<String, _BestProgramCandidate> sharedBestPrograms) async {
+  Future<bool> _trySource(
+      String url, Map<String, _BestProgramCandidate> sharedBestPrograms) async {
     try {
       final res = await http.get(Uri.parse(url), headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       }).timeout(const Duration(seconds: 90));
 
       if (res.statusCode != 200) return false;
 
       String xml;
       if (url.endsWith('.gz')) {
-        try { xml = utf8.decode(GZipDecoder().decodeBytes(res.bodyBytes), allowMalformed: true); }
-        catch (_) { xml = utf8.decode(res.bodyBytes, allowMalformed: true); }
+        try {
+          xml = utf8.decode(GZipDecoder().decodeBytes(res.bodyBytes),
+              allowMalformed: true);
+        } catch (_) {
+          xml = utf8.decode(res.bodyBytes, allowMalformed: true);
+        }
       } else {
         xml = utf8.decode(res.bodyBytes, allowMalformed: true);
       }
@@ -132,19 +181,21 @@ class AladinEpgEngine extends ChangeNotifier {
       if (!xml.contains('<tv') && !xml.contains('<programme')) return false;
 
       final result = await compute(_parseXmlWorker, xml);
-      
+
       // Merge results
       for (final candidate in result.programs) {
         final normCid = normalizeId(candidate.channelId);
-        final dedupKey = '$normCid|${candidate.startTime.millisecondsSinceEpoch}';
+        final dedupKey =
+            '$normCid|${candidate.startTime.millisecondsSinceEpoch}';
         final existing = sharedBestPrograms[dedupKey];
-        if (existing == null || (!existing.hasDescription && candidate.hasDescription)) {
+        if (existing == null ||
+            (!existing.hasDescription && candidate.hasDescription)) {
           sharedBestPrograms[dedupKey] = candidate;
         }
       }
 
       await _enrichChannelLogos(IsarService.instance.db, result.channels);
-      
+
       return true;
     } catch (e) {
       debugPrint('[EPG] _trySource error: $e');
@@ -152,7 +203,8 @@ class AladinEpgEngine extends ChangeNotifier {
     }
   }
 
-  Future<void> _commitBestPrograms(Map<String, _BestProgramCandidate> bestPrograms, int sessionId) async {
+  Future<void> _commitBestPrograms(
+      Map<String, _BestProgramCandidate> bestPrograms, int sessionId) async {
     final db = IsarService.instance.db;
     final batch = <EpgProgramModel>[];
     int stored = 0;
@@ -184,14 +236,16 @@ class AladinEpgEngine extends ChangeNotifier {
     }
   }
 
-  Future<void> _enrichChannelLogos(Isar db, Map<String, _AladinXmlChannel> channelMeta) async {
+  Future<void> _enrichChannelLogos(
+      Isar db, Map<String, _AladinXmlChannel> channelMeta) async {
     // 30k+ kanalı tek seferde çekmek OOM riskidir. 500'erli batch'lerle işle.
     int offset = 0;
     const batchSize = 500;
     bool hasMore = true;
 
     while (hasMore) {
-      final channels = await db.channelModels.filter()
+      final channels = await db.channelModels
+          .filter()
           .contentTypeEqualTo('tv')
           .offset(offset)
           .limit(batchSize)
@@ -205,15 +259,17 @@ class AladinEpgEngine extends ChangeNotifier {
       final toUpdate = <ChannelModel>[];
       for (final ch in channels) {
         final keys = <String>[];
-        if (ch.tvgId != null && ch.tvgId!.isNotEmpty) keys.add(normalizeId(ch.tvgId!));
+        if (ch.tvgId != null && ch.tvgId!.isNotEmpty)
+          keys.add(normalizeId(ch.tvgId!));
         if (ch.name.isNotEmpty) keys.add(normalizeId(ch.name));
-        if (ch.tvgName != null && ch.tvgName!.isNotEmpty) keys.add(normalizeId(ch.tvgName!));
+        if (ch.tvgName != null && ch.tvgName!.isNotEmpty)
+          keys.add(normalizeId(ch.tvgName!));
 
         for (final key in keys) {
           final epgCh = channelMeta[key];
           final iconUrl = epgCh?.iconUrl;
           if (iconUrl == null || iconUrl.isEmpty) continue;
-          
+
           bool changed = false;
           if (ch.epgLogoUrl != iconUrl) {
             ch.epgLogoUrl = iconUrl;
@@ -223,7 +279,7 @@ class AladinEpgEngine extends ChangeNotifier {
             ch.logoUrl = iconUrl;
             changed = true;
           }
-          
+
           if (changed) {
             toUpdate.add(ch);
           }
@@ -252,6 +308,7 @@ class _ParseResult {
 _ParseResult _parseXmlWorker(String xml) {
   final doc = XmlDocument.parse(xml);
   final now = DateTime.now();
+  final retentionEnd = now.add(const Duration(days: 7));
 
   final channels = <String, _AladinXmlChannel>{};
   for (final ch in doc.findAllElements('channel')) {
@@ -273,12 +330,13 @@ _ParseResult _parseXmlWorker(String xml) {
       final stop = _parseDateInternal(prog.getAttribute('stop') ?? '');
       if (cid.isEmpty || start == null || stop == null) continue;
       if (stop.isBefore(now)) continue;
-      
+      if (start.isAfter(retentionEnd)) continue;
+
       final title = prog.findElements('title').firstOrNull?.innerText ?? '';
       if (title.isEmpty) continue;
 
       final description = prog.findElements('desc').firstOrNull?.innerText;
-      
+
       programs.add(_BestProgramCandidate(
         channelId: cid,
         title: title,
@@ -327,7 +385,8 @@ class _AladinXmlChannel {
   final String originalId;
   final String displayName;
   final String? iconUrl;
-  const _AladinXmlChannel({required this.originalId, required this.displayName, this.iconUrl});
+  const _AladinXmlChannel(
+      {required this.originalId, required this.displayName, this.iconUrl});
 }
 
 class _BestProgramCandidate {

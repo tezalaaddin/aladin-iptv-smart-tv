@@ -82,8 +82,8 @@ Future<void> main() async {
   ));
 
   // 🎬 TV PERFORMANS: Image cache'i TV için optimize et
-  PaintingBinding.instance.imageCache.maximumSize = 50;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20; // 50 MB
+  PaintingBinding.instance.imageCache.maximumSize = 40;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 24 << 20;
 
   runApp(const AladinApp());
 }
@@ -139,6 +139,10 @@ class _AladinAppState extends State<AladinApp>
         if (url != null) {
           AppState.instance.playByUrl(url);
         }
+      } else if (call.method == 'playChannelId') {
+        final rawId = call.arguments['id'];
+        final id = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+        if (id != null) AppState.instance.playById(id);
       }
       return null;
     });
@@ -165,6 +169,7 @@ class _AladinAppState extends State<AladinApp>
     // ona bağlı olduğundan sıralı başlatma zorunlu. Isar paralel başlatılabilir
     // çünkü Prefs'e bağımlı değil.
     await AladinPrefs.instance.load();
+    AladinPrefs.instance.beginLaunchSession();
     await initDI();
     await Future.wait([
       IsarService.instance.init(),
@@ -232,7 +237,7 @@ class _Splash extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: 0.72,
                   child: Image.asset(
-                    'assets/images/app_logo_text.png',
+                    'assets/images/app_logo_text_transparent.png',
                     fit: BoxFit.contain,
                     semanticLabel: 'aladin IPTV Player Pro TV',
                   ),
@@ -294,7 +299,7 @@ class _LangSelect extends StatelessWidget {
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 620),
                       child: Image.asset(
-                        'assets/images/app_logo_text.png',
+                        'assets/images/app_logo_text_transparent.png',
                         fit: BoxFit.contain,
                         semanticLabel: 'aladin IPTV Player Pro TV',
                       ),

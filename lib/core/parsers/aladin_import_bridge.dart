@@ -160,7 +160,8 @@ class AladinImportBridge {
   ) {
     final seen = <String, int>{}; // "categoryName__contentType" → order
     final counts = <String, int>{};
-    final seriesInCat = <String, Set<String>>{}; // categoryName -> Set of seriesNames
+    final seriesInCat =
+        <String, Set<String>>{}; // categoryName -> Set of seriesNames
     int order = 0;
 
     for (final ch in channels) {
@@ -170,7 +171,8 @@ class AladinImportBridge {
       }
 
       if (ch.contentType == 'series') {
-        final seriesKey = ch.seriesName?.trim().toLowerCase() ?? ch.name.trim().toLowerCase();
+        final seriesKey =
+            ch.seriesName?.trim().toLowerCase() ?? ch.name.trim().toLowerCase();
         seriesInCat.putIfAbsent(ch.categoryName, () => {}).add(seriesKey);
       } else {
         counts[key] = (counts[key] ?? 0) + 1;
@@ -244,4 +246,38 @@ class AladinImportBridge {
       }
     }
   }
+}
+
+/// Incremental category counter used during imports so the importer never has
+/// to retain every [ChannelModel] in memory.
+class AladinCategoryAccumulator {
+  final int playlistId;
+  final Map<String, int> _order = {};
+  final Map<String, int> _counts = {};
+  final Map<String, Set<String>> _series = {};
+
+  AladinCategoryAccumulator(this.playlistId);
+
+  void addAll(Iterable<ChannelModel> channels) {
+    for (final ch in channels) {
+      final key = '${ch.categoryName}__${ch.contentType}';
+      _order.putIfAbsent(key, () => _order.length);
+      if (ch.contentType == 'series') {
+        final name = (ch.seriesName ?? ch.name).trim().toLowerCase();
+        _series.putIfAbsent(key, () => <String>{}).add(name);
+      } else {
+        _counts[key] = (_counts[key] ?? 0) + 1;
+      }
+    }
+  }
+
+  List<CategoryModel> build() => _order.entries.map((entry) {
+        final separator = entry.key.lastIndexOf('__');
+        return CategoryModel()
+          ..name = entry.key.substring(0, separator)
+          ..contentType = entry.key.substring(separator + 2)
+          ..playlistId = playlistId
+          ..channelCount = _series[entry.key]?.length ?? _counts[entry.key] ?? 0
+          ..sortOrder = entry.value;
+      }).toList();
 }

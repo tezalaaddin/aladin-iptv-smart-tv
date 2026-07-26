@@ -8,8 +8,8 @@ class AppTheme {
   static const Color surface = Color(0xFF141414);
   static const Color card = Color(0xFF1F1F1F);
   static const Color cardHover = Color(0xFF2A2A2A);
-  static const Color accent = Color(0xFFE50914); // Netflix red
-  static const Color accentLight = Color(0xFFFF3B45);
+  static const Color accent = Color(0xFFFF7A00); // Aladin orange
+  static const Color accentLight = Color(0xFFFFA726);
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFB0B0B0);
   static const Color textMuted = Color(0xFF6B6B6B);
@@ -20,9 +20,12 @@ class AppTheme {
   // ── Layout Standards ───────────────────────────────────────────────────────
   static const double cardWidth = 140.0;
   static const double cardHeight = 200.0;
-  static const double listSectionHeight = 270.0; // Şeritlerin toplam yüksekliği (Başlık + Liste)
-  static const double listHeight = 215.0;        // Sadece yatay listenin (SizedBox) yüksekliği
-  static const double gridHeight = 255.0;        // Izgara (Grid) içindeki her bir öğenin toplam yüksekliği (Kart + Yazı)
+  static const double listSectionHeight =
+      270.0; // Şeritlerin toplam yüksekliği (Başlık + Liste)
+  static const double listHeight =
+      215.0; // Sadece yatay listenin (SizedBox) yüksekliği
+  static const double gridHeight =
+      255.0; // Izgara (Grid) içindeki her bir öğenin toplam yüksekliği (Kart + Yazı)
 
   // ── Text styles ─────────────────────────────────────────────────────────────
   static const TextStyle headingLarge = TextStyle(

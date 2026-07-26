@@ -1,12 +1,13 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/models/aladin_category_model.dart';
 import '../core/services/aladin_metadata_sync_service.dart';
 import '../core/services/aladin_epg_engine.dart';
 import '../core/services/aladin_channel_service.dart';
+import '../core/services/aladin_update_service.dart';
 import '../core/di/aladin_di.dart';
 import '../core/state/aladin_app_prefs.dart';
 import '../core/state/aladin_app_state.dart';
@@ -60,6 +61,7 @@ class _MainPageState extends State<MainPage> {
         _autoPlayLast(activeId);
       }
       _checkUpdates();
+      _checkAppUpdate();
     });
   }
 
@@ -68,30 +70,16 @@ class _MainPageState extends State<MainPage> {
         sl<AladinPrefs>().getBool('auto_play_last', def: false);
     if (!autoPlay) return;
 
-    final last = await ChannelService.instance.getLastWatched(playlistId);
+    final last = await ChannelService.instance.getLastResumable(playlistId);
     if (last != null && mounted) {
-      if (last.contentType == 'series') {
-        final name = last.seriesName?.trim().isNotEmpty == true
-            ? last.seriesName!
-            : last.name;
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => AladinSeriesDetailPage(
-                      seriesName: name,
-                      playlistId: last.playlistId,
-                      seriesId: last.parentSeriesId ?? last.tvgId,
-                      playlistModel: AppState.instance.active,
-                    )));
-      } else {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => PlayerPage(
-                      channel: last,
-                      playlist: [last],
-                    )));
-      }
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => PlayerPage(
+                    channel: last,
+                    playlist: [last],
+                    playlistModel: AppState.instance.active,
+                  )));
     }
   }
 
@@ -118,6 +106,49 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  Future<void> _checkAppUpdate() async {
+    const key = 'last_app_update_check_ms';
+    final prefs = AladinPrefs.instance;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final last = prefs.getInt(key);
+    if (last > 0 && now - last < const Duration(hours: 24).inMilliseconds) {
+      return;
+    }
+    await prefs.setInt(key, now);
+    final update = await UpdateService.instance.checkUpdate();
+    if (!mounted || update?['hasUpdate'] != true) return;
+    final s = AppState.instance.s;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        title: Text(s.checkUpdates),
+        content: Text('${s.version} ${update?['version']} ${s.loaded}.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(s.cancel),
+          ),
+          ElevatedButton(
+            autofocus: true,
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final market =
+                  Uri.parse('market://details?id=com.aladin.iptv.player.pro');
+              if (await canLaunchUrl(market)) {
+                await launchUrl(market, mode: LaunchMode.externalApplication);
+              } else {
+                await launchUrl(Uri.parse(UpdateService.playStoreUrl),
+                    mode: LaunchMode.externalApplication);
+              }
+            },
+            child: Text(s.download),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showUpdateRecommendation(String type) async {
     if (!mounted) return;
     final s = AppState.instance.s;
@@ -135,6 +166,7 @@ class _MainPageState extends State<MainPage> {
           TextButton(
               onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
           ElevatedButton(
+            autofocus: true,
             onPressed: () {
               Navigator.pop(context);
               if (isEpg) {
@@ -161,7 +193,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   KeyEventResult _handleGlobalKeys(KeyEvent event) {
-    if (event is KeyRepeatEvent) return KeyEventResult.handled;
+    if (event is KeyRepeatEvent) return KeyEventResult.ignored;
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     // ── KESİN ÇÖZÜM: Yazı alanı kontrolü
@@ -342,7 +374,7 @@ class _MainPageState extends State<MainPage> {
           },
         ),
       ];
-      content = IndexedStack(index: _index, children: pages);
+      content = KeyedSubtree(key: ValueKey(_index), child: pages[_index]);
     }
 
     return FocusScope(
@@ -511,13 +543,8 @@ class _DynamicBackdrop extends StatelessWidget {
                   errorWidget: (_, __, ___) => const SizedBox.shrink(),
                 ),
                 // Only render blur if it's actually visible
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.7),
-                    ),
-                  ),
+                const Positioned.fill(
+                  child: ColoredBox(color: Color(0xC2000000)),
                 ),
                 Container(
                   decoration: BoxDecoration(
@@ -654,7 +681,7 @@ class _TVDialogButtonState extends State<_TVDialogButton> {
   }
 }
 
-class _SideNavBar extends StatelessWidget {
+class _SideNavBar extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final List<FocusNode> nodes;
@@ -667,10 +694,40 @@ class _SideNavBar extends StatelessWidget {
       required this.onRightPressed});
 
   @override
+  State<_SideNavBar> createState() => _SideNavBarState();
+}
+
+class _SideNavBarState extends State<_SideNavBar> {
+  bool get _expanded => widget.nodes.any((node) => node.hasFocus);
+
+  void _onFocusChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    for (final node in widget.nodes) {
+      node.addListener(_onFocusChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final node in widget.nodes) {
+      node.removeListener(_onFocusChanged);
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>().s;
-    return Container(
-      width: 280, // Biraz daha geniş ve ferah
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: _expanded
+          ? (MediaQuery.sizeOf(context).width * 0.20).clamp(250.0, 300.0)
+          : 88,
       decoration: BoxDecoration(
         color: AppTheme.surface,
         border:
@@ -686,91 +743,100 @@ class _SideNavBar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 48),
+          const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: _expanded ? 12 : 14),
             child: Image.asset(
-              'assets/images/app_logo_text.png',
-              height: 82,
+              _expanded
+                  ? 'assets/images/app_logo_text_cropped.png'
+                  : 'assets/images/app_logo_mark_cropped.png',
+              height: 66,
               width: double.infinity,
               fit: BoxFit.contain,
               alignment: Alignment.centerLeft,
               semanticLabel: 'aladin IPTV Player Pro TV',
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 10),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
                   _SideNavItem(
-                    focusNode: nodes[0],
+                    focusNode: widget.nodes[0],
                     icon: Icons.home,
                     label: s.navHome,
-                    isSelected: currentIndex == 0,
-                    onTap: () => onTap(0),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 0,
+                    onTap: () => widget.onTap(0),
+                    onRightPressed: widget.onRightPressed,
                     numberHint: '0',
-                    autofocus: currentIndex == 0,
+                    autofocus: widget.currentIndex == 0,
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[1],
+                    focusNode: widget.nodes[1],
                     icon: Icons.live_tv,
                     label: s.navLiveTV,
-                    isSelected: currentIndex == 1,
-                    onTap: () => onTap(1),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 1,
+                    onTap: () => widget.onTap(1),
+                    onRightPressed: widget.onRightPressed,
                     colorHint: Colors.red,
                     numberHint: '1',
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[2],
+                    focusNode: widget.nodes[2],
                     icon: Icons.movie,
                     label: s.navMovies,
-                    isSelected: currentIndex == 2,
-                    onTap: () => onTap(2),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 2,
+                    onTap: () => widget.onTap(2),
+                    onRightPressed: widget.onRightPressed,
                     colorHint: Colors.green,
                     numberHint: '2',
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[3],
+                    focusNode: widget.nodes[3],
                     icon: Icons.video_library,
                     label: s.navSeries,
-                    isSelected: currentIndex == 3,
-                    onTap: () => onTap(3),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 3,
+                    onTap: () => widget.onTap(3),
+                    onRightPressed: widget.onRightPressed,
                     colorHint: Colors.yellow,
                     numberHint: '3',
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[4],
+                    focusNode: widget.nodes[4],
                     icon: Icons.search,
                     label: s.navSearch,
-                    isSelected: currentIndex == 4,
-                    onTap: () => onTap(4),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 4,
+                    onTap: () => widget.onTap(4),
+                    onRightPressed: widget.onRightPressed,
                     colorHint: Colors.blue,
                     numberHint: '4',
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[5],
+                    focusNode: widget.nodes[5],
                     icon: Icons.favorite,
                     label: s.navFavorites,
-                    isSelected: currentIndex == 5,
-                    onTap: () => onTap(5),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 5,
+                    onTap: () => widget.onTap(5),
+                    onRightPressed: widget.onRightPressed,
                     numberHint: '5',
+                    expanded: _expanded,
                   ),
                   _SideNavItem(
-                    focusNode: nodes[6],
+                    focusNode: widget.nodes[6],
                     icon: Icons.settings,
                     label: s.navSettings,
-                    isSelected: currentIndex == 6,
-                    onTap: () => onTap(6),
-                    onRightPressed: onRightPressed,
+                    isSelected: widget.currentIndex == 6,
+                    onTap: () => widget.onTap(6),
+                    onRightPressed: widget.onRightPressed,
                     numberHint: '6',
+                    expanded: _expanded,
                   ),
                 ],
               ),
@@ -792,6 +858,7 @@ class _SideNavItem extends StatefulWidget {
   final String? numberHint;
   final bool autofocus;
   final FocusNode? focusNode;
+  final bool expanded;
 
   const _SideNavItem({
     required this.icon,
@@ -803,6 +870,7 @@ class _SideNavItem extends StatefulWidget {
     this.numberHint,
     this.autofocus = false,
     this.focusNode,
+    this.expanded = true,
   });
 
   @override
@@ -824,7 +892,15 @@ class _SideNavItemState extends State<_SideNavItem> {
         autofocus: widget.autofocus,
         onFocusChange: (v) => setState(() => _isFocused = v),
         onKeyEvent: (node, event) {
-          if (event is KeyRepeatEvent) return KeyEventResult.handled;
+          if (event is KeyRepeatEvent) {
+            final key = event.logicalKey;
+            if (key == LogicalKeyboardKey.select ||
+                key == LogicalKeyboardKey.enter ||
+                key == LogicalKeyboardKey.gameButtonA) {
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          }
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
           final now = DateTime.now();
@@ -894,24 +970,28 @@ class _SideNavItemState extends State<_SideNavItem> {
                           : AppTheme.textSecondary),
                   size: 24,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    style: TextStyle(
-                      color: _isFocused
-                          ? Colors.white
-                          : (widget.isSelected
-                              ? Colors.white
-                              : AppTheme.textSecondary),
-                      fontSize: 16,
-                      fontWeight: widget.isSelected || _isFocused
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                if (widget.expanded) const SizedBox(width: 16),
+                if (widget.expanded)
+                  Expanded(
+                    child: Text(
+                      widget.label,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _isFocused
+                            ? Colors.white
+                            : (widget.isSelected
+                                ? Colors.white
+                                : AppTheme.textSecondary),
+                        fontSize: 16,
+                        fontWeight: widget.isSelected || _isFocused
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
                     ),
                   ),
-                ),
-                if (widget.numberHint != null)
+                if (widget.expanded && widget.numberHint != null)
                   Container(
                     width: 22,
                     height: 22,

@@ -31,7 +31,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = flutter.versionCode
+        // Public release 47 follows the already-published 1046 Android code.
+        versionCode = 1047
         versionName = flutter.versionName
     }
 
@@ -67,8 +68,8 @@ android {
 
     lint {
         disable       += "MissingTranslation"
-        abortOnError   = false
-        checkReleaseBuilds = false
+        abortOnError   = true
+        checkReleaseBuilds = true
     }
 
     packaging {

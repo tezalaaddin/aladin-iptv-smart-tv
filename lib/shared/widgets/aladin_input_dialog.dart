@@ -15,6 +15,7 @@ class AladinField {
   final bool obscure;
   final IconData icon;
   final String? prefix;
+  final List<String> quickTokens;
 
   AladinField({
     required this.label,
@@ -23,6 +24,7 @@ class AladinField {
     this.obscure = false,
     required this.icon,
     this.prefix,
+    this.quickTokens = const [],
   });
 }
 
@@ -51,6 +53,7 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
   late List<TextEditingController> _controllers;
   late List<FocusNode> _fieldNodes;
   final FocusNode _confirmNode = FocusNode(debugLabel: 'form_confirm');
+  int _activeFieldIndex = 0;
 
   // Debounce — bazı TV'lerde Back tuşu hızlı çift ateşleniyor
   DateTime? _lastBackTime;
@@ -63,6 +66,14 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
         .map((f) => TextEditingController(text: f.initialValue))
         .toList();
     _fieldNodes = widget.fields.map((_) => FocusNode()).toList();
+    for (var i = 0; i < _fieldNodes.length; i++) {
+      final index = i;
+      _fieldNodes[i].addListener(() {
+        if (_fieldNodes[index].hasFocus && mounted) {
+          setState(() => _activeFieldIndex = index);
+        }
+      });
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_fieldNodes.isNotEmpty) _openKeyboard(_fieldNodes[0]);
     });
@@ -129,6 +140,8 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final s = context.read<AppState>().s;
+    final keyboardVisible = _isKeyboardVisible(context);
+    final activeField = widget.fields[_activeFieldIndex];
 
     return PopScope(
       // canPop: false → Sistemi tamamen devre dışı bırak,
@@ -151,11 +164,20 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
         },
         child: Scaffold(
           backgroundColor: Colors.black.withOpacity(0.9),
-          body: Center(
+          body: Align(
+            alignment: keyboardVisible ? Alignment.topCenter : Alignment.center,
             child: Container(
-              width: 600,
-              constraints: BoxConstraints(maxHeight: size.height * 0.95),
-              margin: const EdgeInsets.all(12),
+              width: keyboardVisible ? 760 : 600,
+              constraints: BoxConstraints(
+                maxHeight:
+                    keyboardVisible ? size.height * 0.48 : size.height * 0.95,
+              ),
+              margin: EdgeInsets.fromLTRB(
+                12,
+                keyboardVisible ? 12 : 12,
+                12,
+                12,
+              ),
               decoration: BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(24),
@@ -166,13 +188,30 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
                 children: [
                   // ── Başlık ──────────────────────────────────────────────
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
-                    child: Text(
-                      widget.title,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900),
+                    padding: EdgeInsets.fromLTRB(
+                        32, keyboardVisible ? 18 : 32, 32, 8),
+                    child: Column(
+                      children: [
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: keyboardVisible ? 20 : 24,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (keyboardVisible) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            '${_activeFieldIndex + 1}/${widget.fields.length}  •  ${activeField.label}',
+                            style: const TextStyle(
+                              color: AppTheme.accent,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   // ── Alanlar ─────────────────────────────────────────────
@@ -183,35 +222,38 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          widget.fields.length,
-                          (i) => _buildField(context, i),
-                        ),
+                        children: keyboardVisible
+                            ? [_buildField(context, _activeFieldIndex)]
+                            : List.generate(
+                                widget.fields.length,
+                                (i) => _buildField(context, i),
+                              ),
                       ),
                     ),
                   ),
                   // ── Butonlar ────────────────────────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        _DialogBtn(
-                          label: widget.cancelLabel ?? s.cancel,
-                          isPrimary: false,
-                          onTap: () => Navigator.of(context).pop(),
-                        ),
-                        const SizedBox(width: 16),
-                        _DialogBtn(
-                          label: widget.confirmLabel ?? s.save,
-                          isPrimary: true,
-                          focusNode: _confirmNode,
-                          onTap: () => Navigator.of(context)
-                              .pop(_controllers.map((c) => c.text).toList()),
-                        ),
-                      ],
+                  if (!keyboardVisible)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 8, 32, 32),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _DialogBtn(
+                            label: widget.cancelLabel ?? s.cancel,
+                            isPrimary: false,
+                            onTap: () => Navigator.of(context).pop(),
+                          ),
+                          const SizedBox(width: 16),
+                          _DialogBtn(
+                            label: widget.confirmLabel ?? s.save,
+                            isPrimary: true,
+                            focusNode: _confirmNode,
+                            onTap: () => Navigator.of(context)
+                                .pop(_controllers.map((c) => c.text).toList()),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -243,13 +285,18 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
             obscureText: field.obscure,
             style: const TextStyle(color: Colors.white, fontSize: 18),
             decoration: InputDecoration(
+              labelText: field.label,
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              labelStyle: const TextStyle(
+                color: AppTheme.accent,
+                fontWeight: FontWeight.w700,
+              ),
               hintText: field.hint,
               prefixText: field.prefix,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               prefixStyle: const TextStyle(color: AppTheme.accent),
-              prefixIcon:
-                  Icon(field.icon, color: Colors.white24, size: 20),
+              prefixIcon: Icon(field.icon, color: Colors.white24, size: 20),
               filled: true,
               fillColor: AppTheme.card,
               border: OutlineInputBorder(
@@ -262,15 +309,67 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
             ),
             onSubmitted: (_) {
               if (i < widget.fields.length - 1) {
-                _fieldNodes[i + 1].requestFocus();
+                setState(() => _activeFieldIndex = i + 1);
+                _openKeyboard(_fieldNodes[i + 1]);
               } else {
-                _confirmNode.requestFocus();
+                _closeKeyboard();
+                Future<void>.delayed(const Duration(milliseconds: 120), () {
+                  if (mounted) _confirmNode.requestFocus();
+                });
               }
             },
           ),
+          if (field.quickTokens.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: field.quickTokens
+                  .map(
+                    (token) => ActionChip(
+                      label: Text(token),
+                      backgroundColor: AppTheme.card,
+                      side: const BorderSide(color: Colors.white24),
+                      labelStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      onPressed: () => _insertQuickToken(i, token),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  void _insertQuickToken(int index, String token) {
+    final controller = _controllers[index];
+    var text = controller.text;
+
+    // Protocol buttons replace the existing default instead of producing
+    // invalid text such as "http://https://".
+    if (token == 'http://' || token == 'https://') {
+      text = text.replaceFirst(RegExp(r'^https?://'), '');
+      controller.value = TextEditingValue(
+        text: '$token$text',
+        selection: TextSelection.collapsed(offset: token.length + text.length),
+      );
+      _fieldNodes[index].requestFocus();
+      return;
+    }
+
+    final selection = controller.selection;
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+    final updated = text.replaceRange(start, end, token);
+    controller.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: start + token.length),
+    );
+    _fieldNodes[index].requestFocus();
   }
 }
 
@@ -574,7 +673,9 @@ class _MicBtnState extends State<_MicBtn> {
             boxShadow: _focused || widget.isListening
                 ? [
                     BoxShadow(
-                        color: (widget.isListening ? Colors.redAccent : Colors.white)
+                        color: (widget.isListening
+                                ? Colors.redAccent
+                                : Colors.white)
                             .withOpacity(0.3),
                         blurRadius: 15)
                   ]
@@ -619,6 +720,7 @@ class _DialogBtnState extends State<_DialogBtn> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: widget.focusNode,
+      autofocus: widget.isPrimary,
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (_, event) {
         if (event is KeyDownEvent &&
@@ -633,8 +735,7 @@ class _DialogBtnState extends State<_DialogBtn> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
           transform: Matrix4.identity()..scale(_focused ? 1.05 : 1.0),
           decoration: BoxDecoration(
             color: _focused
@@ -644,9 +745,7 @@ class _DialogBtnState extends State<_DialogBtn> {
             border: Border.all(
               color: _focused
                   ? Colors.white
-                  : (widget.isPrimary
-                      ? AppTheme.accent
-                      : Colors.white24),
+                  : (widget.isPrimary ? AppTheme.accent : Colors.white24),
             ),
             boxShadow: _focused
                 ? [

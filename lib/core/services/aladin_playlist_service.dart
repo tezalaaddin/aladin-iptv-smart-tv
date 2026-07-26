@@ -67,10 +67,12 @@ class PlaylistService {
 
   // ── Backup / Export (PRO FEATURE) ─────────────────────────────────────────
 
-  Future<String> exportBackup() async {
+  /// Credentials are excluded by default. A UI must obtain explicit consent
+  /// before calling this with [includeSecrets] enabled.
+  Future<String> exportBackup({bool includeSecrets = false}) async {
     final list = await getAll();
     final List<Map<String, dynamic>> data = [];
-    
+
     for (final p in list) {
       final map = {
         'name': p.name,
@@ -79,7 +81,7 @@ class PlaylistService {
         'server': p.xtreamServer,
         'user': p.xtreamUsername,
       };
-      if (p.type == 'xtream') {
+      if (p.type == 'xtream' && includeSecrets) {
         map['pass'] = await getPass(p.id);
       }
       data.add(map);
@@ -92,10 +94,15 @@ class PlaylistService {
     for (final item in data) {
       final map = item as Map<String, dynamic>;
       if (map['type'] == 'xtream') {
+        final password = map['pass'] as String?;
+        if (password == null || password.isEmpty) {
+          throw const FormatException(
+              'Bu yedek Xtream şifresi içermiyor; hesap bilgilerini yeniden girin.');
+        }
         await importXtream(
           server: map['server'],
           username: map['user'],
-          password: map['pass'],
+          password: password,
           name: map['name'],
         );
       } else {
@@ -153,7 +160,7 @@ class PlaylistService {
 
     onProgress?.call(ImportProgress.parsing, 0);
 
-    final allChannels = <ChannelModel>[];
+    final categoryAccumulator = AladinCategoryAccumulator(playlistId);
     int tv = 0, movie = 0, series = 0, total = 0;
 
     final stream = isLocalFile
@@ -170,7 +177,7 @@ class PlaylistService {
 
     await for (final batch in stream) {
       await _db.writeTxn(() => _db.channelModels.putAll(batch));
-      allChannels.addAll(batch);
+      categoryAccumulator.addAll(batch);
       total += batch.length;
       for (final ch in batch) {
         if (ch.contentType == 'tv') {
@@ -184,7 +191,7 @@ class PlaylistService {
       onProgress?.call(ImportProgress.saving, total);
     }
 
-    final cats = AladinImportBridge.buildCategories(allChannels, playlistId);
+    final cats = categoryAccumulator.build();
     await _db.writeTxn(() => _db.categoryModels.putAll(cats));
 
     await _db.writeTxn(() async {
@@ -199,7 +206,7 @@ class PlaylistService {
     });
 
     onProgress?.call(ImportProgress.done, total);
-    
+
     // ⚡ PRO FEATURE: Sync to Android TV Global Search
     await ChannelService.instance.syncSearchData(playlistId);
 
@@ -208,14 +215,15 @@ class PlaylistService {
 
   // ── Refresh Playlist ──────────────────────────────────────────────────────
 
-  Future<void> refreshPlaylist(int playlistId, {ProgressCallback? onProgress}) async {
+  Future<void> refreshPlaylist(int playlistId,
+      {ProgressCallback? onProgress}) async {
     final p = await _db.playlistModels.get(playlistId);
     if (p == null) return;
 
     if (p.type == 'xtream') {
       final pass = await getPass(p.id);
       if (pass == null) throw Exception('Şifre bulunamadı');
-      
+
       await importXtream(
         server: p.xtreamServer!,
         username: p.xtreamUsername!,
@@ -298,7 +306,7 @@ class PlaylistService {
     final liveCats = await parser.fetchLiveCategories(playlistId);
     final vodCats = await parser.fetchVodCategories(playlistId);
     final seriesCats = await parser.fetchSeriesCategories(playlistId);
-    
+
     await _db.writeTxn(
       () => _db.categoryModels.putAll([...liveCats, ...vodCats, ...seriesCats]),
     );
@@ -341,7 +349,7 @@ class PlaylistService {
     });
 
     onProgress?.call(ImportProgress.done, total);
-    
+
     // ⚡ PRO FEATURE: Sync to Android TV Global Search
     await ChannelService.instance.syncSearchData(playlistId);
 

@@ -42,7 +42,7 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             // Branded Breadcrumb
             Image.asset(
-              'assets/images/app_logo_text.png',
+              'assets/images/app_logo_text_transparent.png',
               width: 150,
               height: 42,
               fit: BoxFit.contain,
