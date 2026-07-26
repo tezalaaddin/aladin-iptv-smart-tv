@@ -265,7 +265,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _trMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navHome':        'Ana Sayfa',
     'navLiveTV':      'Canlı TV',
     'navMovies':      'Filmler',
@@ -405,7 +405,7 @@ class AppStrings {
     'hwDecoder':      'Donanımsal (Hardware)',
     'swDecoder':      'Yazılımsal (Software)',
     'autoDecoder':    'Otomatik',
-    'settingsTitle':  'Aladin Media Player Pro',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'about':          'Hakkında',
     'developer':      'Geliştirici: Aladin',
     'tabM3U':         'M3U URL',
@@ -459,7 +459,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _enMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navHome':        'Home',
     'navLiveTV':      'Live TV',
     'navMovies':      'Movies',
@@ -599,7 +599,7 @@ class AppStrings {
     'hwDecoder':      'Hardware',
     'swDecoder':      'Software',
     'autoDecoder':    'Auto',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'about':          'About',
     'developer':      'Developer: Aladin',
     'tabM3U':         'M3U URL',
@@ -653,7 +653,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _deMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      'Live TV',
     'navMovies':      'Filme',
     'navSeries':      'Serien',
@@ -786,7 +786,7 @@ class AppStrings {
     'hwDecoder':      'Hardware',
     'swDecoder':      'Software',
     'autoDecoder':    'Auto',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'M3U URL',
     'tabXtream':      'Xtream',
     'tabLocal':       'Lokal',
@@ -839,7 +839,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _frMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      'TV en direct',
     'navMovies':      'Films',
     'navSeries':      'Séries',
@@ -972,7 +972,7 @@ class AppStrings {
     'hwDecoder':      'Matériel',
     'swDecoder':      'Logiciel',
     'autoDecoder':    'Auto',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'URL M3U',
     'tabXtream':      'Xtream',
     'tabLocal':       'Local',
@@ -1025,7 +1025,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _esMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      'TV en vivo',
     'navMovies':      'Películas',
     'navSeries':      'Series',
@@ -1158,7 +1158,7 @@ class AppStrings {
     'hwDecoder':      'Hardware',
     'swDecoder':      'Software',
     'autoDecoder':    'Auto',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'URL M3U',
     'tabXtream':      'Xtream',
     'tabLocal':       'Local',
@@ -1211,7 +1211,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _ruMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      'Прямой эфир',
     'navMovies':      'Фильмы',
     'navSeries':      'Сериалы',
@@ -1344,7 +1344,7 @@ class AppStrings {
     'hwDecoder':      'Аппаратный',
     'swDecoder':      'Программный',
     'autoDecoder':    'Авто',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'M3U URL',
     'tabXtream':      'Xtream',
     'tabLocal':       'Локально',
@@ -1397,7 +1397,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _zhMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      '直播电视',
     'navMovies':      '电影',
     'navSeries':      '剧集',
@@ -1530,7 +1530,7 @@ class AppStrings {
     'hwDecoder':      '硬件解码',
     'swDecoder':      '软件解码',
     'autoDecoder':    '自动',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'M3U URL',
     'tabXtream':      'Xtream',
     'tabLocal':       '本地文件',
@@ -1583,7 +1583,7 @@ class AppStrings {
   };
 
   static const Map<String, String> _arMap = {
-    'appNameShort':   'Aladin Player',
+    'appNameShort':   'aladin IPTV Player Pro TV',
     'navLiveTV':      'بث مباشر',
     'navMovies':      'أفلام',
     'navSeries':      'مسلسلات',
@@ -1716,7 +1716,7 @@ class AppStrings {
     'hwDecoder':      'عتادي (Hardware)',
     'swDecoder':      'برمجي (Software)',
     'autoDecoder':    'تلقائي',
-    'settingsTitle':  'Aladin Media Player Pro TV',
+    'settingsTitle':  'aladin IPTV Player Pro TV',
     'tabM3U':         'M3U URL',
     'tabXtream':      'Xtream',
     'tabLocal':       'محلي',

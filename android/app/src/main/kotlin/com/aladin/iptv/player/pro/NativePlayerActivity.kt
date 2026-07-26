@@ -752,7 +752,7 @@ class NativePlayerActivity : AppCompatActivity(),
         // NEW: MediaMetadata — System-wide awareness (Lock screen, Android TV Home)
         val metadata = MediaMetadata.Builder()
             .setTitle(name)
-            .setArtist("Aladin Player")
+            .setArtist("aladin IPTV Player Pro TV")
             .setArtworkUri(if (poster.isNotEmpty()) android.net.Uri.parse(poster) else null)
             .setMediaType(if (type == "tv") MediaMetadata.MEDIA_TYPE_TV_CHANNEL else MediaMetadata.MEDIA_TYPE_MOVIE)
             .build()

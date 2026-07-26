@@ -34,14 +34,14 @@ class _MainPageState extends State<MainPage> {
   final FocusNode _contentFocusNode = FocusNode();
   bool _epgDialogShown = false;
   DateTime? _lastKeyEventTime;
-  
+
   CategoryModel? _selectedCategory;
 
   void _goTo(int i) {
     if (_index == i && _selectedCategory == null) return;
     setState(() {
       _index = i;
-      _selectedCategory = null; 
+      _selectedCategory = null;
     });
   }
 
@@ -64,24 +64,33 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _autoPlayLast(int playlistId) async {
-    final bool autoPlay = sl<AladinPrefs>().getBool('auto_play_last', def: false);
+    final bool autoPlay =
+        sl<AladinPrefs>().getBool('auto_play_last', def: false);
     if (!autoPlay) return;
 
     final last = await ChannelService.instance.getLastWatched(playlistId);
     if (last != null && mounted) {
       if (last.contentType == 'series') {
-        final name = last.seriesName?.trim().isNotEmpty == true ? last.seriesName! : last.name;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => AladinSeriesDetailPage(
-          seriesName: name,
-          playlistId: last.playlistId,
-          seriesId: last.parentSeriesId ?? last.tvgId,
-          playlistModel: AppState.instance.active,
-        )));
+        final name = last.seriesName?.trim().isNotEmpty == true
+            ? last.seriesName!
+            : last.name;
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => AladinSeriesDetailPage(
+                      seriesName: name,
+                      playlistId: last.playlistId,
+                      seriesId: last.parentSeriesId ?? last.tvgId,
+                      playlistModel: AppState.instance.active,
+                    )));
       } else {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerPage(
-          channel: last,
-          playlist: [last],
-        )));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => PlayerPage(
+                      channel: last,
+                      playlist: [last],
+                    )));
       }
     }
   }
@@ -93,13 +102,15 @@ class _MainPageState extends State<MainPage> {
     // 1. EPG Update Check (> 6 days)
     if (epg.needsUpdate && !_epgDialogShown) {
       _epgDialogShown = true;
-      Future.delayed(const Duration(seconds: 3), () => _showUpdateRecommendation('epg'));
+      Future.delayed(
+          const Duration(seconds: 3), () => _showUpdateRecommendation('epg'));
     }
-    
+
     // 2. Playlist Update Check (> 24 hours)
     final active = state.active;
     if (active != null) {
-      final hoursSinceUpdate = DateTime.now().difference(active.lastUpdated).inHours;
+      final hoursSinceUpdate =
+          DateTime.now().difference(active.lastUpdated).inHours;
       if (hoursSinceUpdate >= 24) {
         // Only show once per session
         debugPrint('Playlist update recommended: $hoursSinceUpdate hours old');
@@ -116,13 +127,13 @@ class _MainPageState extends State<MainPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.card,
-        title: Text(isEpg ? s.epgUpdate : s.update, style: const TextStyle(color: Colors.white)),
-        content: Text(
-          isEpg ? s.epgUpdateRecommended : s.updating, 
-          style: const TextStyle(color: AppTheme.textSecondary)
-        ),
+        title: Text(isEpg ? s.epgUpdate : s.update,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(isEpg ? s.epgUpdateRecommended : s.updating,
+            style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
@@ -156,19 +167,21 @@ class _MainPageState extends State<MainPage> {
     // ── KESİN ÇÖZÜM: Yazı alanı kontrolü
     final primaryFocus = FocusManager.instance.primaryFocus;
     bool isEditable = false;
-    
+
     if (primaryFocus != null) {
       final context = primaryFocus.context;
       final dbg = primaryFocus.debugLabel?.toLowerCase() ?? '';
       isEditable = context?.widget is EditableText ||
-                   context?.findAncestorWidgetOfExactType<TextField>() != null ||
-                   dbg.contains('editable') ||
-                   dbg.contains('field') ||
-                   dbg.contains('input');
+          context?.findAncestorWidgetOfExactType<TextField>() != null ||
+          dbg.contains('editable') ||
+          dbg.contains('field') ||
+          dbg.contains('input');
     }
 
     final now = DateTime.now();
-    if (_lastKeyEventTime != null && now.difference(_lastKeyEventTime!) < const Duration(milliseconds: 150)) {
+    if (_lastKeyEventTime != null &&
+        now.difference(_lastKeyEventTime!) <
+            const Duration(milliseconds: 150)) {
       return KeyEventResult.handled;
     }
     _lastKeyEventTime = now;
@@ -189,15 +202,23 @@ class _MainPageState extends State<MainPage> {
 
     // Arama (4) ve Ayarlar (6) sayfalarında sayı kısayollarını tamamen devre dışı bırakıyoruz.
     // Ayrıca herhangi bir sayfada metin alanındaysak da engelliyoruz.
-    if ((_index == 4 || _index == 6 || isEditable) && navMap.containsKey(label)) {
+    if ((_index == 4 || _index == 6 || isEditable) &&
+        navMap.containsKey(label)) {
       return KeyEventResult.ignored;
     }
 
     int? targetIndex;
-    if (key == LogicalKeyboardKey.colorF0Red || key == LogicalKeyboardKey.f1) targetIndex = 1;
-    else if (key == LogicalKeyboardKey.colorF1Green || key == LogicalKeyboardKey.f2) targetIndex = 2;
-    else if (key == LogicalKeyboardKey.colorF2Yellow || key == LogicalKeyboardKey.f3) targetIndex = 3;
-    else if (key == LogicalKeyboardKey.colorF3Blue || key == LogicalKeyboardKey.f4) targetIndex = 6;
+    if (key == LogicalKeyboardKey.colorF0Red || key == LogicalKeyboardKey.f1)
+      targetIndex = 1;
+    else if (key == LogicalKeyboardKey.colorF1Green ||
+        key == LogicalKeyboardKey.f2)
+      targetIndex = 2;
+    else if (key == LogicalKeyboardKey.colorF2Yellow ||
+        key == LogicalKeyboardKey.f3)
+      targetIndex = 3;
+    else if (key == LogicalKeyboardKey.colorF3Blue ||
+        key == LogicalKeyboardKey.f4)
+      targetIndex = 6;
     else if (navMap.containsKey(label)) targetIndex = navMap[label];
 
     if (targetIndex != null) {
@@ -215,7 +236,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
-    
+
     final reqIdx = state.requestedIndex;
     if (reqIdx != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -234,25 +255,34 @@ class _MainPageState extends State<MainPage> {
         if (mounted) {
           state.clearPlayRequest();
           if (reqCh.contentType == 'series') {
-            final name = reqCh.seriesName?.trim().isNotEmpty == true ? reqCh.seriesName! : reqCh.name;
-            Navigator.push(context, MaterialPageRoute(builder: (_) => AladinSeriesDetailPage(
-              seriesName: name,
-              playlistId: reqCh.playlistId,
-              seriesId: reqCh.parentSeriesId ?? reqCh.tvgId,
-              playlistModel: state.active,
-            )));
+            final name = reqCh.seriesName?.trim().isNotEmpty == true
+                ? reqCh.seriesName!
+                : reqCh.name;
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => AladinSeriesDetailPage(
+                          seriesName: name,
+                          playlistId: reqCh.playlistId,
+                          seriesId: reqCh.parentSeriesId ?? reqCh.tvgId,
+                          playlistModel: state.active,
+                        )));
           } else {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerPage(
-              channel: reqCh,
-              playlist: [reqCh],
-            )));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => PlayerPage(
+                          channel: reqCh,
+                          playlist: [reqCh],
+                        )));
           }
         }
       });
     }
 
     final s = state.s;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     Widget content;
     if (_selectedCategory != null) {
@@ -261,7 +291,9 @@ class _MainPageState extends State<MainPage> {
         playlistId: state.active!.id,
         onChannelTap: (ch, list) {
           if (ch.contentType == 'series') {
-            final name = ch.seriesName?.trim().isNotEmpty == true ? ch.seriesName! : ch.name;
+            final name = ch.seriesName?.trim().isNotEmpty == true
+                ? ch.seriesName!
+                : ch.name;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -304,7 +336,8 @@ class _MainPageState extends State<MainPage> {
             final state = AppState.instance;
             final activeId = state.active?.id;
             if (activeId != null) {
-              MetadataSyncService.instance.startSync(activeId, lang: state.lang);
+              MetadataSyncService.instance
+                  .startSync(activeId, lang: state.lang);
             }
           },
         ),
@@ -321,7 +354,7 @@ class _MainPageState extends State<MainPage> {
           canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) return;
-            
+
             final sidebarHasFocus = _navNodes.any((n) => n.hasFocus);
 
             if (!sidebarHasFocus) {
@@ -342,7 +375,7 @@ class _MainPageState extends State<MainPage> {
               _navNodes[0].requestFocus();
               return;
             }
-            
+
             // 3. Home'dayız, çıkış onayı iste
             final shouldExit = await _showExitConfirmation(s);
             if (shouldExit && mounted) {
@@ -357,10 +390,10 @@ class _MainPageState extends State<MainPage> {
               children: [
                 // ── DYNAMIC BACKDROP (PRO FEATURE) ──────────────────────────
                 Positioned.fill(child: _DynamicBackdrop()),
-                
+
                 // ── METADATA SYNC INDICATOR (ELITE UX) ──────────────────────
                 const Positioned(
-                  top: 20, 
+                  top: 20,
                   right: 40,
                   child: _SyncIndicator(),
                 ),
@@ -391,23 +424,33 @@ class _MainPageState extends State<MainPage> {
             bottomNavigationBar: isLandscape
                 ? null
                 : BottomNavigationBar(
-              currentIndex: _index,
-              onTap: _goTo,
-              selectedItemColor: AppTheme.accent,
-              unselectedItemColor: AppTheme.textMuted,
-              backgroundColor: AppTheme.surface,
-              type: BottomNavigationBarType.fixed,
-              elevation: 0,
-              items: [
-                BottomNavigationBarItem(icon: const Icon(Icons.home), label: s.navHome),
-                BottomNavigationBarItem(icon: const Icon(Icons.live_tv), label: s.navLiveTV),
-                BottomNavigationBarItem(icon: const Icon(Icons.movie), label: s.navMovies),
-                BottomNavigationBarItem(icon: const Icon(Icons.video_library), label: s.navSeries),
-                BottomNavigationBarItem(icon: const Icon(Icons.search), label: s.navSearch),
-                BottomNavigationBarItem(icon: const Icon(Icons.favorite), label: s.navFavorites),
-                BottomNavigationBarItem(icon: const Icon(Icons.settings), label: s.navSettings),
-              ],
-            ),
+                    currentIndex: _index,
+                    onTap: _goTo,
+                    selectedItemColor: AppTheme.accent,
+                    unselectedItemColor: AppTheme.textMuted,
+                    backgroundColor: AppTheme.surface,
+                    type: BottomNavigationBarType.fixed,
+                    elevation: 0,
+                    items: [
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.home), label: s.navHome),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.live_tv), label: s.navLiveTV),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.movie), label: s.navMovies),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.video_library),
+                          label: s.navSeries),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.search), label: s.navSearch),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.favorite),
+                          label: s.navFavorites),
+                      BottomNavigationBarItem(
+                          icon: const Icon(Icons.settings),
+                          label: s.navSettings),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -419,19 +462,23 @@ class _MainPageState extends State<MainPage> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: AppTheme.card,
-            title: Text(s.exitConfirmTitle, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            content: Text(s.exitConfirmMsg, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(s.exitConfirmTitle,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            content: Text(s.exitConfirmMsg,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             actions: [
               _TVDialogButton(
-                label: s.no, 
-                onPressed: () => Navigator.pop(context, false)
-              ),
+                  label: s.no, onPressed: () => Navigator.pop(context, false)),
               _TVDialogButton(
-                label: s.yes, 
-                isPrimary: true, 
-                onPressed: () => Navigator.pop(context, true)
-              ),
+                  label: s.yes,
+                  isPrimary: true,
+                  onPressed: () => Navigator.pop(context, true)),
             ],
           ),
         ) ??
@@ -444,7 +491,7 @@ class _DynamicBackdrop extends StatelessWidget {
   Widget build(BuildContext context) {
     final focused = context.watch<AppState>().focusedChannel;
     final poster = focused?.tmdbPoster ?? focused?.logoUrl;
-    
+
     // ⚡ PRO OPTIMIZATION: Disable blur on extremely low-end devices if needed
     // or use a simpler gradient overlay.
     final bool useBlur = poster != null && poster.startsWith('http');
@@ -522,7 +569,10 @@ class _SyncIndicator extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             context.read<AppState>().s.syncingData,
-            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 11,
+                fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -554,7 +604,9 @@ class _TVDialogButtonState extends State<_TVDialogButton> {
       autofocus: widget.isPrimary,
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && (event.logicalKey == LogicalKeyboardKey.select || event.logicalKey == LogicalKeyboardKey.enter)) {
+        if (event is KeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.select ||
+                event.logicalKey == LogicalKeyboardKey.enter)) {
           widget.onPressed();
           return KeyEventResult.handled;
         }
@@ -567,19 +619,31 @@ class _TVDialogButtonState extends State<_TVDialogButton> {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           decoration: BoxDecoration(
-            color: _focused ? AppTheme.accent : (widget.isPrimary ? AppTheme.card : Colors.transparent),
+            color: _focused
+                ? AppTheme.accent
+                : (widget.isPrimary ? AppTheme.card : Colors.transparent),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _focused ? Colors.white : (widget.isPrimary ? AppTheme.accent : Colors.transparent),
+              color: _focused
+                  ? Colors.white
+                  : (widget.isPrimary ? AppTheme.accent : Colors.transparent),
               width: 2,
             ),
-            boxShadow: _focused ? [BoxShadow(color: AppTheme.accent.withValues(alpha:0.4), blurRadius: 10)] : null,
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                        color: AppTheme.accent.withValues(alpha: 0.4),
+                        blurRadius: 10)
+                  ]
+                : null,
           ),
           transform: Matrix4.identity()..scale(_focused ? 1.05 : 1.0),
           child: Text(
             widget.label,
             style: TextStyle(
-              color: _focused ? Colors.white : (widget.isPrimary ? AppTheme.accent : AppTheme.textMuted),
+              color: _focused
+                  ? Colors.white
+                  : (widget.isPrimary ? AppTheme.accent : AppTheme.textMuted),
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -596,7 +660,11 @@ class _SideNavBar extends StatelessWidget {
   final List<FocusNode> nodes;
   final VoidCallback onRightPressed;
 
-  const _SideNavBar({required this.currentIndex, required this.onTap, required this.nodes, required this.onRightPressed});
+  const _SideNavBar(
+      {required this.currentIndex,
+      required this.onTap,
+      required this.nodes,
+      required this.onRightPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +673,8 @@ class _SideNavBar extends StatelessWidget {
       width: 280, // Biraz daha geniş ve ferah
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        border: const Border(right: BorderSide(color: Colors.white12, width: 1)),
+        border:
+            const Border(right: BorderSide(color: Colors.white12, width: 1)),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -619,51 +688,14 @@ class _SideNavBar extends StatelessWidget {
         children: [
           const SizedBox(height: 48),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(color: AppTheme.accent.withValues(alpha:0.4), blurRadius: 10)
-                    ]
-                  ),
-                  child: const Icon(Icons.live_tv, color: Colors.white, size: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        s.appNameShort,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        s.forSmartTv,
-                        style: const TextStyle(
-                          color: AppTheme.accent,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Image.asset(
+              'assets/images/app_logo_text.png',
+              height: 82,
+              width: double.infinity,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+              semanticLabel: 'aladin IPTV Player Pro TV',
             ),
           ),
           const SizedBox(height: 48),
@@ -680,7 +712,7 @@ class _SideNavBar extends StatelessWidget {
                     onTap: () => onTap(0),
                     onRightPressed: onRightPressed,
                     numberHint: '0',
-                    autofocus: currentIndex == 0, 
+                    autofocus: currentIndex == 0,
                   ),
                   _SideNavItem(
                     focusNode: nodes[1],
@@ -796,24 +828,29 @@ class _SideNavItemState extends State<_SideNavItem> {
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
           final now = DateTime.now();
-          if (_lastNavTime != null && now.difference(_lastNavTime!) < const Duration(milliseconds: 250)) {
+          if (_lastNavTime != null &&
+              now.difference(_lastNavTime!) <
+                  const Duration(milliseconds: 250)) {
             final k = event.logicalKey;
-            if (k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.arrowUp || 
-                k == LogicalKeyboardKey.select || k == LogicalKeyboardKey.enter) {
+            if (k == LogicalKeyboardKey.arrowDown ||
+                k == LogicalKeyboardKey.arrowUp ||
+                k == LogicalKeyboardKey.select ||
+                k == LogicalKeyboardKey.enter) {
               return KeyEventResult.handled;
             }
           }
           _lastNavTime = now;
 
-          if (event.logicalKey == LogicalKeyboardKey.select || 
+          if (event.logicalKey == LogicalKeyboardKey.select ||
               event.logicalKey == LogicalKeyboardKey.enter ||
               event.logicalKey == LogicalKeyboardKey.gameButtonA) {
             widget.onTap();
             return KeyEventResult.handled;
           }
-          
+
           if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            if (FocusScope.of(context).focusInDirection(TraversalDirection.right)) {
+            if (FocusScope.of(context)
+                .focusInDirection(TraversalDirection.right)) {
               return KeyEventResult.handled;
             }
             widget.onRightPressed?.call();
@@ -827,18 +864,34 @@ class _SideNavItemState extends State<_SideNavItem> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: _isFocused ? AppTheme.accent : (widget.isSelected ? AppTheme.accent.withValues(alpha:0.15) : Colors.transparent),
+              color: _isFocused
+                  ? AppTheme.accent
+                  : (widget.isSelected
+                      ? AppTheme.accent.withValues(alpha: 0.15)
+                      : Colors.transparent),
               borderRadius: BorderRadius.circular(12),
-              border: _isFocused ? Border.all(color: Colors.white.withValues(alpha:0.5), width: 1) : null,
-              boxShadow: _isFocused ? [
-                BoxShadow(color: AppTheme.accent.withValues(alpha:0.3), blurRadius: 10, offset: const Offset(0, 4))
-              ] : null,
+              border: _isFocused
+                  ? Border.all(
+                      color: Colors.white.withValues(alpha: 0.5), width: 1)
+                  : null,
+              boxShadow: _isFocused
+                  ? [
+                      BoxShadow(
+                          color: AppTheme.accent.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4))
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
                 Icon(
                   widget.icon,
-                  color: _isFocused ? Colors.white : (widget.isSelected ? AppTheme.accent : AppTheme.textSecondary),
+                  color: _isFocused
+                      ? Colors.white
+                      : (widget.isSelected
+                          ? AppTheme.accent
+                          : AppTheme.textSecondary),
                   size: 24,
                 ),
                 const SizedBox(width: 16),
@@ -846,9 +899,15 @@ class _SideNavItemState extends State<_SideNavItem> {
                   child: Text(
                     widget.label,
                     style: TextStyle(
-                      color: _isFocused ? Colors.white : (widget.isSelected ? Colors.white : AppTheme.textSecondary),
+                      color: _isFocused
+                          ? Colors.white
+                          : (widget.isSelected
+                              ? Colors.white
+                              : AppTheme.textSecondary),
                       fontSize: 16,
-                      fontWeight: widget.isSelected || _isFocused ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: widget.isSelected || _isFocused
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -857,7 +916,8 @@ class _SideNavItemState extends State<_SideNavItem> {
                     width: 22,
                     height: 22,
                     decoration: BoxDecoration(
-                      color: widget.colorHint ?? AppTheme.textMuted.withValues(alpha: 0.3),
+                      color: widget.colorHint ??
+                          AppTheme.textMuted.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.white24, width: 1),
                     ),

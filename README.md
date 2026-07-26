@@ -1,4 +1,4 @@
-# 📺 Aladin Media Player Pro TV
+# 📺 aladin IPTV Player Pro TV
 **The Ultimate High-Performance IPTV Player Optimized for Android TV & Smart TV Boxes.**
 
 ---
@@ -11,7 +11,7 @@
 <a name="english"></a>
 ## 🇺🇸 English
 ### Overview
-**Aladin Media Player Pro TV** is a professional-grade IPTV solution built with Flutter, specifically engineered for the Android TV ecosystem. It features a high-performance native Media3 (ExoPlayer) core with specialized stability fixes for hardware decoders.
+**aladin IPTV Player Pro TV** is a professional-grade IPTV solution built with Flutter, specifically engineered for the Android TV ecosystem. It features a high-performance native Media3 (ExoPlayer) core with specialized stability fixes for hardware decoders.
 
 ### Key Features
 *   **TV-First UI:** Full D-pad (Remote Control) navigation with Material 3 design.
@@ -26,7 +26,7 @@
 <a name="türkçe"></a>
 ## 🇹🇷 Türkçe
 ### Genel Bakış
-**Aladin Media Player Pro TV**, Android TV ekosistemi için özel olarak geliştirilmiş, Flutter tabanlı profesyonel bir IPTV oynatıcıdır. Donanım dekoderleri için özel stabilite yamaları içeren yüksek performanslı yerel Media3 (ExoPlayer) çekirdeğine sahiptir.
+**aladin IPTV Player Pro TV**, Android TV ekosistemi için özel olarak geliştirilmiş, Flutter tabanlı profesyonel bir IPTV oynatıcıdır. Donanım dekoderleri için özel stabilite yamaları içeren yüksek performanslı yerel Media3 (ExoPlayer) çekirdeğine sahiptir.
 
 ### Temel Özellikler
 *   **TV Odaklı Arayüz:** Material 3 tasarımı ile tam kumanda (D-pad) navigasyon desteği.
@@ -40,7 +40,7 @@
 <a name="deutsch"></a>
 ## 🇩🇪 Deutsch
 ### Übersicht
-**Aladin Media Player Pro TV** ist eine professionelle IPTV-Lösung, die speziell für das Android TV-Ökosystem entwickelt wurde. Sie nutzt einen nativen Media3 (ExoPlayer)-Kern mit speziellen Stabilitäts-Fixes für Hardware-Decoder.
+**aladin IPTV Player Pro TV** ist eine professionelle IPTV-Lösung, die speziell für das Android TV-Ökosystem entwickelt wurde. Sie nutzt einen nativen Media3 (ExoPlayer)-Kern mit speziellen Stabilitäts-Fixes für Hardware-Decoder.
 
 ### Hauptmerkmale
 *   **TV-Optimierte UI:** Vollständige D-Pad-Navigation mit modernem Material 3 Design.
@@ -53,7 +53,7 @@
 <a name="français"></a>
 ## 🇫🇷 Français
 ### Aperçu
-**Aladin Media Player Pro TV** est une solution IPTV de qualité professionnelle conçue pour Android TV. Elle intègre un noyau natif Media3 (ExoPlayer) avec des correctifs de stabilité pour les décodeurs matériels.
+**aladin IPTV Player Pro TV** est une solution IPTV de qualité professionnelle conçue pour Android TV. Elle intègre un noyau natif Media3 (ExoPlayer) avec des correctifs de stabilité pour les décodeurs matériels.
 
 ### Caractéristiques
 *   **Interface TV :** Navigation complète à la télécommande (D-pad) avec design Material 3.
@@ -65,7 +65,7 @@
 <a name="español"></a>
 ## 🇪🇸 Español
 ### Resumen
-**Aladin Media Player Pro TV** es un reproductor IPTV profesional optimizado para Android TV. Cuenta con un motor nativo Media3 (ExoPlayer) con mejoras de estabilidad para decodificadores de hardware.
+**aladin IPTV Player Pro TV** es un reproductor IPTV profesional optimizado para Android TV. Cuenta con un motor nativo Media3 (ExoPlayer) con mejoras de estabilidad para decodificadores de hardware.
 
 ### Características
 *   **Interfaz para TV:** Navegación total con control remoto y diseño Material 3.
@@ -77,7 +77,7 @@
 <a name="русский"></a>
 ## 🇷🇺 Русский
 ### Обзор
-**Aladin Media Player Pro TV** — это профессиональный IPTV-плеер, разработанный для Android TV. Использует нативное ядро Media3 (ExoPlayer) с исправлениями стабильности для аппаратных декодеров.
+**aladin IPTV Player Pro TV** — это профессиональный IPTV-плеер, разработанный для Android TV. Использует нативное ядро Media3 (ExoPlayer) с исправлениями стабильности для аппаратных декодеров.
 
 ### Особенности
 *   **ТВ-Интерфейс:** Полная поддержка пульта (D-pad) и дизайн Material 3.
@@ -89,7 +89,7 @@
 <a name="中文"></a>
 ## 🇨🇳 中文
 ### 项目简介
-**Aladin Media Player Pro TV** 是专为 Android TV 生态系统打造的专业级 IPTV 播放器。采用原生的 Media3 (ExoPlayer) 核心，并针对硬件解码器进行了稳定性优化。
+**aladin IPTV Player Pro TV** 是专为 Android TV 生态系统打造的专业级 IPTV 播放器。采用原生的 Media3 (ExoPlayer) 核心，并针对硬件解码器进行了稳定性优化。
 
 ### 核心功能
 *   **电视端 UI:** 完美的遥控器 (D-pad) 导航支持与 Material 3 设计。
@@ -102,7 +102,7 @@
 <a name="العربية"></a>
 ## 🇸🇦 العربية
 ### نظرة عامة
-**Aladin Media Player Pro TV** هو مشغل IPTV احترافي مصمم خصيصًا لنظام Android TV. يتميز بنواة Media3 (ExoPlayer) أصلية مع إصلاحات مخصصة لاستقرار أدوات فك التشفير.
+**aladin IPTV Player Pro TV** هو مشغل IPTV احترافي مصمم خصيصًا لنظام Android TV. يتميز بنواة Media3 (ExoPlayer) أصلية مع إصلاحات مخصصة لاستقرار أدوات فك التشفير.
 
 ### المميزات الرئيسية
 *   **واجهة مخصصة للتلفاز:** دعم كامل للتحكم over-the-air (D-pad) بتصميم Material 3.

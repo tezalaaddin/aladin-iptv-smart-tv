@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../theme/aladin_app_theme.dart';
 
-/// Simplified branded app bar — left: "aladin Media Player Pro TV" label, right: refresh
+/// Simplified branded app bar — left: aladin IPTV logo, right: refresh
 class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final VoidCallback? onRefresh;
@@ -11,19 +11,21 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
 
   const AladinAppBar({
-    super.key, 
-    this.title, 
-    this.onRefresh, 
+    super.key,
+    this.title,
+    this.onRefresh,
     this.extraActions,
     this.bottom,
   });
 
   @override
-  Size get preferredSize => Size.fromHeight(48 + (bottom?.preferredSize.height ?? 0));
+  Size get preferredSize =>
+      Size.fromHeight(48 + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     if (isLandscape) return const SizedBox.shrink();
 
     final s = context.read<AppState>().s;
@@ -32,26 +34,28 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppTheme.background,
       elevation: 0,
-      automaticallyImplyLeading: false, 
+      automaticallyImplyLeading: false,
       titleSpacing: 0,
       title: Padding(
         padding: EdgeInsets.symmetric(horizontal: safePadding),
         child: Row(
           children: [
             // Branded Breadcrumb
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  s.appNameShort.toUpperCase(),
-                  style: const TextStyle(color: AppTheme.accent, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2),
-                ),
-                Text(
-                  title ?? s.navHome,
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Image.asset(
+              'assets/images/app_logo_text.png',
+              width: 150,
+              height: 42,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+              semanticLabel: 'aladin IPTV Player Pro TV',
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title ?? s.navHome,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
             ),
             const Spacer(),
             // Butonlar
@@ -64,9 +68,10 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
-      bottom: bottom ?? PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppTheme.divider)),
+      bottom: bottom ??
+          PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(height: 1, color: AppTheme.divider)),
     );
   }
 }

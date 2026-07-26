@@ -24,7 +24,11 @@ Future<void> main() async {
     final msg = details.exception.toString();
 
     // ── Sessizce susturulan bilinen zararsız hatalar ───────────────────────
-    final silentPatterns = ['blur radius', 'blurRadius', 'RenderFlex overflowed'];
+    final silentPatterns = [
+      'blur radius',
+      'blurRadius',
+      'RenderFlex overflowed'
+    ];
     if (silentPatterns.any(msg.contains)) {
       return const SizedBox.shrink();
     }
@@ -32,10 +36,12 @@ Future<void> main() async {
     // ── Loglama (release dahil) ────────────────────────────────────────────
     // Hata tipini ayırt etmek için prefix kullanıyoruz.
     final isLayoutError = msg.contains('RenderBox') || msg.contains('layout');
-    final isStateError  = msg.contains('setState') || msg.contains('State');
-    final prefix = isLayoutError ? '[Layout]'
-                 : isStateError  ? '[State]'
-                 : '[Widget]';
+    final isStateError = msg.contains('setState') || msg.contains('State');
+    final prefix = isLayoutError
+        ? '[Layout]'
+        : isStateError
+            ? '[State]'
+            : '[Widget]';
     debugPrint('┌─ AladinError $prefix ──────────────────────────');
     debugPrint('│ ${details.exception}');
     debugPrint('│ ${details.context ?? "no context"}');
@@ -121,8 +127,8 @@ class _AladinAppState extends State<AladinApp>
         final dur = call.arguments['duration'] as int? ?? 0;
         if (url != null) {
           await ChannelService.instance.updateProgressByUrl(
-            url, 
-            (pos / 1000).round(), 
+            url,
+            (pos / 1000).round(),
             (dur / 1000).round(),
           );
         }
@@ -147,11 +153,11 @@ class _AladinAppState extends State<AladinApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
       AladinPrefs.instance.flush();
     }
   }
-
 
   Future<void> _boot() async {
     // ⚡ BOOT SIRASI (Madde 3 — Race Condition fix):
@@ -188,7 +194,7 @@ class _AladinAppState extends State<AladinApp>
         ChangeNotifierProvider.value(value: AladinEpgEngine.instance),
       ],
       child: MaterialApp(
-        title: 'Aladin Media Player Pro TV',
+        title: 'aladin IPTV Player Pro TV',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         home: FocusScope(
@@ -221,44 +227,16 @@ class _Splash extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  color: AppTheme.accent,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.accent.withValues(alpha: 0.45),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ],
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: FractionallySizedBox(
+                  widthFactor: 0.72,
+                  child: Image.asset(
+                    'assets/images/app_logo_text.png',
+                    fit: BoxFit.contain,
+                    semanticLabel: 'aladin IPTV Player Pro TV',
+                  ),
                 ),
-                child: const Icon(Icons.live_tv, color: Colors.white, size: 52),
-              ),
-              const SizedBox(height: 26),
-              const Column(
-                children: [
-                  Text(
-                    'Aladin Media Player Pro',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  Text(
-                    'FOR SMART TV',
-                    style: TextStyle(
-                      color: AppTheme.accent,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -307,42 +285,18 @@ class _LangSelect extends StatelessWidget {
             ),
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Premium Logo Alanı
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accent.withValues(alpha: 0.2),
-                            blurRadius: 40,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.live_tv, color: AppTheme.accent, size: 84),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Aladin Media Player Pro',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const Text(
-                      'PREMIUM SMART TV EXPERIENCE',
-                      style: TextStyle(
-                        color: AppTheme.accent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3.0,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 620),
+                      child: Image.asset(
+                        'assets/images/app_logo_text.png',
+                        fit: BoxFit.contain,
+                        semanticLabel: 'aladin IPTV Player Pro TV',
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -366,11 +320,12 @@ class _LangSelect extends StatelessWidget {
                           final parts = e.value.split(' ');
                           final flag = parts[0];
                           final label = parts.skip(1).join(' ');
-                          
+
                           return _LangBtn(
                             flag: flag,
                             label: label,
-                            autofocus: e.key == 'en', // Kullanıcının isteği: İngilizce başta ve odaklı
+                            autofocus: e.key ==
+                                'en', // Kullanıcının isteği: İngilizce başta ve odaklı
                             onTap: () => onSelect(e.key),
                           );
                         }).toList(),
@@ -403,7 +358,8 @@ class _LangBtn extends StatefulWidget {
   State<_LangBtn> createState() => _LangBtnState();
 }
 
-class _LangBtnState extends State<_LangBtn> with SingleTickerProviderStateMixin {
+class _LangBtnState extends State<_LangBtn>
+    with SingleTickerProviderStateMixin {
   bool _focused = false;
   late AnimationController _scaleCtrl;
   late Animation<double> _scale;
@@ -443,7 +399,7 @@ class _LangBtnState extends State<_LangBtn> with SingleTickerProviderStateMixin 
       onKeyEvent: (node, event) {
         if (event is KeyDownEvent &&
             (event.logicalKey == LogicalKeyboardKey.select ||
-             event.logicalKey == LogicalKeyboardKey.enter)) {
+                event.logicalKey == LogicalKeyboardKey.enter)) {
           widget.onTap();
           return KeyEventResult.handled;
         }
@@ -458,7 +414,9 @@ class _LangBtnState extends State<_LangBtn> with SingleTickerProviderStateMixin 
             width: 240, // Biraz daha daraltıp yan yana daha çok sığdıralım
             height: 72,
             decoration: BoxDecoration(
-              color: _focused ? Colors.white : Colors.white.withValues(alpha: 0.08),
+              color: _focused
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: _focused ? Colors.white : Colors.white24,

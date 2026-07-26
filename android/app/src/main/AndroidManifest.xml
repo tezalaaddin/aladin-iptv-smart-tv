@@ -48,7 +48,7 @@
     <uses-feature android:name="android.hardware.type.settopbox" android:required="false" tools:replace="android:required" />
 
     <application
-        android:label="Aladin Media Player Pro TV"
+        android:label="aladin IPTV Player Pro TV"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:banner="@drawable/tv_banner"

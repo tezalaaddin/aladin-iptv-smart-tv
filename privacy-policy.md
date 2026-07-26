@@ -1,8 +1,8 @@
-# Privacy Policy for Aladin Media Player Pro TV
+# Privacy Policy for aladin IPTV Player Pro TV
 
 **Last Updated:** July 26, 2026
 
-Aladin Media Player Pro TV ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains our practices regarding the collection, use, and disclosure of information when you use our mobile and TV application.
+aladin IPTV Player Pro TV ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains our practices regarding the collection, use, and disclosure of information when you use our mobile and TV application.
 
 ## 1. Information Collection and Use
 
@@ -22,7 +22,7 @@ These permissions are used solely to provide the application's core functionalit
 
 ## 3. Third-Party Content
 
-Aladin Media Player Pro TV is a media player. We do not provide any content. Users provide their own content (e.g., M3U playlists, Xtream Codes). We are not responsible for the privacy practices of the third-party providers you choose to use.
+aladin IPTV Player Pro TV is a media player. We do not provide any content. Users provide their own content (e.g., M3U playlists, Xtream Codes). We are not responsible for the privacy practices of the third-party providers you choose to use.
 
 ## 4. Security
 
@@ -39,11 +39,11 @@ If you have any questions or suggestions about our Privacy Policy, do not hesita
 
 ---
 
-# Gizlilik Politikası - Aladin Media Player Pro TV
+# Gizlilik Politikası - aladin IPTV Player Pro TV
 
 **Son Güncelleme:** 26 Temmuz 2026
 
-Aladin Media Player Pro TV ("biz", "bizim" veya "bize"), gizliliğinizi korumayı taahhüt eder. Bu Gizlilik Politikası, mobil ve TV uygulamamızı kullandığınızda bilgilerin toplanması, kullanılması ve ifşa edilmesine ilişkin uygulamalarımızı açıklamaktadır.
+aladin IPTV Player Pro TV ("biz", "bizim" veya "bize"), gizliliğinizi korumayı taahhüt eder. Bu Gizlilik Politikası, mobil ve TV uygulamamızı kullandığınızda bilgilerin toplanması, kullanılması ve ifşa edilmesine ilişkin uygulamalarımızı açıklamaktadır.
 
 ## 1. Bilgi Toplama ve Kullanma
 
@@ -63,7 +63,7 @@ Bu izinler yalnızca uygulamanın temel işlevselliğini sağlamak için kullan�
 
 ## 3. Üçüncü Taraf İçeriği
 
-Aladin Media Player Pro TV bir medya oynatıcıdır. Herhangi bir içerik sağlamıyoruz. Kullanıcılar kendi içeriklerini sağlarlar (örn. M3U çalma listeleri, Xtream Kodları). Seçtiğiniz üçüncü taraf sağlayıcıların gizlilik uygulamalarından sorumlu değiliz.
+aladin IPTV Player Pro TV bir medya oynatıcıdır. Herhangi bir içerik sağlamıyoruz. Kullanıcılar kendi içeriklerini sağlarlar (örn. M3U çalma listeleri, Xtream Kodları). Seçtiğiniz üçüncü taraf sağlayıcıların gizlilik uygulamalarından sorumlu değiliz.
 
 ## 4. Güvenlik
 
