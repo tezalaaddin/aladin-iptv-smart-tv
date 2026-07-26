@@ -7,6 +7,7 @@ import '../database/aladin_isar_service.dart';
 import '../models/aladin_channel_model.dart';
 import '../models/aladin_category_model.dart';
 import '../state/aladin_app_prefs.dart';
+import 'aladin_parental_service.dart';
 
 class ChannelService {
   ChannelService._();
@@ -28,6 +29,7 @@ class ChannelService {
           .findAll();
 
       final data = items
+          .where((item) => !ParentalService.instance.isChannelLocked(item))
           .map((e) => {
                 'id': e.id.toString(),
                 'name': e.name,
@@ -37,7 +39,13 @@ class ChannelService {
           .toList();
 
       try {
-        await _exoChannel.invokeMethod('syncSearchData', {'items': data});
+        await _exoChannel.invokeMethod('syncSearchData', {
+          'items': data,
+          'blockedIds': items
+              .where(ParentalService.instance.isChannelLocked)
+              .map((item) => item.id.toString())
+              .toList(),
+        });
       } catch (e) {
         debugPrint('[ChannelService] syncSearchData error: $e');
       }
@@ -46,6 +54,7 @@ class ChannelService {
 
   /// Adds an item to the Android TV "Watch Next" home screen channel
   Future<void> addToWatchNext(ChannelModel ch) async {
+    if (ParentalService.instance.isChannelLocked(ch)) return;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       try {
         await _exoChannel.invokeMethod('addToWatchNext', {
@@ -54,6 +63,8 @@ class ChannelService {
           'poster': ch.tmdbPoster ?? ch.logoUrl ?? '',
           'channelId': ch.id.toString(),
           'contentType': ch.contentType,
+          'positionMs': ch.watchedSeconds * 1000,
+          'durationMs': ch.totalDurationSeconds * 1000,
         });
       } catch (e) {
         debugPrint('[ChannelService] addToWatchNext error: $e');
@@ -85,6 +96,10 @@ class ChannelService {
         .sortBySortOrder()
         .findAll();
     items.removeWhere((category) => category.channelCount <= 0);
+    if (ParentalService.instance.hideLockedContent) {
+      items.removeWhere((category) =>
+          ParentalService.instance.isCategoryLocked(playlistId, category.name));
+    }
     if (_shouldShuffle(contentType)) {
       items.shuffle(Random(_seedFor('categories:$playlistId:$contentType')));
     }
@@ -121,7 +136,7 @@ class ChannelService {
           reps.shuffle(Random(_seedFor(
               'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
         }
-        return reps;
+        return reps.where(ParentalService.instance.canExpose).toList();
       }
 
       // Fallback if no "main" records found (e.g. strange M3U)
@@ -152,7 +167,10 @@ class ChannelService {
       if (offset >= results.length) return [];
       int end = offset + limit;
       if (end > results.length) end = results.length;
-      return results.sublist(offset, end);
+      return results
+          .sublist(offset, end)
+          .where(ParentalService.instance.canExpose)
+          .toList();
     }
 
     final items = await _db.channelModels
@@ -170,17 +188,20 @@ class ChannelService {
       items.shuffle(Random(_seedFor(
           'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
     }
-    return items;
+    return items.where(ParentalService.instance.canExpose).toList();
   }
 
   // ── Favorites ──────────────────────────────────────────────────────────────
 
-  Future<List<ChannelModel>> getFavorites(int playlistId) => _db.channelModels
-      .filter()
-      .playlistIdEqualTo(playlistId)
-      .and()
-      .isFavoriteEqualTo(true)
-      .findAll();
+  Future<List<ChannelModel>> getFavorites(int playlistId) async {
+    final items = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .and()
+        .isFavoriteEqualTo(true)
+        .findAll();
+    return items.where(ParentalService.instance.canExpose).toList();
+  }
 
   Future<void> toggleFavorite(int channelId) async {
     await _db.writeTxn(() async {
@@ -205,14 +226,16 @@ class ChannelService {
 
   // ── Recent ─────────────────────────────────────────────────────────────────
 
-  Future<List<ChannelModel>> getRecent(int playlistId, {int limit = 20}) =>
-      _db.channelModels
-          .filter()
-          .playlistIdEqualTo(playlistId)
-          .lastWatchedIsNotNull()
-          .sortByLastWatchedDesc()
-          .limit(limit)
-          .findAll();
+  Future<List<ChannelModel>> getRecent(int playlistId, {int limit = 20}) async {
+    final items = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .lastWatchedIsNotNull()
+        .sortByLastWatchedDesc()
+        .limit(limit)
+        .findAll();
+    return items.where(ParentalService.instance.canExpose).toList();
+  }
 
   Future<ChannelModel?> getLastWatched(int playlistId) => _db.channelModels
       .filter()
@@ -232,6 +255,7 @@ class ChannelService {
         .limit(30)
         .findAll();
     for (final ch in candidates) {
+      if (!ParentalService.instance.canExpose(ch)) continue;
       if (ch.contentType == 'tv' || ch.url.trim().isEmpty) continue;
       if (ch.watchedSeconds <= 0 || ch.totalDurationSeconds <= 0) continue;
       final progress = ch.watchedSeconds / ch.totalDurationSeconds;
@@ -351,7 +375,7 @@ class ChannelService {
         seenSeries.add(seriesKey);
       }
 
-      results.add(ch);
+      if (ParentalService.instance.canExpose(ch)) results.add(ch);
     }
 
     return results;
@@ -369,13 +393,14 @@ class ChannelService {
     final trimmed = query.trim();
     if (trimmed.length < 2) return [];
 
-    return _db.channelModels
+    final items = await _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
         .nameContains(trimmed, caseSensitive: false)
         .limit(limit)
         .findAll();
+    return items.where(ParentalService.instance.canExpose).toList();
   }
 
   /// ⚡ PRO FEATURE: Fuzzy search for "Similar results"
@@ -400,7 +425,7 @@ class ChannelService {
     if (subset.isEmpty) return [];
 
     final fuse = Fuzzy<ChannelModel>(
-      subset,
+      subset.where(ParentalService.instance.canExpose).toList(),
       options: FuzzyOptions(
         findAllMatches: true,
         threshold: 0.5,

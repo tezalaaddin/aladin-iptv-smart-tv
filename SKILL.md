@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+47
+version: 2.3.1+48
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1911,3 +1911,14 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 15. **Menü Okunabilirliği ve Onay Odağı:** Açık sol menü 250-300 dp aralığına genişletildi; tüm etiketler tek satıra sabitlenip taşma halinde üç nokta kullanıldı. Playlist etkinleştirme başta olmak üzere silme, güncelleme, arşiv ve diğer AlertDialog onaylarında başlangıç odağı birincil eylem düğmesine verildi. Paylaşılan form düğmeleri de birincil eylemi varsayılan TV odağı olarak işaretliyor.
 16. **Ayarların Uçtan Uca İşlevselliği:** Decoder `sw`/`software` kopukluğu giderildi; Donanım modu platform MediaCodec, Yazılım modu paketli FFmpeg önceliği, Otomatik mod güvenli fallback kullanıyor. Başlangıçta oynatma yalnız %3-%90 arası yarım kalmış film/bölümü doğrudan kaldığı yerden açıyor; canlı, tamamlanmış ve kaldırılmış kayıtlar dışlanıyor. EPG artık gerçek başarı sonucu döndürerek hatada yanlış başarı mesajı göstermiyor. Güncelleme servisi semantik sürümle birlikte `+build` karşılaştırıyor, hata ile güncel durumunu ayırıyor, 24 saatte bir otomatik kontrol yapıyor ve yeni sürümde Play Store'a yönlendiriyor. Dar ekran Ayarlar görünümüne eksik Kalite, Otomatik Oynatma ve Karıştırma seçenekleri eklendi; sürüm karşılaştırma testleriyle toplam 4/4 test geçti.
 17. **Ayar UX, Açıklamalar ve Yerelleştirme Tamamlama:** Decoder ve kalite seçimleri mevcut değer üzerinde odaklanarak açılıyor. Kalite ekranına yalnız adaptif/çoklu kaliteli yayınlarda uygulanabildiği açıklaması eklendi; düşük RAM cihazında yazılım decoder güvenlik nedeniyle donanıma çevrilirse kullanıcı bilgilendiriliyor. Otomatik oynatma, karıştırma ve yeni teknik geri bildirimler sekiz desteklenen dilde tamamlandı ve yerelleştirme regresyon testi eklendi. Hakkında ekranının GitHub bağlantısı yeni repoya düzeltildi. Toplam 5/5 test ve split release derlemesi geçti; ARMv7 paket gerçek TV'de çökmesiz açıldı.
+
+## V2.3.1+48 Sürüm Notları: Ebeveyn Kontrolü, EPG ve Playlist Araçları
+1. **Güvenli Ebeveyn Kontrolü:** Ayarlar ekranına 4-6 rakamlı PIN ile çalışan ebeveyn kontrolü eklendi. PIN düz metin olarak tutulmuyor; rastgele salt ile SHA-256 özeti Android güvenli depolamasında saklanıyor. Beş hatalı denemede 30 saniye bekleme ve 15/30/60 dakikalık kilit açma oturumları destekleniyor.
+2. **Kategori ve İçerik Kilidi:** Kilitler playlist ve içerik kimliğiyle saklanıyor. Yetişkin kategori adları varsayılan olarak korunuyor; kategori başlığından toplu, içerik kartına uzun basarak tekil kilit yönetilebiliyor. Kilitli içerikler Dashboard, arama, favoriler, oynatıcı kanal listesi, Android TV Search ve Watch Next yüzeylerinde merkezi politikayla filtreleniyor.
+3. **Tam EPG Görünümü:** Canlı TV kategorilerine kanal satırları ve yatay program zaman çizelgesinden oluşan program rehberi eklendi. Önceki gün, bugün ve sonraki iki gün arasında geçiş; güncel program vurgusu ve catch-up işareti destekleniyor.
+4. **Kanal Bazlı Oynatma Profili:** İçerik kartının uzun-bas menüsünden kanal özelinde donanım/yazılım/otomatik kod çözücü ve Auto/4K/FHD/HD/SD kalite sınırı seçilebiliyor. Native oynatıcı seçilen ekran oranını, ses dilini ve altyazı dilini kanal bazında hatırlıyor.
+5. **Playlist Sağlık Raporu:** Playlist menüsüne toplam içerik, boş yayın adresi, yinelenen URL, eksik afiş/logo ve eksik EPG kimliği raporu eklendi. Xtream listelerinde sunucu gecikmesi, hesap durumu, bağlantı kullanımı ve abonelik bitiş tarihi güvenli biçimde gösteriliyor.
+6. **Güvenli Tam Yedek:** Favoriler, izleme ilerlemesi, genel oynatma ayarları ve içerik kilitleri panoya aktarılıp geri yüklenebiliyor. Xtream şifresi, ebeveyn PIN'i, PIN özeti ve salt hiçbir zaman yedeğe eklenmiyor.
+7. **Android TV Entegrasyonu:** Watch Next ilerleme ve süre bilgisi oynatma sırasında güncelleniyor. Kilitlenen içerik Android TV sistem araması ve mevcut Watch Next kayıtlarından temizleniyor.
+8. **Erişilebilirlik:** Büyük yazı ve yüksek kontrast seçenekleri eklendi; yeni güvenlik ve EPG arayüzlerine TalkBack semantik etiketleri ile renk dışı durum metinleri kondu.
+9. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+48`, Android versionCode `1048` olarak güncellendi. Ayrıntılı uygulama ve test durumu `V2.3.1+48_GELISTIRME_TAKIP.txt` dosyasında tutuluyor. Bu sürüm final TV testleri tamamlanmadan GitHub'a gönderilmeyecektir.

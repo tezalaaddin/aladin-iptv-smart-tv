@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/models/aladin_playlist_model.dart';
 import '../../../core/services/aladin_playlist_service.dart';
 import '../../../core/services/aladin_update_service.dart';
+import '../../../core/services/aladin_parental_service.dart';
 import '../../core/services/aladin_epg_engine.dart';
 import '../../../core/state/aladin_app_prefs.dart';
 import '../../../core/state/aladin_app_state.dart';
@@ -65,7 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Focus Management
   late final FocusNode _pageFocusNode = FocusNode(debugLabel: 'settings_page');
   late final List<FocusNode> _leftNodes =
-      List.generate(8, (i) => FocusNode(debugLabel: 'left_$i'));
+      List.generate(11, (i) => FocusNode(debugLabel: 'left_$i'));
   final List<FocusNode> _playlistNodes = [];
 
   final ScrollController _leftScroll = ScrollController();
@@ -560,6 +561,71 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[7],
+                          icon: Icons.lock_person,
+                          title: 'Ebeveyn Kontrolü',
+                          subtitle: ParentalService.instance.isEnabled
+                              ? 'Etkin · PIN ile korunuyor'
+                              : 'Kapalı · Kanal ve kategori kilidi',
+                          onTap: _showParentalDialog,
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 7;
+                              });
+                            _ensureVisible(_leftNodes[7]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[8],
+                          icon: Icons.format_size,
+                          title: 'Büyük Yazı',
+                          subtitle: AladinPrefs.instance
+                                  .getBool('accessibility_large_text')
+                              ? 'Etkin · uygulama yeniden açılınca uygulanır'
+                              : 'Standart metin boyutu',
+                          onTap: () async {
+                            final value = AladinPrefs.instance
+                                .getBool('accessibility_large_text');
+                            await AladinPrefs.instance
+                                .setBool('accessibility_large_text', !value);
+                            setState(() {});
+                          },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 8;
+                              });
+                            _ensureVisible(_leftNodes[8]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[9],
+                          icon: Icons.contrast,
+                          title: 'Yüksek Kontrast',
+                          subtitle: AladinPrefs.instance
+                                  .getBool('accessibility_high_contrast')
+                              ? 'Etkin · renk dışı odak işaretleri güçlendirilir'
+                              : 'Standart kontrast',
+                          onTap: () async {
+                            final value = AladinPrefs.instance
+                                .getBool('accessibility_high_contrast');
+                            await AladinPrefs.instance
+                                .setBool('accessibility_high_contrast', !value);
+                            setState(() {});
+                          },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 9;
+                              });
+                            _ensureVisible(_leftNodes[9]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[10],
                           icon: Icons.info_outline,
                           title: s.about,
                           subtitle:
@@ -569,9 +635,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             if (v)
                               setState(() {
                                 _inLeftPanel = true;
-                                _leftFocusedIndex = 7;
+                                _leftFocusedIndex = 10;
                               });
-                            _ensureVisible(_leftNodes[7]);
+                            _ensureVisible(_leftNodes[10]);
                           },
                         ),
                       ]),
@@ -689,6 +755,44 @@ class _SettingsPageState extends State<SettingsPage> {
                       'shuffle_on_launch',
                       !AladinPrefs.instance.shuffleOnLaunch,
                     );
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _SetupTile(
+                  icon: Icons.lock_person,
+                  title: 'Ebeveyn Kontrolü',
+                  subtitle: ParentalService.instance.isEnabled
+                      ? 'Etkin · PIN ile korunuyor'
+                      : 'Kapalı · Kanal ve kategori kilidi',
+                  onTap: _showParentalDialog,
+                ),
+                _SetupTile(
+                  icon: Icons.format_size,
+                  title: 'Büyük Yazı',
+                  subtitle:
+                      AladinPrefs.instance.getBool('accessibility_large_text')
+                          ? 'Etkin · yeniden açılışta uygulanır'
+                          : 'Standart metin boyutu',
+                  onTap: () async {
+                    final value = AladinPrefs.instance
+                        .getBool('accessibility_large_text');
+                    await AladinPrefs.instance
+                        .setBool('accessibility_large_text', !value);
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _SetupTile(
+                  icon: Icons.contrast,
+                  title: 'Yüksek Kontrast',
+                  subtitle: AladinPrefs.instance
+                          .getBool('accessibility_high_contrast')
+                      ? 'Etkin'
+                      : 'Standart kontrast',
+                  onTap: () async {
+                    final value = AladinPrefs.instance
+                        .getBool('accessibility_high_contrast');
+                    await AladinPrefs.instance
+                        .setBool('accessibility_high_contrast', !value);
                     if (mounted) setState(() {});
                   },
                 ),
@@ -1095,6 +1199,53 @@ class _SettingsPageState extends State<SettingsPage> {
           SimpleDialogOption(
             onPressed: () {
               Navigator.pop(context);
+              _showPlaylistHealth(p);
+            },
+            child: const Row(children: [
+              Icon(Icons.monitor_heart_outlined, color: Colors.lightBlueAccent),
+              SizedBox(width: 12),
+              Text('Playlist sağlık raporu')
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () async {
+              Navigator.pop(context);
+              final backup = await PlaylistService.instance.exportAppBackup();
+              await Clipboard.setData(ClipboardData(text: backup));
+              _snack('Güvenli yedek panoya kopyalandı (Xtream şifresi hariç).');
+            },
+            child: const Row(children: [
+              Icon(Icons.backup_outlined, color: Colors.white70),
+              SizedBox(width: 12),
+              Text('Güvenli yedeği panoya kopyala')
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () async {
+              Navigator.pop(context);
+              final data = await Clipboard.getData(Clipboard.kTextPlain);
+              final raw = data?.text?.trim() ?? '';
+              if (raw.isEmpty) {
+                _snack('Panoda yedek verisi bulunamadı.', error: true);
+                return;
+              }
+              try {
+                await PlaylistService.instance.importAppBackup(raw);
+                await state.refresh();
+                _snack('Yedek ayarları ve izleme verileri geri yüklendi.');
+              } catch (e) {
+                _snack('Yedek geri yüklenemedi: $e', error: true);
+              }
+            },
+            child: const Row(children: [
+              Icon(Icons.restore, color: Colors.white70),
+              SizedBox(width: 12),
+              Text('Panodaki yedeği geri yükle')
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context);
               state.selectPlaylist(p);
               widget.onPlaylistSelected?.call();
             },
@@ -1141,6 +1292,73 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     ).then((_) => prevFocus?.requestFocus());
   }
+
+  Future<void> _showPlaylistHealth(PlaylistModel playlist) async {
+    final report = await PlaylistService.instance.getHealthReport(playlist.id);
+    final xtream = await PlaylistService.instance.getXtreamHealth(playlist);
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        title: Text('${playlist.name} · Sağlık Raporu'),
+        content: SizedBox(
+          width: 500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _healthRow('Toplam içerik', report['total']!),
+              _healthRow('Boş/geçersiz yayın adresi', report['emptyUrl']!),
+              _healthRow('Tekrarlanan yayın adresi', report['duplicates']!),
+              _healthRow('Eksik afiş/logo', report['missingArtwork']!),
+              _healthRow('Eksik EPG kimliği', report['missingEpgId']!),
+              if (xtream != null) ...[
+                const Divider(),
+                ListTile(
+                    dense: true,
+                    title: const Text('Sunucu gecikmesi'),
+                    trailing: Text('${xtream['latencyMs']} ms')),
+                ListTile(
+                    dense: true,
+                    title: const Text('Hesap durumu'),
+                    trailing: Text('${xtream['status']}')),
+                ListTile(
+                    dense: true,
+                    title: const Text('Bağlantı kullanımı'),
+                    trailing: Text(
+                        '${xtream['activeConnections']} / ${xtream['maxConnections']}')),
+                ListTile(
+                    dense: true,
+                    title: const Text('Abonelik bitişi'),
+                    trailing: Text('${xtream['expiry']}')),
+              ],
+              const SizedBox(height: 12),
+              const Text(
+                'Yayınların çevrimiçi olup olmadığı oynatma sırasında doğrulanır; '
+                'toplu ağ testi sağlayıcıyı gereksiz yere yüklemez.',
+                style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            autofocus: true,
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tamam'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _healthRow(String label, int value) => ListTile(
+        dense: true,
+        title: Text(label),
+        trailing: Text('$value',
+            style: const TextStyle(
+                color: AppTheme.accent, fontWeight: FontWeight.bold)),
+      );
 
   Future<void> _refreshPlaylist(
       PlaylistModel p, AppState state, AppStrings s) async {
@@ -1236,6 +1454,163 @@ class _SettingsPageState extends State<SettingsPage> {
       await state.refresh();
       _snack(s.playlistDeleted);
     }
+  }
+
+  Future<String?> _requestPin(String title) async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        title: Text(title),
+        content: SizedBox(
+          width: 400,
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
+            ],
+            decoration: const InputDecoration(
+              labelText: '4-6 rakamlı PIN',
+              border: OutlineInputBorder(),
+            ),
+            onSubmitted: (value) => Navigator.pop(dialogContext, value),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            autofocus: true,
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('Onayla'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return value;
+  }
+
+  Future<bool> _authenticateParental() async {
+    final service = ParentalService.instance;
+    if (!await service.hasPin()) return true;
+    final pin = await _requestPin('Ebeveyn PIN kodu');
+    if (pin == null) return false;
+    final valid = await service.verifyPin(pin);
+    if (!valid)
+      _snack('PIN yanlış veya geçici olarak engellendi.', error: true);
+    return valid;
+  }
+
+  Future<void> _setNewParentalPin() async {
+    final first = await _requestPin('Yeni ebeveyn PIN kodu');
+    if (first == null) return;
+    if (!RegExp(r'^\d{4,6}$').hasMatch(first)) {
+      _snack('PIN 4-6 rakam olmalıdır.', error: true);
+      return;
+    }
+    final second = await _requestPin('PIN kodunu doğrulayın');
+    if (first != second) {
+      _snack('PIN kodları eşleşmiyor.', error: true);
+      return;
+    }
+    await ParentalService.instance.setPin(first);
+    _snack('Ebeveyn PIN kodu güvenli biçimde kaydedildi.');
+  }
+
+  Future<void> _showParentalDialog() async {
+    final service = ParentalService.instance;
+    if (!await _authenticateParental()) return;
+    if (!await service.hasPin()) await _setNewParentalPin();
+    if (!await service.hasPin() || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          backgroundColor: AppTheme.card,
+          title: const Text('Ebeveyn Kontrolü'),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  autofocus: true,
+                  title: const Text('PIN koruması'),
+                  subtitle: const Text(
+                      'Yetişkin ve elle kilitlenen içerikleri korur.'),
+                  value: service.isEnabled,
+                  onChanged: (value) async {
+                    await service.setEnabled(value);
+                    update(() {});
+                    if (mounted) setState(() {});
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Kilitli içerikleri gizle'),
+                  subtitle: const Text(
+                      'Afiş, başlık ve sonuçları listelerden kaldırır.'),
+                  value: service.hideLockedContent,
+                  onChanged: (value) async {
+                    await service.setHideLockedContent(value);
+                    update(() {});
+                  },
+                ),
+                ListTile(
+                  title: const Text('Kilit açık kalma süresi'),
+                  subtitle: Text('${service.sessionMinutes} dakika'),
+                  trailing: DropdownButton<int>(
+                    value: service.sessionMinutes,
+                    items: const [15, 30, 60]
+                        .map((v) =>
+                            DropdownMenuItem(value: v, child: Text('$v dk')))
+                        .toList(),
+                    onChanged: (value) async {
+                      if (value == null) return;
+                      await service.setSessionMinutes(value);
+                      update(() {});
+                    },
+                  ),
+                ),
+                ListTile(
+                  title: const Text('PIN kodunu değiştir'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    Navigator.pop(dialogContext);
+                    await _setNewParentalPin();
+                  },
+                ),
+                ListTile(
+                  title: const Text('Kilidi şimdi kapat'),
+                  subtitle:
+                      const Text('Açık olan PIN oturumunu hemen sonlandırır.'),
+                  trailing: const Icon(Icons.lock),
+                  onTap: () {
+                    service.lockSession();
+                    Navigator.pop(dialogContext);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tamam'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showAboutDialog(AppStrings s) {

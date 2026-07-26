@@ -16,7 +16,7 @@ final sl = GetIt.instance; // sl: Service Locator
 Future<void> initDI() async {
   // ── Preferences ──────────────────────────────────────────────────────────
   sl.registerSingleton<AladinPrefs>(AladinPrefs.instance);
-  
+
   // ── Database ──────────────────────────────────────────────────────────────
   sl.registerSingleton<IsarService>(IsarService.instance);
 
@@ -27,7 +27,7 @@ Future<void> initDI() async {
   sl.registerLazySingleton<TmdbService>(() => TmdbService.instance);
   sl.registerLazySingleton<UpdateService>(() => UpdateService.instance);
   sl.registerLazySingleton<ParentalService>(() => ParentalService.instance);
-  
+
   // ── Engines & State ───────────────────────────────────────────────────────
   sl.registerSingleton<AladinEpgEngine>(AladinEpgEngine.instance);
   sl.registerSingleton<MetadataSyncService>(MetadataSyncService.instance);

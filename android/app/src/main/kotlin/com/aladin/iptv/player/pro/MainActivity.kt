@@ -128,6 +128,8 @@ class MainActivity : FlutterFragmentActivity() {
                 val poster = call.argument<String>("poster")
                 val channelId = call.argument<String>("channelId")
                 val contentType = call.argument<String>("contentType") ?: "movie"
+                val positionMs = call.argument<Int>("positionMs") ?: 0
+                val durationMs = call.argument<Int>("durationMs") ?: 0
                 if (channelId.isNullOrBlank()) {
                     result.success(false)
                     return@setMethodCallHandler
@@ -143,6 +145,8 @@ class MainActivity : FlutterFragmentActivity() {
                             put(TvContract.WatchNextPrograms.COLUMN_LONG_DESCRIPTION, description)
                             put(TvContract.WatchNextPrograms.COLUMN_POSTER_ART_URI, poster)
                             put(TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID, channelId)
+                            if (positionMs > 0) put(TvContract.WatchNextPrograms.COLUMN_LAST_PLAYBACK_POSITION_MILLIS, positionMs)
+                            if (durationMs > 0) put(TvContract.WatchNextPrograms.COLUMN_DURATION_MILLIS, durationMs)
                             // Bu program tıklandığında uygulamayı açması için gereken Intent URI'si
                             put(TvContract.WatchNextPrograms.COLUMN_INTENT_URI, "aladin://play?id=$channelId")
                         }
@@ -177,6 +181,7 @@ class MainActivity : FlutterFragmentActivity() {
                 }
             } else if (call.method == "syncSearchData") {
                 val items = call.argument<List<Map<String, String>>>("items")
+                val blockedIds = call.argument<List<String>>("blockedIds") ?: emptyList()
                 if (items != null) {
                     val db = AladinSearchProvider.DatabaseHelper(this).writableDatabase
                     db.beginTransaction()
@@ -192,6 +197,15 @@ class MainActivity : FlutterFragmentActivity() {
                             db.insert("search_items", null, values)
                         }
                         db.setTransactionSuccessful()
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            for (blockedId in blockedIds) {
+                                contentResolver.delete(
+                                    TvContract.WatchNextPrograms.CONTENT_URI,
+                                    "${TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID} = ?",
+                                    arrayOf(blockedId)
+                                )
+                            }
+                        }
                         result.success(true)
                     } catch (e: Exception) {
                         result.error("SYNC_ERROR", e.message, null)

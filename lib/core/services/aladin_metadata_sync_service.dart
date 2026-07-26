@@ -31,9 +31,15 @@ class MetadataSyncService extends ChangeNotifier {
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
-        .group((q) => q.contentTypeEqualTo('movie').or().contentTypeEqualTo('series'))
+        .group((q) =>
+            q.contentTypeEqualTo('movie').or().contentTypeEqualTo('series'))
         .and()
-        .group((q) => q.imdbRatingIsNull().or().imdbRatingEqualTo('0').or().tmdbPosterIsNull())
+        .group((q) => q
+            .imdbRatingIsNull()
+            .or()
+            .imdbRatingEqualTo('0')
+            .or()
+            .tmdbPosterIsNull())
         .limit(500)
         .findAll();
 
@@ -50,17 +56,18 @@ class MetadataSyncService extends ChangeNotifier {
 
   int _consecutiveFailures = 0;
 
-  Future<void> _syncQueue(List<ChannelModel> items, {String lang = 'tr'}) async {
+  Future<void> _syncQueue(List<ChannelModel> items,
+      {String lang = 'tr'}) async {
     for (int i = 0; i < items.length; i++) {
       if (!_isSyncing) break;
 
       final channel = items[i];
-      
+
       try {
         Map<String, dynamic>? meta;
         if (channel.contentType == 'movie') {
           meta = await TmdbService.instance.searchMovie(
-            channel.name, 
+            channel.name,
             year: channel.tmdbYear,
             lang: lang,
           );
@@ -109,7 +116,7 @@ class MetadataSyncService extends ChangeNotifier {
         debugPrint('[MetadataSync] Too many failures, stopping batch.');
         break;
       }
-      
+
       await Future.delayed(Duration(milliseconds: delay));
     }
 

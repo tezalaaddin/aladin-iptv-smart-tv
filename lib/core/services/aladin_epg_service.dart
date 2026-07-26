@@ -24,7 +24,7 @@ class EpgService {
     String? channelName,
   }) async {
     if (_isPaused) return null;
-    
+
     final normId = AladinEpgEngine.normalizeId(channelId);
     final now = DateTime.now();
 
@@ -79,14 +79,17 @@ class EpgService {
     int limit = 8,
   }) async {
     if (_isPaused) return [];
-    
+
     final normId = AladinEpgEngine.normalizeId(channelId);
     final now = DateTime.now();
 
     // Try finding by normalizedId first as it's the most common match
     var results = await _db.epgProgramModels
         .filter()
-        .group((q) => q.channelIdEqualTo(channelId).or().normalizedChannelIdEqualTo(normId))
+        .group((q) => q
+            .channelIdEqualTo(channelId)
+            .or()
+            .normalizedChannelIdEqualTo(normId))
         .and()
         .startTimeGreaterThan(now)
         .sortByStartTime()
@@ -119,13 +122,17 @@ class EpgService {
   Future<int> totalProgrammes() => _db.epgProgramModels.count();
 
   /// Returns all programmes for a channel, sorted by start time.
-  Future<List<EpgProgramModel>> getPrograms(String channelId, {String? cleanName}) async {
+  Future<List<EpgProgramModel>> getPrograms(String channelId,
+      {String? cleanName}) async {
     final normId = AladinEpgEngine.normalizeId(channelId);
-    
+
     // Search by both channelId and normalizedId
     var results = await _db.epgProgramModels
         .filter()
-        .group((q) => q.channelIdEqualTo(channelId).or().normalizedChannelIdEqualTo(normId))
+        .group((q) => q
+            .channelIdEqualTo(channelId)
+            .or()
+            .normalizedChannelIdEqualTo(normId))
         .sortByStartTime()
         .findAll();
 
@@ -137,7 +144,7 @@ class EpgService {
           .sortByStartTime()
           .findAll();
     }
-    
+
     return results;
   }
 }

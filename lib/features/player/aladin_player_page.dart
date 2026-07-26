@@ -10,6 +10,8 @@ import '../series/aladin_series_page.dart';
 import '../../core/state/aladin_app_prefs.dart';
 import '../../core/services/aladin_metadata_sync_service.dart';
 import '../../core/services/aladin_channel_service.dart';
+import '../../core/services/aladin_parental_service.dart';
+import '../../shared/widgets/aladin_parental_gate.dart';
 
 class PlayerPage extends StatefulWidget {
   final ChannelModel channel;
@@ -39,6 +41,15 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _launch() async {
+    final allowed = await requestParentalUnlock(
+      context,
+      protectedContent: ParentalService.instance.requiresUnlock(widget.channel),
+      title: widget.channel.name,
+    );
+    if (!allowed) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
     // ── GUARD: Xtream dizisinde url boş olabilir (ana seri kaydı).
     // Bu durumda native player yerine dizi detay sayfasına yönlendir.
     if (widget.channel.url.trim().isEmpty) {
@@ -72,6 +83,7 @@ class _PlayerPageState extends State<PlayerPage> {
       // Keep the Android Intent safely below Binder's transaction limit.
       final allPlayable = widget.playlist
           .where((e) => e.url.trim().isNotEmpty)
+          .where(ParentalService.instance.canExpose)
           .toList(growable: false);
       if (allPlayable.isEmpty) return;
       final selectedIndex = allPlayable.indexOf(widget.channel);
@@ -93,8 +105,15 @@ class _PlayerPageState extends State<PlayerPage> {
       final positions = playable.map((e) => e.watchedSeconds).toList();
       final headers = playable.map((e) => e.streamHeaders ?? '').toList();
 
-      final videoLimit =
-          switch (AladinPrefs.instance.getString('preferredQuality')) {
+      final channelScope = '${widget.channel.playlistId}_${widget.channel.id}';
+      final preferredQuality =
+          AladinPrefs.instance.getString('channel_quality_$channelScope') ??
+              AladinPrefs.instance.getString('preferredQuality');
+      final decoderMode =
+          AladinPrefs.instance.getString('channel_decoder_$channelScope') ??
+              AladinPrefs.instance.getString('decoderMode') ??
+              'auto';
+      final videoLimit = switch (preferredQuality) {
         '4k' => 2160,
         'fhd' => 1080,
         'hd' => 720,
@@ -119,7 +138,7 @@ class _PlayerPageState extends State<PlayerPage> {
         'positions': positions,
         'headers': headers,
         'index': filteredIndex >= 0 ? filteredIndex : 0,
-        'decoderMode': AladinPrefs.instance.getString('decoderMode') ?? 'auto',
+        'decoderMode': decoderMode,
         'videoLimit': videoLimit,
         // Localization
         'i18n': {

@@ -656,6 +656,8 @@ class NativePlayerActivity : AppCompatActivity(),
                     }
                 }
             }
+            restoreTrackPreference(tracks, C.TRACK_TYPE_AUDIO)
+            restoreTrackPreference(tracks, C.TRACK_TYPE_TEXT)
         }
 
         override fun onPlaybackStateChanged(state: Int) {
@@ -740,6 +742,10 @@ class NativePlayerActivity : AppCompatActivity(),
         val name = channelNames?.getOrNull(currentIndex) ?: "Kanal"
         val poster = channelPosters?.getOrNull(currentIndex) ?: ""
         val type = channelTypes?.getOrNull(currentIndex) ?: "tv"
+        playerView.resizeMode = prefs.getInt(
+            "aspect_${url.hashCode()}",
+            AspectRatioFrameLayout.RESIZE_MODE_FIT
+        )
         val videoLimit = intent.getIntExtra("VIDEO_LIMIT", 0)
 
         // Apply quality limit if set (ABR control)
@@ -1040,12 +1046,38 @@ class NativePlayerActivity : AppCompatActivity(),
                 .setTrackTypeDisabled(trackType, false)
                 .setOverrideForType(TrackSelectionOverride(groups[gi].mediaTrackGroup, ti))
                 .build()
+            val format = groups[gi].getTrackFormat(ti)
+            val preference = format.language ?: format.label ?: label
+            prefs.edit().putString(
+                "track_${trackType}_${channelUrls?.getOrNull(currentIndex)?.hashCode() ?: 0}",
+                preference
+            ).apply()
             val prefix = when (trackType) {
                 C.TRACK_TYPE_TEXT  -> "${t("subtitles", "Altyazı")}: "
                 C.TRACK_TYPE_AUDIO -> "${t("audio", "Ses")}: "
                 else               -> "${t("quality", "Kalite")}: "
             }
             showStatus("$prefix$label")
+        }
+    }
+
+    private fun restoreTrackPreference(tracks: Tracks, trackType: Int) {
+        val urlHash = channelUrls?.getOrNull(currentIndex)?.hashCode() ?: 0
+        val preferred = prefs.getString("track_${trackType}_$urlHash", null) ?: return
+        val p = player ?: return
+        for (group in tracks.groups) {
+            if (group.type != trackType) continue
+            for (index in 0 until group.length) {
+                val format = group.getTrackFormat(index)
+                val value = format.language ?: format.label ?: continue
+                if (value == preferred && !group.isTrackSelected(index)) {
+                    p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+                        .setTrackTypeDisabled(trackType, false)
+                        .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index))
+                        .build()
+                    return
+                }
+            }
         }
     }
 
@@ -1058,6 +1090,7 @@ class NativePlayerActivity : AppCompatActivity(),
         val names = arrayOf(t("aspect_fit", "Sığdır"), t("aspect_fill", "Doldur"), t("aspect_zoom", "Zoom"))
         val next  = (modes.indexOf(playerView.resizeMode) + 1) % modes.size
         playerView.resizeMode = modes[next]
+        prefs.edit().putInt("aspect_${channelUrls?.getOrNull(currentIndex)?.hashCode() ?: 0}", modes[next]).apply()
         showStatus("${t("aspect", "Ekran Oranı")}: ${names[next]}")
     }
 

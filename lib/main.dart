@@ -131,6 +131,10 @@ class _AladinAppState extends State<AladinApp>
             (pos / 1000).round(),
             (dur / 1000).round(),
           );
+          final channel = await ChannelService.instance.getByUrl(url);
+          if (channel != null && channel.contentType != 'tv') {
+            await ChannelService.instance.addToWatchNext(channel);
+          }
         }
       } else if (call.method == 'openSettings') {
         AppState.instance.navigateToPage(6);
@@ -202,6 +206,20 @@ class _AladinAppState extends State<AladinApp>
         title: 'aladin IPTV Player Pro TV',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
+        builder: (context, child) {
+          final media = MediaQuery.of(context);
+          final largeText =
+              AladinPrefs.instance.getBool('accessibility_large_text');
+          final highContrast =
+              AladinPrefs.instance.getBool('accessibility_high_contrast');
+          return MediaQuery(
+            data: media.copyWith(
+              textScaler: TextScaler.linear(largeText ? 1.16 : 1.0),
+              highContrast: highContrast,
+            ),
+            child: child!,
+          );
+        },
         home: FocusScope(
           autofocus: true,
           child: AnimatedSwitcher(

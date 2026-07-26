@@ -33,7 +33,8 @@ class AladinEmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: Colors.white.withOpacity(0.03),
               ),
-              child: Icon(icon, size: 80, color: AppTheme.textMuted.withOpacity(0.2)),
+              child: Icon(icon,
+                  size: 80, color: AppTheme.textMuted.withOpacity(0.2)),
             ),
             const SizedBox(height: 32),
             // Başlık
@@ -66,12 +67,15 @@ class AladinEmptyState extends StatelessWidget {
                 autofocus: true,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.accent,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text(
                   buttonLabel!,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
             ],

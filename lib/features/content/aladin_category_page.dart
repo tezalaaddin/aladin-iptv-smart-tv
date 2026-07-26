@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_category_model.dart';
 import '../../core/services/aladin_channel_service.dart';
+import '../../core/services/aladin_parental_service.dart';
 import '../../core/state/aladin_app_state.dart';
+import '../../core/state/aladin_app_prefs.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
+import '../../shared/widgets/aladin_parental_gate.dart';
 import 'dart:async';
+import 'aladin_epg_grid_page.dart';
 
 class AladinCategoryPage extends StatefulWidget {
   final CategoryModel category;
@@ -30,9 +34,110 @@ class AladinCategoryPage extends StatefulWidget {
 class _AladinCategoryPageState extends State<AladinCategoryPage> {
   final List<ChannelModel> _channels = [];
   bool _loading = true;
-  String _sortBy = 'default'; 
+  String _sortBy = 'default';
   bool _isAscending = false;
   bool _hideWatched = false;
+
+  Future<bool> _authorizeLockChange() async {
+    final parental = ParentalService.instance;
+    if (!parental.isEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Önce Ayarlar > Ebeveyn Kontrolü bölümünü etkinleştirin.')));
+      return false;
+    }
+    return requestParentalUnlock(context,
+        protectedContent: true, title: 'Kilit ayarını değiştir');
+  }
+
+  Future<void> _toggleCategoryLock() async {
+    if (!await _authorizeLockChange()) return;
+    final locked = await ParentalService.instance
+        .toggleCategoryLock(widget.playlistId, widget.category.name);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+            locked ? 'Kategori kilitlendi.' : 'Kategori kilidi kaldırıldı.')));
+    setState(() {});
+  }
+
+  Future<void> _toggleChannelLock(ChannelModel channel) async {
+    if (!await _authorizeLockChange()) return;
+    final locked = await ParentalService.instance.toggleChannelLock(channel);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text(locked ? 'İçerik kilitlendi.' : 'İçerik kilidi kaldırıldı.')));
+    setState(() {});
+  }
+
+  Future<void> _showChannelOptions(ChannelModel channel) async {
+    final scope = '${channel.playlistId}_${channel.id}';
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        backgroundColor: AppTheme.card,
+        title: Text(channel.name, maxLines: 2, overflow: TextOverflow.ellipsis),
+        children: [
+          SimpleDialogOption(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _toggleChannelLock(channel);
+            },
+            child: const ListTile(
+              leading: Icon(Icons.lock_outline),
+              title: Text('İçerik kilidini değiştir'),
+              subtitle: Text('Ebeveyn PIN koduyla korunur'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () async {
+              final current =
+                  AladinPrefs.instance.getString('channel_decoder_$scope') ??
+                      'auto';
+              const values = ['auto', 'hw', 'sw'];
+              final next =
+                  values[(values.indexOf(current) + 1) % values.length];
+              await AladinPrefs.instance
+                  .setString('channel_decoder_$scope', next);
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
+              if (mounted)
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content:
+                        Text('Kanal kod çözücüsü: ${next.toUpperCase()}')));
+            },
+            child: const ListTile(
+              leading: Icon(Icons.memory),
+              title: Text('Kanal kod çözücüsünü değiştir'),
+              subtitle: Text('Otomatik → Donanım → Yazılım'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () async {
+              final current =
+                  AladinPrefs.instance.getString('channel_quality_$scope') ??
+                      'auto';
+              const values = ['auto', '4k', 'fhd', 'hd', 'sd'];
+              final next =
+                  values[(values.indexOf(current) + 1) % values.length];
+              await AladinPrefs.instance
+                  .setString('channel_quality_$scope', next);
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
+              if (mounted)
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content:
+                        Text('Kanal kalite sınırı: ${next.toUpperCase()}')));
+            },
+            child: const ListTile(
+              leading: Icon(Icons.high_quality),
+              title: Text('Kanal kalite sınırını değiştir'),
+              subtitle: Text('Otomatik → 4K → FHD → HD → SD'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -45,7 +150,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
       playlistId: widget.playlistId,
       categoryName: widget.category.name,
       contentType: widget.category.contentType,
-      limit: 2000, 
+      limit: 2000,
     );
     if (!mounted) return;
     setState(() {
@@ -77,7 +182,8 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double safePadding = MediaQuery.of(context).size.width * 0.04; // Ekran genişliğine göre dinamik güvenli alan
+    final double safePadding = MediaQuery.of(context).size.width *
+        0.04; // Ekran genişliğine göre dinamik güvenli alan
     final s = context.watch<AppState>().s;
 
     return Scaffold(
@@ -92,8 +198,10 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
             elevation: 0,
             leading: Focus(
               onKeyEvent: (node, event) {
-                if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowRight) {
-                  FocusScope.of(context).focusInDirection(TraversalDirection.right);
+                if (event is KeyDownEvent &&
+                    event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                  FocusScope.of(context)
+                      .focusInDirection(TraversalDirection.right);
                   return KeyEventResult.handled;
                 }
                 return KeyEventResult.ignored;
@@ -110,10 +218,17 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                 children: [
                   Text(
                     '${widget.category.contentType == 'tv' ? s.navLiveTV : s.navMovies} › ${widget.category.name}',
-                    style: const TextStyle(fontSize: 10, color: AppTheme.accent, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    style: const TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.accent,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1),
                   ),
-                  Text(widget.category.name, 
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text(widget.category.name,
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white)),
                 ],
               ),
               centerTitle: false,
@@ -123,12 +238,42 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.black.withValues(alpha:0.8), Colors.transparent],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.transparent
+                    ],
                   ),
                 ),
               ),
             ),
             actions: [
+              if (widget.category.contentType == 'tv')
+                IconButton(
+                  tooltip: 'Tam program rehberi',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AladinEpgGridPage(
+                        channels: _filteredChannels,
+                        onPlay: (channel) =>
+                            widget.onChannelTap(channel, _filteredChannels),
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.calendar_view_week,
+                      color: AppTheme.accent),
+                ),
+              IconButton(
+                tooltip: 'Kategoriyi kilitle / kilidi kaldır',
+                onPressed: _toggleCategoryLock,
+                icon: Icon(
+                  ParentalService.instance.isCategoryLocked(
+                          widget.playlistId, widget.category.name)
+                      ? Icons.lock
+                      : Icons.lock_open,
+                  color: AppTheme.accent,
+                ),
+              ),
               _SortButton(
                 label: s.rating,
                 icon: Icons.star_border,
@@ -138,7 +283,10 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                   if (_sortBy == 'rating') {
                     setState(() => _isAscending = !_isAscending);
                   } else {
-                    setState(() { _sortBy = 'rating'; _isAscending = false; });
+                    setState(() {
+                      _sortBy = 'rating';
+                      _isAscending = false;
+                    });
                   }
                   _applySort();
                 },
@@ -152,7 +300,10 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                   if (_sortBy == 'year') {
                     setState(() => _isAscending = !_isAscending);
                   } else {
-                    setState(() { _sortBy = 'year'; _isAscending = false; });
+                    setState(() {
+                      _sortBy = 'year';
+                      _isAscending = false;
+                    });
                   }
                   _applySort();
                 },
@@ -166,7 +317,10 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                   if (_sortBy == 'alpha') {
                     setState(() => _isAscending = !_isAscending);
                   } else {
-                    setState(() { _sortBy = 'alpha'; _isAscending = true; });
+                    setState(() {
+                      _sortBy = 'alpha';
+                      _isAscending = true;
+                    });
                   }
                   _applySort();
                 },
@@ -185,26 +339,31 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
           ),
           if (_loading)
             const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
+              child: Center(
+                  child: CircularProgressIndicator(color: AppTheme.accent)),
             )
           else if (_filteredChannels.isEmpty)
             SliverFillRemaining(
               child: Center(
                 child: Text(
-                  s.noContentFound, 
-                  style: const TextStyle(color: AppTheme.textMuted, fontSize: 16),
+                  s.noContentFound,
+                  style:
+                      const TextStyle(color: AppTheme.textMuted, fontSize: 16),
                 ),
               ),
             )
           else
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: safePadding, vertical: 10), // Izgara dış boşluğu
+              padding: EdgeInsets.symmetric(
+                  horizontal: safePadding, vertical: 10), // Izgara dış boşluğu
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: AppTheme.cardWidth + 20, // Her bir sütunun maksimum genişliği
+                  maxCrossAxisExtent: AppTheme.cardWidth +
+                      20, // Her bir sütunun maksimum genişliği
                   mainAxisSpacing: 25, // Dikey satırlar arası boşluk
                   crossAxisSpacing: 15, // Yatay sütunlar arası boşluk
-                  mainAxisExtent: AppTheme.gridHeight, // Her bir öğenin toplam yüksekliği
+                  mainAxisExtent:
+                      AppTheme.gridHeight, // Her bir öğenin toplam yüksekliği
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -215,6 +374,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                         channel: ch,
                         margin: EdgeInsets.zero,
                         onTap: () => widget.onChannelTap(ch, _filteredChannels),
+                        onLongPress: () => _showChannelOptions(ch),
                       ),
                     );
                   },
@@ -228,8 +388,9 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
   }
 
   List<ChannelModel> get _filteredChannels {
-    if (!_hideWatched) return _channels;
-    return _channels.where((ch) => ch.lastWatched == null).toList();
+    var result = _channels.where(ParentalService.instance.canExpose);
+    if (_hideWatched) result = result.where((ch) => ch.lastWatched == null);
+    return result.toList();
   }
 }
 
@@ -272,15 +433,21 @@ class _SortButtonState extends State<_SortButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10), // Buton dış boşluğu
-          padding: const EdgeInsets.symmetric(horizontal: 14), // Buton iç metin boşluğu
+          margin: const EdgeInsets.symmetric(
+              horizontal: 4, vertical: 10), // Buton dış boşluğu
+          padding: const EdgeInsets.symmetric(
+              horizontal: 14), // Buton iç metin boşluğu
           decoration: BoxDecoration(
-            color: widget.isSelected 
-                ? AppTheme.accent 
-                : (_focused ? Colors.white.withValues(alpha:0.15) : Colors.transparent),
+            color: widget.isSelected
+                ? AppTheme.accent
+                : (_focused
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.transparent),
             borderRadius: BorderRadius.circular(25), // Hap şekli yuvarlama
             border: Border.all(
-              color: widget.isSelected ? AppTheme.accent : (_focused ? Colors.white54 : Colors.white24),
+              color: widget.isSelected
+                  ? AppTheme.accent
+                  : (_focused ? Colors.white54 : Colors.white24),
               width: 1.5, // Buton kenarlık kalınlığı
             ),
           ),
@@ -288,15 +455,27 @@ class _SortButtonState extends State<_SortButton> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(widget.icon, size: 14, color: widget.isSelected ? Colors.white : Colors.white70), // İkon boyutu
+                Icon(widget.icon,
+                    size: 14,
+                    color: widget.isSelected
+                        ? Colors.white
+                        : Colors.white70), // İkon boyutu
                 const SizedBox(width: 6), // İkon-Metin arası boşluk
                 Text(
                   widget.label,
-                  style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
                 ),
                 if (widget.isSelected) ...[
                   const SizedBox(width: 4),
-                  Icon(widget.isAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 12, color: Colors.white), // Ok işareti boyutu
+                  Icon(
+                      widget.isAscending
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      size: 12,
+                      color: Colors.white), // Ok işareti boyutu
                 ],
               ],
             ),

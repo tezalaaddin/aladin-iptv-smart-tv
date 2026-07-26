@@ -12,11 +12,13 @@ class AladinXtreamParser {
     required this.password,
   });
 
-  String get _base => '$server/player_api.php?username=$username&password=$password';
+  String get _base =>
+      '$server/player_api.php?username=$username&password=$password';
 
   Future<bool> validate() async {
     try {
-      final r = await http.get(Uri.parse(_base)).timeout(const Duration(seconds: 12));
+      final r =
+          await http.get(Uri.parse(_base)).timeout(const Duration(seconds: 12));
       if (r.statusCode != 200) return false;
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       return j['user_info'] != null;
@@ -26,12 +28,27 @@ class AladinXtreamParser {
     }
   }
 
+  Future<Map<String, dynamic>?> fetchAccountInfo() async {
+    try {
+      final response =
+          await http.get(Uri.parse(_base)).timeout(const Duration(seconds: 12));
+      if (response.statusCode != 200) return null;
+      final root = jsonDecode(response.body) as Map<String, dynamic>;
+      return Map<String, dynamic>.from(root['user_info'] as Map? ?? const {});
+    } catch (e) {
+      debugPrint('[Xtream] account info error: $e');
+      return null;
+    }
+  }
+
   // ── Categories ─────────────────────────────────────────────────────────────
 
   /// Kategorileri çeker ve ID -> İsim eşleşmesini içeren bir Map döndürür
   Future<Map<String, String>> fetchCategoryMap(String action) async {
     try {
-      final r = await http.get(Uri.parse('$_base&action=$action')).timeout(const Duration(seconds: 15));
+      final r = await http
+          .get(Uri.parse('$_base&action=$action'))
+          .timeout(const Duration(seconds: 15));
       final list = jsonDecode(r.body) as List<dynamic>;
       final map = <String, String>{};
       for (var e in list) {
@@ -50,13 +67,18 @@ class AladinXtreamParser {
     }
   }
 
-  Future<List<CategoryModel>> fetchLiveCategories(int pid) => _cats('get_live_categories', 'tv', pid);
-  Future<List<CategoryModel>> fetchVodCategories(int pid) => _cats('get_vod_categories', 'movie', pid);
-  Future<List<CategoryModel>> fetchSeriesCategories(int pid) => _cats('get_series_categories', 'series', pid);
+  Future<List<CategoryModel>> fetchLiveCategories(int pid) =>
+      _cats('get_live_categories', 'tv', pid);
+  Future<List<CategoryModel>> fetchVodCategories(int pid) =>
+      _cats('get_vod_categories', 'movie', pid);
+  Future<List<CategoryModel>> fetchSeriesCategories(int pid) =>
+      _cats('get_series_categories', 'series', pid);
 
   Future<List<CategoryModel>> _cats(String action, String type, int pid) async {
     try {
-      final r = await http.get(Uri.parse('$_base&action=$action')).timeout(const Duration(seconds: 15));
+      final r = await http
+          .get(Uri.parse('$_base&action=$action'))
+          .timeout(const Duration(seconds: 15));
       final list = jsonDecode(r.body) as List<dynamic>;
       int order = 0;
       return list.map((e) {
@@ -78,19 +100,24 @@ class AladinXtreamParser {
 
   // ── Streams ────────────────────────────────────────────────────────────────
 
-  Stream<List<ChannelModel>> fetchLiveStreams(int pid, Map<String, String> catMap) =>
+  Stream<List<ChannelModel>> fetchLiveStreams(
+          int pid, Map<String, String> catMap) =>
       _streams('$_base&action=get_live_streams', 'tv', pid, catMap);
 
-  Stream<List<ChannelModel>> fetchVodStreams(int pid, Map<String, String> catMap) =>
+  Stream<List<ChannelModel>> fetchVodStreams(
+          int pid, Map<String, String> catMap) =>
       _streams('$_base&action=get_vod_streams', 'movie', pid, catMap);
 
-  Stream<List<ChannelModel>> fetchSeriesStreams(int pid, Map<String, String> catMap) =>
+  Stream<List<ChannelModel>> fetchSeriesStreams(
+          int pid, Map<String, String> catMap) =>
       _fetchSeries('$_base&action=get_series', pid, catMap);
 
-  Stream<List<ChannelModel>> _streams(String url, String type, int pid, Map<String, String> catMap,
+  Stream<List<ChannelModel>> _streams(
+      String url, String type, int pid, Map<String, String> catMap,
       {int batchSize = 200}) async* {
     try {
-      final r = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 45));
+      final r =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 45));
       final list = jsonDecode(r.body) as List<dynamic>;
       int order = 0;
       final batch = <ChannelModel>[];
@@ -102,8 +129,10 @@ class AladinXtreamParser {
         // catMap zaten trimli isimler içeriyor
         final catName = catMap[catId] ?? 'Diğer';
 
-        final hasCatchup = m['tv_archive']?.toString() == '1' || m['catchup']?.toString() == '1';
-        final catchupDays = int.tryParse(m['tv_archive_duration']?.toString() ?? '');
+        final hasCatchup = m['tv_archive']?.toString() == '1' ||
+            m['catchup']?.toString() == '1';
+        final catchupDays =
+            int.tryParse(m['tv_archive_duration']?.toString() ?? '');
 
         final ext = m['container_extension']?.toString() ?? 'ts';
         final streamUrl = type == 'tv'
@@ -135,10 +164,12 @@ class AladinXtreamParser {
     }
   }
 
-  Stream<List<ChannelModel>> _fetchSeries(String url, int pid, Map<String, String> catMap,
+  Stream<List<ChannelModel>> _fetchSeries(
+      String url, int pid, Map<String, String> catMap,
       {int batchSize = 200}) async* {
     try {
-      final r = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 45));
+      final r =
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 45));
       final list = jsonDecode(r.body) as List<dynamic>;
       int order = 0;
       final batch = <ChannelModel>[];
@@ -153,7 +184,7 @@ class AladinXtreamParser {
         batch.add(ChannelModel()
           ..playlistId = pid
           ..name = sName
-          ..url = '' 
+          ..url = ''
           ..logoUrl = m['cover']?.toString() ?? m['stream_icon']?.toString()
           ..categoryName = catName
           ..groupTitle = catName
@@ -174,9 +205,11 @@ class AladinXtreamParser {
     }
   }
 
-  Future<List<ChannelModel>> fetchSeriesEpisodes(String seriesId, int pid, String categoryName) async {
+  Future<List<ChannelModel>> fetchSeriesEpisodes(
+      String seriesId, int pid, String categoryName) async {
     try {
-      final r = await http.get(Uri.parse('$_base&action=get_series_info&series_id=$seriesId'))
+      final r = await http
+          .get(Uri.parse('$_base&action=get_series_info&series_id=$seriesId'))
           .timeout(const Duration(seconds: 20));
       final j = jsonDecode(r.body) as Map<String, dynamic>;
       final episodesMap = j['episodes'] as Map<String, dynamic>?;
@@ -190,17 +223,23 @@ class AladinXtreamParser {
           final m = ep as Map<String, dynamic>;
           final id = m['id']?.toString() ?? '';
           final ext = m['container_extension']?.toString() ?? 'mp4';
-          final epTitle = (m['title']?.toString() ?? m['name']?.toString() ?? 'Episode').trim();
-          final epNumStr = m['episode']?.toString() ?? m['episode_num']?.toString() ?? '';
-          
+          final epTitle =
+              (m['title']?.toString() ?? m['name']?.toString() ?? 'Episode')
+                  .trim();
+          final epNumStr =
+              m['episode']?.toString() ?? m['episode_num']?.toString() ?? '';
+
           final epPoster = m['info']?['movie_image']?.toString();
 
           results.add(ChannelModel()
             ..playlistId = pid
             ..name = epTitle
             ..url = '$server/series/$username/$password/$id.$ext'
-            ..logoUrl = (epPoster != null && epPoster.isNotEmpty) ? epPoster : seriesMainPoster
-            ..tmdbPoster = seriesMainPoster // Fallback olarak ana posteri de ekleyelim
+            ..logoUrl = (epPoster != null && epPoster.isNotEmpty)
+                ? epPoster
+                : seriesMainPoster
+            ..tmdbPoster =
+                seriesMainPoster // Fallback olarak ana posteri de ekleyelim
             ..categoryName = categoryName.trim()
             ..contentType = 'series'
             ..seriesName = (j['info']?['name']?.toString() ?? '').trim()

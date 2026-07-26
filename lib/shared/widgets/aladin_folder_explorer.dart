@@ -36,7 +36,7 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
         await Permission.manageExternalStorage.request();
       }
       await Permission.storage.request();
-      
+
       // USB sürücüleri de görmek için /storage dizininden başla
       _browse('/storage');
     } else {
@@ -62,14 +62,15 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
       }
 
       final List<FileSystemEntity> entities = await dir.list().toList();
-      
+
       final List<FileSystemEntity> dirs = [];
       final List<FileSystemEntity> files = [];
 
       for (var entity in entities) {
         try {
           final name = entity.path.split('/').last;
-          if (name == 'self' || name == 'knox-emulated' || name.startsWith('.')) continue;
+          if (name == 'self' || name == 'knox-emulated' || name.startsWith('.'))
+            continue;
 
           if (entity is Directory) {
             dirs.add(entity);
@@ -83,7 +84,8 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
       }
 
       dirs.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
-      files.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+      files
+          .sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
 
       setState(() {
         _currentPath = path;
@@ -119,7 +121,11 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
         backgroundColor: AppTheme.card,
         elevation: 0,
         title: Text(
-          _currentPath == '/storage' ? s.allDrives : (_currentPath.split('/').last.isEmpty ? s.deviceFiles : _currentPath.split('/').last),
+          _currentPath == '/storage'
+              ? s.allDrives
+              : (_currentPath.split('/').last.isEmpty
+                  ? s.deviceFiles
+                  : _currentPath.split('/').last),
           style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16),
         ),
         actions: [
@@ -139,28 +145,30 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: AppTheme.card.withValues(alpha:0.5),
+            color: AppTheme.card.withValues(alpha: 0.5),
             child: Row(
               children: [
-                const Icon(Icons.folder_open, color: AppTheme.textMuted, size: 16),
+                const Icon(Icons.folder_open,
+                    color: AppTheme.textMuted, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _currentPath,
-                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: const TextStyle(
+                        color: AppTheme.textMuted, fontSize: 12),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
           ),
-          
           Expanded(
-            child: _loading 
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.accent))
-              : _error != null
-                ? _buildErrorView()
-                : _buildListView(),
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppTheme.accent))
+                : _error != null
+                    ? _buildErrorView()
+                    : _buildListView(),
           ),
         ],
       ),
@@ -177,9 +185,12 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
           const SizedBox(height: 16),
           Text(_error!, style: const TextStyle(color: AppTheme.textSecondary)),
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: () => _browse(_currentPath), child: Text(s.retry)),
+          ElevatedButton(
+              onPressed: () => _browse(_currentPath), child: Text(s.retry)),
           const SizedBox(height: 12),
-          TextButton(onPressed: () => _browse('/storage/emulated/0'), child: Text(s.goInternal)),
+          TextButton(
+              onPressed: () => _browse('/storage/emulated/0'),
+              child: Text(s.goInternal)),
         ],
       ),
     );
@@ -236,7 +247,9 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
         if (focused) onFocus();
       },
       onKeyEvent: (node, event) {
-        if (event is KeyDownEvent && (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.select)) {
+        if (event is KeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.enter ||
+                event.logicalKey == LogicalKeyboardKey.select)) {
           onTap();
           return KeyEventResult.handled;
         }
@@ -251,8 +264,15 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
           decoration: BoxDecoration(
             color: isFocused ? AppTheme.accent : AppTheme.card,
             borderRadius: BorderRadius.circular(8),
-            border: isFocused ? Border.all(color: Colors.white, width: 2) : null,
-            boxShadow: isFocused ? [BoxShadow(color: AppTheme.accent.withValues(alpha:0.4), blurRadius: 8)] : null,
+            border:
+                isFocused ? Border.all(color: Colors.white, width: 2) : null,
+            boxShadow: isFocused
+                ? [
+                    BoxShadow(
+                        color: AppTheme.accent.withValues(alpha: 0.4),
+                        blurRadius: 8)
+                  ]
+                : null,
           ),
           child: Row(
             children: [
@@ -268,7 +288,8 @@ class _AladinFolderExplorerState extends State<AladinFolderExplorer> {
                 ),
               ),
               if (icon == Icons.folder)
-                Icon(Icons.chevron_right, color: isFocused ? Colors.white : AppTheme.textMuted),
+                Icon(Icons.chevron_right,
+                    color: isFocused ? Colors.white : AppTheme.textMuted),
             ],
           ),
         ),

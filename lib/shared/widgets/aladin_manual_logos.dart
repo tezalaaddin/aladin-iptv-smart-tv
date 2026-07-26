@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 /// AladinManualLogos — GitHub üzerinde barındırılan TV kanal logoları.
 ///
@@ -16,7 +15,8 @@ import 'package:flutter/foundation.dart';
 class AladinManualLogos {
   AladinManualLogos._();
 
-  static const String _base = 'https://raw.githubusercontent.com/tezalaaddin/aladinTVLogos/main/';
+  static const String _base =
+      'https://raw.githubusercontent.com/tezalaaddin/aladinTVLogos/main/';
 
   // ─── Dosya adı haritası: normalize_key → webp dosya adı ────────────────
   static const Map<String, String> _files = {
@@ -324,13 +324,13 @@ class AladinManualLogos {
   /// `CachedNetworkImage(imageUrl: url)` ile kullanılır.
   static String? urlFor(String channelName, String? tvgId) {
     String? result;
-    
+
     // 1. tvg-id ile tam eşleşme
     if (tvgId != null && tvgId.isNotEmpty) {
       final file = _files[_norm(tvgId)];
       if (file != null) result = '$_base$file';
     }
-    
+
     // 2. Kanal adı ile eşleşme
     if (result == null) {
       final key = _norm(channelName);

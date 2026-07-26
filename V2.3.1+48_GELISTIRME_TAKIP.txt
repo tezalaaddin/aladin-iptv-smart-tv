@@ -1,0 +1,72 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+48 GELISTIRME TAKIP DOSYASI
+================================================================
+Baslangic: 26.07.2026
+Hedef surum: 2.3.1+48
+Android versionCode: 1048
+GitHub durumu: FINAL TESTLER BITENE KADAR GONDERILMEYECEK
+
+Durumlar: [BEKLIYOR] [DEVAM EDIYOR] [TAMAMLANDI] [TV TESTI TAMAMLANDI]
+
+----------------------------------------------------------------
+A. EBEVEYN DENETIMI VE ICERIK KILIDI
+----------------------------------------------------------------
+A01 [TAMAMLANDI] Guvenli 4-6 haneli PIN olusturma ve dogrulama.
+A02 [TAMAMLANDI] PIN hash/salt degerlerini guvenli depolamada saklama.
+A03 [TAMAMLANDI] Playlist + kategori kimligi bazli kategori kilidi.
+A04 [TAMAMLANDI] Icerik kartinda kumanda OK tusuna uzun basma ile tekil kilit.
+A05 [TAMAMLANDI] Dashboard, Arama, Favoriler ve Oynaticida merkezi kilit denetimi.
+A06 [TAMAMLANDI] Kilitli poster, baslik ve icerik sayisini liste katmaninda gizleme.
+A07 [TAMAMLANDI] 15/30/60 dakikalik kilit acma oturumu ve simdi kilitle.
+A08 [TAMAMLANDI] Bes hatali PIN denemesinden sonra 30 saniye bekleme.
+A09 [TAMAMLANDI] Android TV Search ve Watch Next'ten kilitli icerigi cikarma.
+A10 [TAMAMLANDI] Yetiskin kategori adlarini varsayilan olarak PIN ile koruma.
+
+----------------------------------------------------------------
+B. EPG VE KANAL YONETIMI
+----------------------------------------------------------------
+B01 [TAMAMLANDI] Kanal + yatay zaman cizelgeli tam EPG grid.
+B02 [TAMAMLANDI] Onceki/bugun/sonraki gun, simdi ve catch-up isaretleri.
+B03 [BEKLIYOR] Kanal siralama ve kullanici sirasini kalici saklama.
+B04 [BEKLIYOR] Kategori/kanal gizleme ve geri gosterme yonetimi.
+B05 [BEKLIYOR] Favori gruplari, son izlenen ve en sik izlenen listeleri.
+
+----------------------------------------------------------------
+C. KANAL BAZLI OYNATMA TERCIHLERI
+----------------------------------------------------------------
+C01 [TAMAMLANDI] Kanal bazli decoder ve kalite tercihi.
+C02 [TAMAMLANDI] Kanal bazli ses parcasi, altyazi ve ekran orani hatirlama.
+C03 [BEKLIYOR] Ses ve altyazi gecikmesi (-500/+500 ms).
+C04 [BEKLIYOR] Kare hizi eslestirme secenegi.
+C05 [BEKLIYOR] Basarili oynatma profilini kanal bazinda hatirlama.
+
+----------------------------------------------------------------
+D. PLAYLIST SAGLIGI VE YEDEKLEME
+----------------------------------------------------------------
+D01 [TAMAMLANDI] Playlist saglik ekrani ve toplam icerik istatistikleri.
+D02 [TAMAMLANDI] Bos adres, EPG/poster eksigi ve tekrar raporu.
+D03 [TAMAMLANDI] Xtream sunucu gecikmesi ve abonelik bitis bilgisi.
+D04 [TAMAMLANDI] Favori, ilerleme, kilit ve ayar yedekleme/geri yukleme.
+D05 [TAMAMLANDI] Varsayilan yedekten Xtream sifresini ve PIN'i haric tutma.
+
+----------------------------------------------------------------
+E. ANDROID TV, ERISILEBILIRLIK VE TEST
+----------------------------------------------------------------
+E01 [TAMAMLANDI] Watch Next ilerleme/tamamlanma periyodik guncellemesi.
+E02 [TAMAMLANDI] Kilitli icerigi sistem yuzeylerinden temizleme.
+E03 [TAMAMLANDI] Buyuk yazi ve yuksek kontrast modu.
+E04 [TAMAMLANDI] Yeni EPG ve guvenlik ekranlarinda TalkBack/semantik etiketler.
+E05 [TV TESTI TAMAMLANDI] D-pad, dialog odagi, surum ve cok sayfali smoke testi.
+E06 [TAMAMLANDI] Tum Dart kaynaklari formatlandi; yeni kodda analyzer hatasi yok.
+
+----------------------------------------------------------------
+F. SURUM, DOKUMANTASYON VE YAYIN
+----------------------------------------------------------------
+F01 [TAMAMLANDI] pubspec 2.3.1+48 ve Android versionCode 1048 yapildi.
+F02 [TAMAMLANDI] +48 gelistirme takip dosyasi olusturuldu.
+F03 [TAMAMLANDI] SKILL.md en altina +48 surum notlari eklendi.
+F04 [TAMAMLANDI] Flutter analyze/test, AAB ve split APK derlemeleri gecti.
+F05 [TV TESTI TAMAMLANDI] ARMv7 Realtek TV kurulum, acilis, D-pad ve dialog testi.
+F06 [BEKLIYOR] Basarili sonucu yerel commit etme; kullanici istemeden push etmeme.
+
+NOT: Play Store kullanici onayi olmadan uygulama kurulmasina izin vermez.
+Guncelleme sistemi yeni surumu bildirir ve Play Store'a yonlendirir.

@@ -10,6 +10,7 @@ import '../parsers/aladin_import_bridge.dart';
 import '../parsers/aladin_xtream_parser.dart';
 import '../models/aladin_playlist_model.dart';
 import 'aladin_channel_service.dart';
+import '../state/aladin_app_prefs.dart';
 
 enum ImportProgress { idle, downloading, parsing, saving, done, error }
 
@@ -113,6 +114,174 @@ class PlaylistService {
         );
       }
     }
+  }
+
+  /// Full local-state backup without credentials or the parental PIN.
+  Future<String> exportAppBackup() async {
+    final playlists = await getAll();
+    final playlistData = <Map<String, dynamic>>[];
+    for (final playlist in playlists) {
+      final channels = await _db.channelModels
+          .filter()
+          .playlistIdEqualTo(playlist.id)
+          .findAll();
+      playlistData.add({
+        'name': playlist.name,
+        'url': playlist.url,
+        'type': playlist.type,
+        'server': playlist.xtreamServer,
+        'user': playlist.xtreamUsername,
+        'state': channels
+            .where((c) => c.isFavorite || c.watchedSeconds > 0)
+            .map((c) => {
+                  'url': c.url,
+                  'favorite': c.isFavorite,
+                  'watched': c.watchedSeconds,
+                  'duration': c.totalDurationSeconds,
+                })
+            .toList(),
+      });
+    }
+    final prefs = AladinPrefs.instance;
+    return jsonEncode({
+      'format': 'aladin-backup-v2',
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+      'playlists': playlistData,
+      'settings': {
+        'decoderMode': prefs.getString('decoderMode'),
+        'preferredQuality': prefs.getString('preferredQuality'),
+        'shuffle_on_launch': prefs.shuffleOnLaunch,
+        'auto_play_last': prefs.getBool('auto_play_last'),
+        'parental_enabled': prefs.getBool('parental_enabled'),
+        'parental_hide_locked':
+            prefs.getBool('parental_hide_locked', def: true),
+        'parental_session_minutes':
+            prefs.getInt('parental_session_minutes', def: 15),
+        'parental_locked_categories_v2':
+            prefs.getString('parental_locked_categories_v2'),
+        'parental_locked_channels_v2':
+            prefs.getString('parental_locked_channels_v2'),
+      },
+    });
+  }
+
+  Future<void> importAppBackup(String raw) async {
+    final root = jsonDecode(raw);
+    if (root is List) return importBackup(raw);
+    if (root is! Map || root['format'] != 'aladin-backup-v2') {
+      throw const FormatException('Desteklenmeyen yedek biçimi.');
+    }
+    final settings = Map<String, dynamic>.from(root['settings'] ?? const {});
+    for (final key in [
+      'decoderMode',
+      'preferredQuality',
+      'parental_locked_categories_v2',
+      'parental_locked_channels_v2'
+    ]) {
+      final value = settings[key];
+      if (value is String) await AladinPrefs.instance.setString(key, value);
+    }
+    for (final key in [
+      'shuffle_on_launch',
+      'auto_play_last',
+      'parental_enabled',
+      'parental_hide_locked'
+    ]) {
+      final value = settings[key];
+      if (value is bool) await AladinPrefs.instance.setBool(key, value);
+    }
+    final minutes = settings['parental_session_minutes'];
+    if (minutes is num) {
+      await AladinPrefs.instance
+          .setInt('parental_session_minutes', minutes.toInt());
+    }
+    for (final item in (root['playlists'] as List? ?? const [])) {
+      final data = Map<String, dynamic>.from(item as Map);
+      final existing = await findByUrl(data['url']?.toString() ?? '');
+      if (existing == null) continue; // Credentials are intentionally absent.
+      for (final stateRaw in (data['state'] as List? ?? const [])) {
+        final state = Map<String, dynamic>.from(stateRaw as Map);
+        final channel = await _db.channelModels
+            .filter()
+            .playlistIdEqualTo(existing.id)
+            .and()
+            .urlEqualTo(state['url']?.toString() ?? '')
+            .findFirst();
+        if (channel == null) continue;
+        channel.isFavorite = state['favorite'] == true;
+        channel.watchedSeconds = (state['watched'] as num?)?.toInt() ?? 0;
+        channel.totalDurationSeconds =
+            (state['duration'] as num?)?.toInt() ?? 0;
+        await _db.writeTxn(() => _db.channelModels.put(channel));
+      }
+    }
+    await AladinPrefs.instance.flush();
+  }
+
+  /// Local, non-invasive playlist health report. Streams are not opened, so
+  /// running this never starts hundreds of network connections on a TV.
+  Future<Map<String, int>> getHealthReport(int playlistId) async {
+    final channels = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .findAll();
+    final urls = <String>{};
+    var emptyUrl = 0;
+    var duplicates = 0;
+    var missingArtwork = 0;
+    var missingEpgId = 0;
+    for (final channel in channels) {
+      final url = channel.url.trim();
+      if (url.isEmpty) {
+        if (channel.contentType != 'series') emptyUrl++;
+      } else if (!urls.add(url)) {
+        duplicates++;
+      }
+      if ((channel.logoUrl ?? channel.tmdbPoster ?? '').trim().isEmpty) {
+        missingArtwork++;
+      }
+      if (channel.contentType == 'tv' && (channel.tvgId ?? '').trim().isEmpty) {
+        missingEpgId++;
+      }
+    }
+    return {
+      'total': channels.length,
+      'emptyUrl': emptyUrl,
+      'duplicates': duplicates,
+      'missingArtwork': missingArtwork,
+      'missingEpgId': missingEpgId,
+    };
+  }
+
+  Future<Map<String, dynamic>?> getXtreamHealth(PlaylistModel playlist) async {
+    if (playlist.type != 'xtream' ||
+        playlist.xtreamServer == null ||
+        playlist.xtreamUsername == null) return null;
+    final password = await getPass(playlist.id);
+    if (password == null) return null;
+    final watch = Stopwatch()..start();
+    final info = await AladinXtreamParser(
+      server: playlist.xtreamServer!,
+      username: playlist.xtreamUsername!,
+      password: password,
+    ).fetchAccountInfo();
+    watch.stop();
+    if (info == null)
+      return {'latencyMs': watch.elapsedMilliseconds, 'status': 'Ulaşılamıyor'};
+    final expirySeconds = int.tryParse(info['exp_date']?.toString() ?? '');
+    return {
+      'latencyMs': watch.elapsedMilliseconds,
+      'status': info['status']?.toString() ?? 'Bilinmiyor',
+      'activeConnections': info['active_cons']?.toString() ?? '-',
+      'maxConnections': info['max_connections']?.toString() ?? '-',
+      'expiry': expirySeconds == null
+          ? 'Belirtilmemiş'
+          : DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000)
+              .toLocal()
+              .toString()
+              .split(' ')
+              .first,
+    };
   }
 
   // ── Import M3U ────────────────────────────────────────────────────────────
