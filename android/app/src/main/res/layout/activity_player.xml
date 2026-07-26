@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Arka Plan Gradyanı (Okunabilirlik için) -->
+    <View
+        android:id="@+id/v_bottom_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_bottom"
+        android:visibility="visible" />
+
+    <!-- Arka Plan Gradyanı (Okunabilirlik için) -->
+    <View
+        android:id="@+id/v_bottom_gradient"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_bottom" />
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/native_player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="false" />
+
+    <!-- Status / Loading Overlay -->
+    <TextView
+        android:id="@+id/tv_status_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="60dp"
+        android:background="#88000000"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:visibility="gone"
+        android:textStyle="bold" />
+
+    <!-- Progress Bar (Sadece VOD için) -->
+    <LinearLayout
+        android:id="@+id/seekbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="60dp"
+        android:orientation="vertical"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp">
+
+        <SeekBar
+            android:id="@+id/player_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="6dp"
+            android:maxHeight="6dp"
+            android:progressDrawable="@drawable/custom_seekbar_style"
+            android:thumb="@android:color/transparent"
+            android:splitTrack="false"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_time_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:textColor="#BBBBBB"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Kanal Bilgi Paneli -->
+    <LinearLayout
+        android:id="@+id/channel_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="100dp"
+        android:layout_marginHorizontal="40dp"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
+        android:padding="0dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tv_channel_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/iv_favorite"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginStart="12dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:visibility="visible" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Kumanda Rehberi (OSD Help) -->
+    <LinearLayout
+        android:id="@+id/key_guide_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#99000000"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/btn_subtitles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● Altyazı"
+            android:textColor="#FF5252"
+            android:textSize="13sp"
+            android:layout_marginEnd="16dp"
+            android:alpha="0.9" />
+
+        <TextView
+            android:id="@+id/btn_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● Ses"
+            android:textColor="#4CAF50"
+            android:textSize="13sp"
+            android:layout_marginEnd="16dp"
+            android:alpha="0.9" />
+
+        <TextView
+            android:id="@+id/btn_quality"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● Kalite"
+            android:textColor="#FFEB3B"
+            android:textSize="13sp"
+            android:layout_marginEnd="16dp"
+            android:alpha="0.9" />
+
+        <TextView
+            android:id="@+id/btn_aspect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● Oran"
+            android:textColor="#2196F3"
+            android:textSize="13sp"
+            android:layout_marginEnd="16dp"
+            android:alpha="0.9" />
+
+        <TextView
+            android:id="@+id/btn_favorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="[0] Favori"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:alpha="0.9" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_guide_nav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="↕ Kanal"
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp"
+            android:layout_marginEnd="12dp" />
+
+        <TextView
+            android:id="@+id/tv_guide_seek"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="↔ Sar"
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Ses Barı -->
+    <LinearLayout
+        android:id="@+id/volume_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#CC000000"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_volume_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="#FF5252"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Durdurulduğunda Çıkan Bilgi Paneli -->
+    <LinearLayout
+        android:id="@+id/pause_info_layout"
+        android:layout_width="480dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="60dp"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
+        android:padding="0dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/iv_pause_poster"
+            android:layout_width="match_parent"
+            android:layout_height="270dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/rounded_poster"
+            android:clipToOutline="true"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tv_pause_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+            <TextView
+                android:id="@+id/tv_pause_year"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BBBBBB"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/tv_pause_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFEB3B"
+                android:textSize="14sp"
+                android:layout_marginStart="16dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_pause_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#DDDDDD"
+            android:textSize="13sp"
+            android:layout_marginTop="10dp"
+            android:maxLines="6"
+            android:ellipsize="end"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+
+    <!-- Center Play/Pause Button & Loading Spinner -->
+    <FrameLayout
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:layout_gravity="center">
+
+        <ProgressBar
+            android:id="@+id/pb_loading"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:indeterminateTint="#FF5252"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/iv_center_play_pause"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_gravity="center"
+            android:background="@drawable/circle_bg"
+            android:padding="20dp"
+            android:src="@android:drawable/ic_media_play"
+            android:tint="#FFFFFF"
+            android:alpha="0.95"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="8dp" />
+    </FrameLayout>
+
+    <!-- Error Overlay -->
+    <LinearLayout
+        android:id="@+id/error_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#DD000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@android:drawable/ic_dialog_alert"
+            android:tint="#FF5252"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:id="@+id/tv_error_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Oynatma Hatası"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_error_suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="Bu içerik cihazınızın donanım hızlandırıcısı ile uyumlu olmayabilir. Lütfen ayarlardan Yazılımsal Kod Çözücü'yü deneyin."
+            android:textColor="#BBBBBB"
+            android:textSize="16sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_go_to_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:background="#FF5252"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:text="AYARLARA GİT"
+            android:textColor="#FFFFFF" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_back_to_list"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="#33FFFFFF"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:text="LİSTEYE DÖN"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Hızlı Liste (Side Panel) -->
+    <LinearLayout
+        android:id="@+id/quick_list_layout"
+        android:layout_width="350dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="#DD000000"
+        android:orientation="vertical"
+        android:padding="0dp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/tv_quick_list_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="HIZLI LİSTE"
+            android:textColor="#FF5252"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:background="#22FFFFFF" />
+
+        <ListView
+            android:id="@+id/lv_quick_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="#22FFFFFF"
+            android:dividerHeight="1dp"
+            android:choiceMode="singleChoice"
+            android:listSelector="@drawable/list_selector_bg"
+            android:drawSelectorOnTop="true" />
+    </LinearLayout>
+
+    <!-- Tanılama / Test Paneli (Diagnostic Panel) -->
+    <LinearLayout
+        android:id="@+id/diagnostics_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="30dp"
+        android:background="#AA000000"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STREAM DIAGNOSTICS"
+            android:textColor="#FF5252"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tv_diag_internet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Internet: --"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_diag_server"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Server: --"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_diag_resolution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Video: --"
+            android:textColor="#BBBBBB"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Auto-play Next Episode Overlay (NEW) -->
+    <LinearLayout
+        android:id="@+id/autoplay_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#DD000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sonraki Bölüm Başlıyor"
+            android:textColor="#BBBBBB"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_autoplay_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Bölüm Adı"
+            android:textColor="#FFFFFF"
+            android:textSize="23sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_autoplay_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="5..."
+            android:textColor="#FF5252"
+            android:textSize="48sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_cancel_autoplay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:background="#33FFFFFF"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:text="İPTAL"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+</FrameLayout>

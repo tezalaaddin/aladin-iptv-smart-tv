@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- IPTV stream'leri HTTP olabileceğinden genel cleartext açık kalıyor -->
+    <!-- Ama kendi API'lerimiz HTTPS zorunlu -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.themoviedb.org</domain>
+        <domain includeSubdomains="true">image.tmdb.org</domain>
+        <domain includeSubdomains="true">xmltv.org</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

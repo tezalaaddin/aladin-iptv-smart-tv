@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/native_player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="false" />
+
+    <!-- Progress Bar (Sadece VOD için) -->
+    <SeekBar
+        android:id="@+id/player_seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="110dp"
+        android:layout_marginHorizontal="40dp"
+        android:progressTint="#FF5252"
+        android:thumbTint="#FF5252"
+        android:visibility="gone" />
+
+    <!-- Kanal Bilgi Paneli -->
+    <LinearLayout
+        android:id="@+id/channel_info_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="40dp"
+        android:background="#CC000000"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tv_channel_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/iv_favorite"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="16dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_time_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#BBBBBB"
+            android:textSize="16sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Kumanda Rehberi (OSD Help) -->
+    <LinearLayout
+        android:id="@+id/key_guide_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#AA000000"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Altyazı" android:textColor="#FF5252" android:textSize="14sp" android:layout_marginEnd="20dp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Ses" android:textColor="#4CAF50" android:textSize="14sp" android:layout_marginEnd="20dp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Kalite" android:textColor="#FFEB3B" android:textSize="14sp" android:layout_marginEnd="20dp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Oran" android:textColor="#2196F3" android:textSize="14sp" android:layout_marginEnd="20dp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="[0] Favori" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Ses Barı -->
+    <LinearLayout
+        android:id="@+id/volume_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#CC000000"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_volume_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="#FF5252"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</FrameLayout>

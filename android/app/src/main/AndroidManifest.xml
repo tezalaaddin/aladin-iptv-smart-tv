@@ -1,0 +1,116 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <uses-feature android:name="android.software.leanback" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.faketouch" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.camera.external" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.gps" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.ethernet" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.location" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.barometer" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.light" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.proximity" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.sensor.stepdetector" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.usb.accessory" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.audio.output" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.audio.low_latency" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.audio.pro" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.type.television" android:required="false" tools:replace="android:required" />
+    <uses-feature android:name="android.hardware.type.settopbox" android:required="false" tools:replace="android:required" />
+
+    <application
+        android:label="Aladin Media Player Pro TV"
+        android:name="${applicationName}"
+        android:icon="@mipmap/launcher_icon"
+        android:banner="@drawable/tv_banner"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:resizeableActivity="true"
+            android:screenOrientation="unspecified">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"
+                />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <!-- Deep Link for Watch Next / Search -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="aladin" android:host="play" />
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+        <activity
+            android:name=".NativePlayerActivity"
+            android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:screenOrientation="unspecified"
+            android:supportsPictureInPicture="true"
+            android:resizeableActivity="true"
+            android:theme="@style/NativePlayerTheme" />
+
+        <!-- Android TV Global Search Provider -->
+        <provider
+            android:name=".AladinSearchProvider"
+            android:authorities="com.aladin.iptv.player.pro.search"
+            android:exported="true">
+            <path-permission
+                android:pathPrefix="/search"
+                android:readPermission="android.permission.GLOBAL_SEARCH" />
+        </provider>
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

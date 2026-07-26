@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Arka plan (Henüz izlenmemiş ve yüklenmemiş kısım) -->
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="3dp" />
+            <solid android:color="#4DFFFFFF" /> <!-- %30 Beyaz -->
+            <size android:height="6dp" />
+        </shape>
+    </item>
+    <!-- Buffer (Yüklenen ama henüz izlenmeyen kısım) -->
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape>
+                <corners android:radius="3dp" />
+                <solid android:color="#80FFFFFF" /> <!-- %50 Beyaz -->
+            </shape>
+        </clip>
+    </item>
+    <!-- İlerleme (İzlenen ana kısım) -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <corners android:radius="3dp" />
+                <solid android:color="#FFFFFF" /> <!-- Tam Beyaz -->
+            </shape>
+        </clip>
+    </item>
+</layer-list>
