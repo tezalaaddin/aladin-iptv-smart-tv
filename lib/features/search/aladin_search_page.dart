@@ -212,7 +212,10 @@ class _SearchPageState extends State<SearchPage> {
                 final ch = all[i];
                 return ChannelCard(
                   channel: ch,
-                  onLongPress: () => showAladinChannelOptions(context, ch),
+                  onLongPress: () async {
+                    final changed = await showAladinChannelOptions(context, ch);
+                    if (changed && mounted) await _doSearch(_query);
+                  },
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(

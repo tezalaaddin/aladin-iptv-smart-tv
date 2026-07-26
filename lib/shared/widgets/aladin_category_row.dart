@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_category_model.dart';
 import '../../core/services/aladin_channel_service.dart';
+import '../../core/services/aladin_content_visibility_service.dart';
 import '../theme/aladin_app_theme.dart';
 import 'aladin_channel_card.dart';
 import 'aladin_channel_options.dart';
@@ -162,8 +163,16 @@ class _CategoryRowState extends State<CategoryRow> {
                         showEpg: widget.showEpg,
                         seriesProgress: prog,
                         onTap: () => widget.onChannelTap(ch, _channels),
-                        onLongPress: () =>
-                            showAladinChannelOptions(context, ch),
+                        onLongPress: () async {
+                          final changed =
+                              await showAladinChannelOptions(context, ch);
+                          if (changed && mounted) {
+                            setState(() => _channels.removeWhere((item) =>
+                                item.id == ch.id &&
+                                !ContentVisibilityService.instance
+                                    .isChannelVisible(item)));
+                          }
+                        },
                         onFavoriteTap: () => widget.onFavorite?.call(ch),
                       );
                     },

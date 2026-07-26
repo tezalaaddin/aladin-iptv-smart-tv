@@ -140,6 +140,7 @@ class _PlayerPageState extends State<PlayerPage> {
         'headers': headers,
         'index': filteredIndex >= 0 ? filteredIndex : 0,
         'decoderMode': decoderMode,
+        'channelScope': channelScope,
         'videoLimit': videoLimit,
         'matchFrameRate':
             AladinPrefs.instance.getBool('match_content_frame_rate'),

@@ -53,4 +53,27 @@ void main() {
       }
     }
   });
+
+  test('+50 dashboard, EPG and hidden-content surfaces are localized', () {
+    const languages = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    const keys = [
+      'noHiddenContent',
+      'hiddenCategory',
+      'hiddenChannel',
+      'showAll',
+      'mostWatched',
+      'selectedGuideDay',
+      'customizeDashboard',
+      'watchNextStatus',
+      'watchNextEnabled',
+      'watchNextUnavailable',
+    ];
+    for (final language in languages) {
+      final strings = AppStrings.of(language);
+      for (final key in keys) {
+        expect(strings.v50(key), isNot(key), reason: '$language:$key');
+        expect(strings.v50(key).trim(), isNotEmpty, reason: '$language:$key');
+      }
+    }
+  });
 }

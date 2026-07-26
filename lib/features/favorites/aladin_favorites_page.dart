@@ -183,7 +183,11 @@ class _FavoritesPageState extends State<FavoritesPage>
             channel: ch,
             margin: EdgeInsets.zero,
             onTap: () => _play(ch, list),
-            onLongPress: () => showAladinChannelOptions(context, ch),
+            onLongPress: () async {
+              final changed = await showAladinChannelOptions(context, ch);
+              final active = context.read<AppState>().active;
+              if (changed && mounted && active != null) await _load(active.id);
+            },
           ),
         );
       },

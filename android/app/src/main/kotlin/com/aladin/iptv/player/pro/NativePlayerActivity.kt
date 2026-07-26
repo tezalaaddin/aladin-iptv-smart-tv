@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.util.Rational
 import android.view.GestureDetector
@@ -133,6 +134,7 @@ class NativePlayerActivity : AppCompatActivity(),
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var prefs: SharedPreferences
     private lateinit var gestureDetector: GestureDetector
+    private var lastWatchReportRealtime = 0L
 
     // UI refs
     private lateinit var channelInfoLayout: LinearLayout
@@ -222,6 +224,7 @@ class NativePlayerActivity : AppCompatActivity(),
     // NEW: device profile — computed once at init
     private var isLowMem = false
     private var preferSoftwareDecoder = false
+    private var decoderFallbackAttempted = false
 
     // ── WiFi Lock (NEW) ───────────────────────────────────────────────────────
     // Prevents WiFi chipset from entering doze during playback on cheap TV boxes.
@@ -428,8 +431,8 @@ class NativePlayerActivity : AppCompatActivity(),
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
             // In PiP — keep playing
         } else {
-            player?.pause()
             saveCurrentPosition()
+            player?.pause()
             releasePlayer()
         }
     }
@@ -469,7 +472,12 @@ class NativePlayerActivity : AppCompatActivity(),
     private fun initializePlayer() {
         if (player != null) return
 
-        val decoderMode = intent.getStringExtra("DECODER_MODE") ?: "auto"
+        val requestedDecoderMode = intent.getStringExtra("DECODER_MODE") ?: "auto"
+        val channelScope = intent.getStringExtra("CHANNEL_SCOPE") ?: ""
+        val learnedMode = if (channelScope.isNotBlank())
+            prefs.getString("decoder_override_$channelScope", null) else null
+        val decoderMode = if (requestedDecoderMode == "auto" && learnedMode != null)
+            learnedMode else requestedDecoderMode
         val isLive = channelTypes?.getOrNull(currentIndex) == "tv"
 
         // 1. RenderersFactory — Optimized for low-end TVs
@@ -627,6 +635,18 @@ class NativePlayerActivity : AppCompatActivity(),
             )
 
             when {
+                isDecoderError &&
+                    (intent.getStringExtra("DECODER_MODE") ?: "auto") == "auto" &&
+                    !decoderFallbackAttempted && !isLowMem -> {
+                    decoderFallbackAttempted = true
+                    preferSoftwareDecoder = true
+                    val scope = intent.getStringExtra("CHANNEL_SCOPE") ?: ""
+                    if (scope.isNotBlank()) {
+                        prefs.edit().putString("decoder_override_$scope", "sw").apply()
+                    }
+                    showStatus(t("decoder_fallback", "YazÄ±lÄ±msal kod Ã§Ã¶zÃ¼cÃ¼ deneniyor..."), true)
+                    mainHandler.postDelayed({ prepareAndPlay() }, 750L)
+                }
                 isDecoderError -> showDecoderErrorUI(error.message ?: "")
                 isNetworkError && retryCount < MAX_RETRIES -> {
                     retryCount++
@@ -672,6 +692,7 @@ class NativePlayerActivity : AppCompatActivity(),
                     mainHandler.postDelayed(bufferingTimeoutRunnable, BUFFERING_TIMEOUT_MS)
                 }
                 Player.STATE_READY -> {
+                    decoderFallbackAttempted = false
                     applyContentFrameRate()
                     retryCount = 0
                     bufferingRetryCount = 0
@@ -1341,10 +1362,16 @@ class NativePlayerActivity : AppCompatActivity(),
         player?.let { p ->
             if (p.duration != C.TIME_UNSET && p.duration > 0) {
                 val pos = p.currentPosition
+                val nowRealtime = SystemClock.elapsedRealtime()
+                val watchedDelta = if (p.isPlaying && lastWatchReportRealtime > 0L)
+                    ((nowRealtime - lastWatchReportRealtime) / 1000L).coerceIn(0L, 300L)
+                else 0L
+                lastWatchReportRealtime = nowRealtime
                 prefs.edit().putLong("pos_$url", pos).apply()
                 val i = Intent("com.aladin.iptv.player.pro.PROGRESS_UPDATE").apply {
                     setPackage(packageName)
                     putExtra("url", url); putExtra("position", pos); putExtra("duration", p.duration)
+                    putExtra("watchedDelta", watchedDelta)
                 }
                 sendBroadcast(i)
             }

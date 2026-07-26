@@ -1708,8 +1708,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       '${ContentVisibilityService.instance.hiddenCount} gizli öğe'),
                   trailing: const Icon(Icons.visibility),
                   onTap: () async {
-                    await ContentVisibilityService.instance.showAll();
-                    update(() {});
+                    Navigator.pop(dialogContext);
+                    await _showHiddenContentManager();
                   },
                 ),
                 ListTile(
@@ -1795,7 +1795,75 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showAboutDialog(AppStrings s) {
+  Future<void> _showHiddenContentManager() async {
+    final visibility = ContentVisibilityService.instance;
+    final strings = context.read<AppState>().s;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) {
+          final entries = visibility.hiddenEntries;
+          return AlertDialog(
+            backgroundColor: AppTheme.card,
+            title: Text(strings.v49('showHidden')),
+            content: SizedBox(
+              width: 620,
+              height: 420,
+              child: entries.isEmpty
+                  ? Center(child: Text(strings.v50('noHiddenContent')))
+                  : ListView.builder(
+                      itemCount: entries.length,
+                      itemBuilder: (context, index) {
+                        final entry = entries[index];
+                        return ListTile(
+                          autofocus: index == 0,
+                          leading: Icon(entry.isCategory
+                              ? Icons.folder_outlined
+                              : Icons.live_tv_outlined),
+                          title: Text(entry.name,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: Text(entry.isCategory
+                              ? strings.v50('hiddenCategory')
+                              : strings.v50('hiddenChannel')),
+                          trailing: const Icon(Icons.visibility_outlined),
+                          onTap: () async {
+                            await visibility.show(entry);
+                            update(() {});
+                          },
+                        );
+                      },
+                    ),
+            ),
+            actions: [
+              if (entries.isNotEmpty)
+                TextButton(
+                  onPressed: () async {
+                    await visibility.showAll();
+                    update(() {});
+                  },
+                  child: Text(strings.v50('showAll')),
+                ),
+              FilledButton(
+                autofocus: entries.isEmpty,
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(strings.close),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _showAboutDialog(AppStrings s) async {
+    Map<dynamic, dynamic> tvStatus = const {};
+    try {
+      tvStatus = await const MethodChannel('aladin/exoplayer')
+              .invokeMapMethod<dynamic, dynamic>('getTvIntegrationStatus') ??
+          const {};
+    } catch (_) {}
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1816,6 +1884,26 @@ class _SettingsPageState extends State<SettingsPage> {
                 '${s.version} ${_packageInfo?.version} (${_packageInfo?.buildNumber})',
                 style: const TextStyle(color: Colors.white70, fontSize: 13)),
             const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.tv, color: AppTheme.accent),
+              title: Text(s.v50('watchNextStatus')),
+              subtitle: Text(tvStatus['watchNextEnabled'] == true
+                  ? s.v50('watchNextEnabled')
+                  : s.v50('watchNextUnavailable')),
+              trailing: tvStatus['permissionRejected'] == true
+                  ? TextButton(
+                      onPressed: () async {
+                        await const MethodChannel('aladin/exoplayer')
+                            .invokeMethod('retryWatchNext');
+                        if (context.mounted) Navigator.pop(context);
+                        _showAboutDialog(s);
+                      },
+                      child: Text(s.retry),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 8),
             Text(s.developer,
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),

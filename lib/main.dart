@@ -125,12 +125,17 @@ class _AladinAppState extends State<AladinApp>
         final url = call.arguments['url'] as String?;
         final pos = call.arguments['position'] as int? ?? 0;
         final dur = call.arguments['duration'] as int? ?? 0;
+        final watchedDelta = call.arguments['watchedDelta'] as int? ?? 0;
         if (url != null) {
           await ChannelService.instance.updateProgressByUrl(
             url,
             (pos / 1000).round(),
             (dur / 1000).round(),
           );
+          if (watchedDelta > 0) {
+            await ChannelService.instance
+                .recordWatchDurationByUrl(url, watchedDelta);
+          }
           final channel = await ChannelService.instance.getByUrl(url);
           if (channel != null && channel.contentType != 'tv') {
             await ChannelService.instance.addToWatchNext(channel);

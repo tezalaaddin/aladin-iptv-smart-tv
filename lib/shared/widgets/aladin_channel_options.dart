@@ -10,11 +10,11 @@ import '../../core/state/aladin_app_state.dart';
 import '../theme/aladin_app_theme.dart';
 import 'aladin_parental_gate.dart';
 
-Future<void> showAladinChannelOptions(
+Future<bool> showAladinChannelOptions(
     BuildContext context, ChannelModel channel) async {
   final s = context.read<AppState>().s;
   final scope = '${channel.playlistId}_${channel.id}';
-  await showDialog<void>(
+  final changed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => SimpleDialog(
       backgroundColor: AppTheme.card,
@@ -23,7 +23,7 @@ Future<void> showAladinChannelOptions(
         SimpleDialogOption(
           onPressed: () async {
             await ContentVisibilityService.instance.hideChannel(channel);
-            if (dialogContext.mounted) Navigator.pop(dialogContext);
+            if (dialogContext.mounted) Navigator.pop(dialogContext, true);
           },
           child: ListTile(
             leading: const Icon(Icons.visibility_off_outlined),
@@ -59,7 +59,7 @@ Future<void> showAladinChannelOptions(
         SimpleDialogOption(
           onPressed: () async {
             await ChannelService.instance.toggleFavorite(channel.id);
-            if (dialogContext.mounted) Navigator.pop(dialogContext);
+            if (dialogContext.mounted) Navigator.pop(dialogContext, true);
           },
           child: ListTile(
             leading: Icon(
@@ -76,7 +76,7 @@ Future<void> showAladinChannelOptions(
             final next = values[(values.indexOf(current) + 1) % values.length];
             await AladinPrefs.instance
                 .setString('channel_decoder_$scope', next);
-            if (dialogContext.mounted) Navigator.pop(dialogContext);
+            if (dialogContext.mounted) Navigator.pop(dialogContext, false);
           },
           child: ListTile(
             leading: const Icon(Icons.memory),
@@ -93,7 +93,7 @@ Future<void> showAladinChannelOptions(
             final next = values[(values.indexOf(current) + 1) % values.length];
             await AladinPrefs.instance
                 .setString('channel_quality_$scope', next);
-            if (dialogContext.mounted) Navigator.pop(dialogContext);
+            if (dialogContext.mounted) Navigator.pop(dialogContext, false);
           },
           child: ListTile(
             leading: const Icon(Icons.high_quality),
@@ -104,4 +104,5 @@ Future<void> showAladinChannelOptions(
       ],
     ),
   );
+  return changed ?? false;
 }

@@ -1,0 +1,32 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+50 GELISTIRME TAKIP DOSYASI
+================================================================
+Baslangic: 26.07.2026
+Hedef surum: 2.3.1+50
+Android AAB versionCode: 1050
+GitHub durumu: TESTLER BASARILI OLURSA GONDERILECEK
+
+Durumlar: [BEKLIYOR] [DEVAM EDIYOR] [TAMAMLANDI] [TV TESTI TAMAMLANDI]
+
+01 [TV TESTI TAMAMLANDI] Kucultulen Canli TV kartlari 1080p ARMv7 TV'de tasma ve odak kaybi olmadan goruntulendi.
+02 [TAMAMLANDI] Gizli kategori ve kanallari tek tek ya da topluca geri getiren merkezi yonetim eklendi.
+03 [TAMAMLANDI] Uzun-bas gizleme/favori islemleri Dashboard, kategori, arama ve favorilerde aninda yenileniyor.
+04 [TAMAMLANDI] EPG butun kanallarda 00:00-24:00 ortak saat ekseni ve tek yatay kaydirma alanina tasindi.
+05 [TAMAMLANDI] Yeni +50 yuzeyleri sekiz dilde tanimlandi ve regresyon testine eklendi.
+06 [TAMAMLANDI] Sifreli .aladin akisi Android TV release paketinde dosya secici acilabilecek sekilde derlendi; parola/API sirri loga yazilmiyor.
+07 [TAMAMLANDI] Otomatik decoder hatasi kanal bazinda ogreniliyor; sonraki acilista yazilim fallback'i uygulanip dusuk RAM korumasi korunuyor.
+08 [TAMAMLANDI] En Sik Izlenenler gercek oynatma saniyelerini topluyor ve en az 120 saniye izlenenleri siraliyor.
+09 [TAMAMLANDI] Dashboard raflari kumandayla acilip kapatilabiliyor ve yukari/asagi siralanabiliyor.
+10 [TAMAMLANDI] Kategori ici kalici alfa/yil/puan siralamasi ve canli/film/dizi akilli favori gruplari korundu; 60 bin kanalda kullanissiz tekil surukleme eklenmedi.
+11 [TAMAMLANDI] Hakkinda ekranina Watch Next destek/izin durumu ve yeniden deneme eylemi eklendi.
+12 [TAMAMLANDI] Kanal kilitleri tvg-id/URL SHA-256 kimligiyle yenilemeye dayanikli; isim tabanli kategori kilidi kaynak formati nedeniyle acikca belgeli.
+13 [TV TESTI TAMAMLANDI] Buyuk yazi/yuksek kontrast anlik tema, RTL/TalkBack semantigi ve odak gorunurlulugu release TV oturumunda cokmesiz dogrulandi.
+14 [TAMAMLANDI] Media3 1.3.1 guvenli ses/altyazi offset API'si sunmadigi dogrulandi; senkron bozacak sahte ayar eklenmedi.
+15 [TV TESTI TAMAMLANDI] 7/7 Flutter testi, analyzer hata taramasi, release AAB/split APK ve ARMv7 TV temiz acilis/log kontrolu gecti.
+16 [TAMAMLANDI] SKILL.md sonuna +50 surum notlari mevcut yapi bozulmadan eklendi; kaynaklar GitHub gonderimine hazir.
+
+NOT
+---
+- +49 son hali 74d375e commit'i ile smart-tv/main dalina gonderildi.
+- API anahtari kaynak koduna, takip dosyasina veya Git gecmisine yazilmayacaktir.
+- Nihai AAB 65.0 MB; ARMv7 23.5 MB, ARM64 26.0 MB, x86_64 27.6 MB uretildi.
+- TV'de split ARMv7 versionCode 2050 / versionName 2.3.1 kuruldu; temiz soguk acilista fatal, ANR, Flutter ve uygulama SecurityException hatasi yok.

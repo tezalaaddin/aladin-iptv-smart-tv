@@ -64,10 +64,12 @@ class MainActivity : FlutterFragmentActivity() {
                     val url = intent.getStringExtra("url")
                     val position = intent.getLongExtra("position", 0L)
                     val duration = intent.getLongExtra("duration", 0L)
+                    val watchedDelta = intent.getLongExtra("watchedDelta", 0L)
                     methodChannel?.invokeMethod("onProgressUpdate", mapOf(
                         "url" to url,
                         "position" to position,
-                        "duration" to duration
+                        "duration" to duration,
+                        "watchedDelta" to watchedDelta
                     ))
                 }
                 "com.aladin.iptv.player.pro.OPEN_SETTINGS" -> {
@@ -98,6 +100,7 @@ class MainActivity : FlutterFragmentActivity() {
                 val index = call.argument<Int>("index") ?: 0
                 val i18n = call.argument<Map<String, String>>("i18n")
                 val decoderMode = call.argument<String>("decoderMode") ?: "auto"
+                val channelScope = call.argument<String>("channelScope") ?: ""
                 val videoLimit = call.argument<Int>("videoLimit") ?: 0
                 val matchFrameRate = call.argument<Boolean>("matchFrameRate") ?: false
                 
@@ -114,6 +117,7 @@ class MainActivity : FlutterFragmentActivity() {
                     putExtra("POS_LIST", if (positions != null) ArrayList(positions) else ArrayList<Int>())
                     putExtra("CURRENT_INDEX", index)
                     putExtra("DECODER_MODE", decoderMode)
+                    putExtra("CHANNEL_SCOPE", channelScope)
                     putExtra("VIDEO_LIMIT", videoLimit)
                     putExtra("MATCH_FRAME_RATE", matchFrameRate)
                     if (i18n != null) {
@@ -123,6 +127,18 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 }
                 startActivity(intent)
+                result.success(true)
+            } else if (call.method == "getTvIntegrationStatus") {
+                val tvPrefs = getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)
+                val disabled = tvPrefs.getBoolean("watch_next_unsupported", false)
+                result.success(mapOf(
+                    "apiSupported" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O),
+                    "watchNextEnabled" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !disabled),
+                    "permissionRejected" to disabled
+                ))
+            } else if (call.method == "retryWatchNext") {
+                getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)
+                    .edit().remove("watch_next_unsupported").apply()
                 result.success(true)
             } else if (call.method == "addToWatchNext") {
                 val tvPrefs = getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)

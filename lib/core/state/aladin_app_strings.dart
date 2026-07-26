@@ -22,6 +22,117 @@ class AppStrings {
     return values[index < 0 ? 1 : index];
   }
 
+  String v50(String key) {
+    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    final values = _v50[key];
+    if (values == null) return key;
+    final index = codes.indexOf(langCode);
+    return values[index < 0 ? 1 : index];
+  }
+
+  static const Map<String, List<String>> _v50 = {
+    'noHiddenContent': [
+      'Gizli içerik yok.',
+      'No hidden content.',
+      'Keine ausgeblendeten Inhalte.',
+      'Aucun contenu masqué.',
+      'No hay contenido oculto.',
+      'Скрытого контента нет.',
+      '没有隐藏内容。',
+      'لا يوجد محتوى مخفي.'
+    ],
+    'hiddenCategory': [
+      'Gizli kategori',
+      'Hidden category',
+      'Ausgeblendete Kategorie',
+      'Catégorie masquée',
+      'Categoría oculta',
+      'Скрытая категория',
+      '隐藏分类',
+      'فئة مخفية'
+    ],
+    'hiddenChannel': [
+      'Gizli kanal/içerik',
+      'Hidden channel/content',
+      'Ausgeblendeter Kanal/Inhalt',
+      'Chaîne/contenu masqué',
+      'Canal/contenido oculto',
+      'Скрытый канал/контент',
+      '隐藏频道/内容',
+      'قناة/محتوى مخفي'
+    ],
+    'showAll': [
+      'Tümünü göster',
+      'Show all',
+      'Alle anzeigen',
+      'Tout afficher',
+      'Mostrar todo',
+      'Показать всё',
+      '全部显示',
+      'إظهار الكل'
+    ],
+    'mostWatched': [
+      'En Sık İzlenenler',
+      'Most Watched',
+      'Meistgesehen',
+      'Les plus regardés',
+      'Más vistos',
+      'Чаще всего смотрят',
+      '最常观看',
+      'الأكثر مشاهدة'
+    ],
+    'selectedGuideDay': [
+      'Seçili rehber günü',
+      'Selected guide day',
+      'Ausgewählter Programmtag',
+      'Jour du guide sélectionné',
+      'Día seleccionado',
+      'Выбранный день',
+      '已选指南日期',
+      'يوم الدليل المحدد'
+    ],
+    'customizeDashboard': [
+      'Ana sayfa raflarını düzenle',
+      'Customize home shelves',
+      'Startseitenreihen anpassen',
+      'Personnaliser les rangées',
+      'Personalizar filas de inicio',
+      'Настроить полки главной',
+      '自定义主页内容架',
+      'تخصيص رفوف الرئيسية'
+    ],
+    'watchNextStatus': [
+      'Android TV Sonraki İzleme',
+      'Android TV Watch Next',
+      'Android TV Weiterschauen',
+      'Android TV À suivre',
+      'Android TV Ver a continuación',
+      'Android TV Смотреть далее',
+      'Android TV 接着观看',
+      'متابعة المشاهدة في Android TV'
+    ],
+    'watchNextEnabled': [
+      'Etkin',
+      'Enabled',
+      'Aktiv',
+      'Activé',
+      'Activado',
+      'Включено',
+      '已启用',
+      'مفعّل'
+    ],
+    'watchNextUnavailable': [
+      'Bu TV sağlayıcısı izin vermiyor',
+      'Unavailable on this TV provider',
+      'Auf diesem TV-Anbieter nicht verfügbar',
+      'Indisponible sur ce fournisseur TV',
+      'No disponible en este proveedor',
+      'Недоступно у этого ТВ-провайдера',
+      '此电视提供商不支持',
+      'غير متاح لدى مزود التلفاز'
+    ],
+  };
+
   static const Map<String, List<String>> _v49 = {
     'parental': [
       'Ebeveyn Kontrolü',

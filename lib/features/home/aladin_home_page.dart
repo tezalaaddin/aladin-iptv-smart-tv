@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/services/aladin_channel_service.dart';
 import '../../core/state/aladin_app_state.dart';
+import '../../core/state/aladin_app_prefs.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_channel_options.dart';
@@ -26,11 +29,117 @@ class _HomePageState extends State<HomePage> {
   List<ChannelModel> _mostWatched = [];
   Map<String, double> _seriesProgress = {};
   bool _loading = true;
+  static const _defaultShelves = [
+    'continue',
+    'favorites',
+    'recent',
+    'most',
+    'movies',
+    'series',
+    'discover'
+  ];
+  late List<String> _shelfOrder;
+  final Set<String> _hiddenShelves = {};
 
   @override
   void initState() {
     super.initState();
+    _loadShelfPrefs();
     _loadData();
+  }
+
+  void _loadShelfPrefs() {
+    try {
+      final saved = (jsonDecode(
+              AladinPrefs.instance.getString('dashboard_shelf_order_v50') ??
+                  '[]') as List)
+          .map((e) => '$e')
+          .where(_defaultShelves.contains)
+          .toList();
+      _shelfOrder = [
+        ...saved,
+        ..._defaultShelves.where((e) => !saved.contains(e))
+      ];
+      _hiddenShelves.addAll((jsonDecode(
+              AladinPrefs.instance.getString('dashboard_hidden_shelves_v50') ??
+                  '[]') as List)
+          .map((e) => '$e'));
+    } catch (_) {
+      _shelfOrder = List.of(_defaultShelves);
+    }
+  }
+
+  Future<void> _saveShelfPrefs() async {
+    await AladinPrefs.instance
+        .setString('dashboard_shelf_order_v50', jsonEncode(_shelfOrder));
+    await AladinPrefs.instance.setString(
+        'dashboard_hidden_shelves_v50', jsonEncode(_hiddenShelves.toList()));
+  }
+
+  Future<void> _customizeShelves() async {
+    final s = context.read<AppState>().s;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(builder: (context, update) {
+        String label(String key) => switch (key) {
+              'continue' => s.continueWatching,
+              'favorites' => s.favorites,
+              'recent' => s.recentlyAdded,
+              'most' => s.v50('mostWatched'),
+              'movies' => s.navMovies,
+              'series' => s.navSeries,
+              _ => s.discover,
+            };
+        return AlertDialog(
+          backgroundColor: AppTheme.card,
+          title: Text(s.v50('customizeDashboard')),
+          content: SizedBox(
+            width: 620,
+            height: 430,
+            child: ListView.builder(
+              itemCount: _shelfOrder.length,
+              itemBuilder: (context, index) {
+                final key = _shelfOrder[index];
+                return SwitchListTile(
+                  autofocus: index == 0,
+                  value: !_hiddenShelves.contains(key),
+                  onChanged: (value) => update(() => value
+                      ? _hiddenShelves.remove(key)
+                      : _hiddenShelves.add(key)),
+                  title: Text(label(key)),
+                  secondary: Row(mainAxisSize: MainAxisSize.min, children: [
+                    IconButton(
+                        onPressed: index > 0
+                            ? () => update(() {
+                                  final item = _shelfOrder.removeAt(index);
+                                  _shelfOrder.insert(index - 1, item);
+                                })
+                            : null,
+                        icon: const Icon(Icons.arrow_upward)),
+                    IconButton(
+                        onPressed: index < _shelfOrder.length - 1
+                            ? () => update(() {
+                                  final item = _shelfOrder.removeAt(index);
+                                  _shelfOrder.insert(index + 1, item);
+                                })
+                            : null,
+                        icon: const Icon(Icons.arrow_downward)),
+                  ]),
+                );
+              },
+            ),
+          ),
+          actions: [
+            FilledButton(
+                autofocus: true,
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(s.save))
+          ],
+        );
+      }),
+    );
+    await _saveShelfPrefs();
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadData() async {
@@ -130,60 +239,45 @@ class _HomePageState extends State<HomePage> {
               child: CircularProgressIndicator(color: AppTheme.accent))
           : CustomScrollView(
               slivers: [
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                if (_continueWatching.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.continueWatching,
-                    items: _continueWatching,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
+                SliverToBoxAdapter(
+                    child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 32, 0),
+                    child: IconButton(
+                      tooltip: s.v50('customizeDashboard'),
+                      onPressed: _customizeShelves,
+                      icon: const Icon(Icons.tune, color: AppTheme.textMuted),
+                    ),
                   ),
-                if (_favorites.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.favorites,
-                    items: _favorites,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
-                if (_recentlyAdded.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.recentlyAdded,
-                    items: _recentlyAdded,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
-                if (_mostWatched.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: 'En Sık İzlenenler',
-                    items: _mostWatched,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
-                if (_movieShelf.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.navMovies,
-                    items: _movieShelf,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
-                if (_seriesShelf.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.navSeries,
-                    items: _seriesShelf,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
-                if (_discovery.isNotEmpty)
-                  _SliverHorizontalSection(
-                    title: s.discover,
-                    items: _discovery,
-                    seriesProgressMap: _seriesProgress,
-                    onTap: _onTap,
-                  ),
+                )),
+                ..._shelfOrder.expand((key) => _shelfFor(key, s)),
                 const SliverToBoxAdapter(child: SizedBox(height: 50)),
               ],
             ),
     );
+  }
+
+  Iterable<Widget> _shelfFor(String key, dynamic s) {
+    if (_hiddenShelves.contains(key)) return const [];
+    final (String, List<ChannelModel>) data = switch (key) {
+      'continue' => (s.continueWatching, _continueWatching),
+      'favorites' => (s.favorites, _favorites),
+      'recent' => (s.recentlyAdded, _recentlyAdded),
+      'most' => (s.v50('mostWatched'), _mostWatched),
+      'movies' => (s.navMovies, _movieShelf),
+      'series' => (s.navSeries, _seriesShelf),
+      _ => (s.discover, _discovery),
+    };
+    if (data.$2.isEmpty) return const [];
+    return [
+      _SliverHorizontalSection(
+        title: data.$1,
+        items: data.$2,
+        seriesProgressMap: _seriesProgress,
+        onTap: _onTap,
+      )
+    ];
   }
 }
 
@@ -235,7 +329,15 @@ class _SliverHorizontalSection extends StatelessWidget {
                     channel: ch,
                     seriesProgress: prog,
                     onTap: () => onTap(ch),
-                    onLongPress: () => showAladinChannelOptions(context, ch),
+                    onLongPress: () async {
+                      final changed =
+                          await showAladinChannelOptions(context, ch);
+                      if (changed && context.mounted) {
+                        final state =
+                            context.findAncestorStateOfType<_HomePageState>();
+                        await state?._loadData();
+                      }
+                    },
                   ),
                 );
               },

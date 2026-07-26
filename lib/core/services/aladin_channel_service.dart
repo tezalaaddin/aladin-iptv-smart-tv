@@ -42,7 +42,7 @@ class ChannelService {
     Map<String, dynamic> counts;
     try {
       counts = Map<String, dynamic>.from(jsonDecode(
-          AladinPrefs.instance.getString('channel_play_counts_v49') ?? '{}'));
+          AladinPrefs.instance.getString('channel_watch_seconds_v50') ?? '{}'));
     } catch (_) {
       return [];
     }
@@ -68,10 +68,27 @@ class ChannelService {
         .where((channel) =>
             ((counts[ParentalService.instance.channelKey(channel)] as num?)
                     ?.toInt() ??
-                0) >
-            0)
+                0) >=
+            120)
         .take(limit)
         .toList();
+  }
+
+  Future<void> recordWatchDurationByUrl(String url, int seconds) async {
+    if (seconds <= 0) return;
+    final channel = await getByUrl(url);
+    if (channel == null) return;
+    final key = ParentalService.instance.channelKey(channel);
+    Map<String, dynamic> totals;
+    try {
+      totals = Map<String, dynamic>.from(jsonDecode(
+          AladinPrefs.instance.getString('channel_watch_seconds_v50') ?? '{}'));
+    } catch (_) {
+      totals = {};
+    }
+    totals[key] = ((totals[key] as num?)?.toInt() ?? 0) + seconds.clamp(0, 300);
+    await AladinPrefs.instance
+        .setString('channel_watch_seconds_v50', jsonEncode(totals));
   }
 
   // ── System Sync (Android TV Search & Watch Next) ──────────────────────────

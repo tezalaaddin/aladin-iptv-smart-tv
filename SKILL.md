@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+49
+version: 2.3.1+50
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1936,3 +1936,16 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 10. **Kare Hızı Eşleştirme:** Ayarlardan etkinleştirilebilen içerik kare hızı eşleştirme, Android 11+ cihazlarda video yüzeyine kaynağın gerçek kare hızını iletiyor.
 11. **Android TV Sistem Temizliği:** Kilitli içerik temizliği yalnız ilk 1000 kayıtla sınırlı kalmıyor; playlist kontrollü batch'lerle bütünüyle taranarak Android TV Search ve Watch Next kayıtları temizleniyor. SQL selection kabul etmeyen üretici sağlayıcılarında URI bazlı işlem kullanılıyor; Watch Next yazma iznini tamamen kapatan eski TV'lerde özellik ilk güvenlik reddinden sonra sessizce devre dışı kalıyor ve tekrar eden sistem hatası üretmiyor.
 12. **Sürüm ve Yayın Durumu:** Flutter sürümü `2.3.1+49`, Play Console AAB versionCode `1049` yapıldı. Ayrıntılı durum `V2.3.1+49_GELISTIRME_TAKIP.txt` dosyasındadır. Final doğrulama tamamlanana ve kullanıcı ayrıca istemeden bu sürüm GitHub'a gönderilmeyecektir.
+
+## V2.3.1+50 Sürüm Notları: Kişiselleştirilmiş Dashboard, Ortak EPG ve Öğrenen Oynatıcı
+1. **Kompakt Canlı TV Kartları:** 16:9 canlı kanal kartları 212x119 dp boyutuna indirilerek 1080p ekranda daha fazla kanal gösterildi; görsel bellek önbelleği yeni ölçülerle eşlendi ve gerçek ARMv7 TV'de odak/taşma kontrolü yapıldı.
+2. **Gizli İçerik Yöneticisi:** Ayarlar altındaki gizli içerik alanı, kategori ve kanalları adlarıyla listeleyen; tek tek veya topluca yeniden görünür yapan kumanda uyumlu yönetim ekranına dönüştürüldü.
+3. **Anlık Uzun-Bas Yenilemesi:** Dashboard, kategori rafı, arama ve favorilerde gizleme/favori işlemi tamamlanınca ilgili veri yüzeyi yeniden yükleniyor; kapanan menünün arkasında eski kart kalmıyor.
+4. **Ortak Zaman Eksenli EPG:** Kanal başına bağımsız program şeritleri kaldırıldı. Bütün kanallar 00:00-24:00 ortak saat cetveli, süreye orantılı bloklar, tek yatay kaydırma ve güncel zaman çizgisi kullanıyor.
+5. **Kişiselleştirilebilir Ana Sayfa:** Kullanıcı Kaldığın Yerden, Favoriler, Yeni Eklenenler, En Sık İzlenenler, Film, Dizi ve Keşfet raflarını açıp kapatabiliyor; kumandayla yukarı/aşağı sıralayıp tercihini kalıcı saklayabiliyor.
+6. **Gerçek İzleme Süresi:** En Sık İzlenenler artık kart açılışını saymıyor. Native oynatıcı gerçek oynatma saniyesini Flutter'a iletiyor; en az 120 saniye izlenen içerikler toplam süreye göre sıralanıyor.
+7. **Öğrenen Decoder Fallback:** Otomatik modda decoder başlatma hatası veren kanal güvenli biçimde yazılım decoder ile yeniden deneniyor ve sonuç kanal bazında hatırlanıyor. Düşük RAM cihazlarının donanım öncelikli emniyet kuralı korunuyor.
+8. **Watch Next Tanılama:** Hakkında ekranı Android TV Watch Next desteğini/izin reddini gösteriyor ve eski cihazlarda kalıcı olarak kapatılan entegrasyon için kullanıcı kontrollü yeniden deneme sunuyor.
+9. **Sekiz Dilli +50 Arayüzü:** Gizli içerik yöneticisi, dashboard özelleştirme, EPG semantiği, izleme rafı ve Watch Next durumu Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça tanımlandı; regresyon testi genişletildi.
+10. **Senkron Ayarı Teknik Kararı:** Media3 1.3.1 hattında ses/altyazı zaman damgasını güvenli ve kayıpsız kaydıran kararlı API bulunmadığı doğrulandı; kullanıcıya çalışmayan sahte bir gecikme ayarı gösterilmedi.
+11. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+50`, Play Console AAB versionCode `1050`, split ARMv7 versionCode `2050` oldu. Flutter testleri, analyzer hata taraması, release AAB/split APK ve gerçek Android TV oturumu `V2.3.1+50_GELISTIRME_TAKIP.txt` dosyasında izlenir.
