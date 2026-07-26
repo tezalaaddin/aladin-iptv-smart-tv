@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:isar_community/isar.dart';
@@ -8,6 +9,7 @@ import '../models/aladin_channel_model.dart';
 import '../models/aladin_category_model.dart';
 import '../state/aladin_app_prefs.dart';
 import 'aladin_parental_service.dart';
+import 'aladin_content_visibility_service.dart';
 
 class ChannelService {
   ChannelService._();
@@ -15,6 +17,62 @@ class ChannelService {
   Isar get _db => IsarService.instance.db;
 
   static const _exoChannel = MethodChannel('aladin/exoplayer');
+
+  Future<int> migrateParentalLocks() async {
+    final channels = await _db.channelModels.where().findAll();
+    return ParentalService.instance.migrateLegacyChannelLocks(channels);
+  }
+
+  Future<void> recordPlay(ChannelModel channel) async {
+    final key = ParentalService.instance.channelKey(channel);
+    Map<String, dynamic> counts;
+    try {
+      counts = Map<String, dynamic>.from(jsonDecode(
+          AladinPrefs.instance.getString('channel_play_counts_v49') ?? '{}'));
+    } catch (_) {
+      counts = {};
+    }
+    counts[key] = ((counts[key] as num?)?.toInt() ?? 0) + 1;
+    await AladinPrefs.instance
+        .setString('channel_play_counts_v49', jsonEncode(counts));
+  }
+
+  Future<List<ChannelModel>> getMostWatched(int playlistId,
+      {int limit = 15}) async {
+    Map<String, dynamic> counts;
+    try {
+      counts = Map<String, dynamic>.from(jsonDecode(
+          AladinPrefs.instance.getString('channel_play_counts_v49') ?? '{}'));
+    } catch (_) {
+      return [];
+    }
+    final candidates = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .lastWatchedIsNotNull()
+        .limit(500)
+        .findAll();
+    candidates.removeWhere((channel) =>
+        !ParentalService.instance.canExpose(channel) ||
+        !ContentVisibilityService.instance.isChannelVisible(channel));
+    candidates.sort((a, b) {
+      final aCount =
+          (counts[ParentalService.instance.channelKey(a)] as num?)?.toInt() ??
+              0;
+      final bCount =
+          (counts[ParentalService.instance.channelKey(b)] as num?)?.toInt() ??
+              0;
+      return bCount.compareTo(aCount);
+    });
+    return candidates
+        .where((channel) =>
+            ((counts[ParentalService.instance.channelKey(channel)] as num?)
+                    ?.toInt() ??
+                0) >
+            0)
+        .take(limit)
+        .toList();
+  }
 
   // ── System Sync (Android TV Search & Watch Next) ──────────────────────────
 
@@ -38,13 +96,29 @@ class ChannelService {
               })
           .toList();
 
+      final blockedIds = <String>[];
+      var offset = 0;
+      const batchSize = 1000;
+      while (true) {
+        final batch = await _db.channelModels
+            .filter()
+            .playlistIdEqualTo(playlistId)
+            .offset(offset)
+            .limit(batchSize)
+            .findAll();
+        for (final item in batch) {
+          if (ParentalService.instance.isChannelLocked(item)) {
+            blockedIds.add(item.id.toString());
+          }
+        }
+        if (batch.length < batchSize) break;
+        offset += batchSize;
+      }
+
       try {
         await _exoChannel.invokeMethod('syncSearchData', {
           'items': data,
-          'blockedIds': items
-              .where(ParentalService.instance.isChannelLocked)
-              .map((item) => item.id.toString())
-              .toList(),
+          'blockedIds': blockedIds,
         });
       } catch (e) {
         debugPrint('[ChannelService] syncSearchData error: $e');
@@ -96,6 +170,8 @@ class ChannelService {
         .sortBySortOrder()
         .findAll();
     items.removeWhere((category) => category.channelCount <= 0);
+    items.removeWhere((category) =>
+        !ContentVisibilityService.instance.isCategoryVisible(category));
     if (ParentalService.instance.hideLockedContent) {
       items.removeWhere((category) =>
           ParentalService.instance.isCategoryLocked(playlistId, category.name));
@@ -136,7 +212,10 @@ class ChannelService {
           reps.shuffle(Random(_seedFor(
               'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
         }
-        return reps.where(ParentalService.instance.canExpose).toList();
+        return reps
+            .where(ParentalService.instance.canExpose)
+            .where(ContentVisibilityService.instance.isChannelVisible)
+            .toList();
       }
 
       // Fallback if no "main" records found (e.g. strange M3U)
@@ -170,6 +249,7 @@ class ChannelService {
       return results
           .sublist(offset, end)
           .where(ParentalService.instance.canExpose)
+          .where(ContentVisibilityService.instance.isChannelVisible)
           .toList();
     }
 
@@ -188,7 +268,10 @@ class ChannelService {
       items.shuffle(Random(_seedFor(
           'content:$playlistId:$contentType:${categoryName.trim()}:$offset')));
     }
-    return items.where(ParentalService.instance.canExpose).toList();
+    return items
+        .where(ParentalService.instance.canExpose)
+        .where(ContentVisibilityService.instance.isChannelVisible)
+        .toList();
   }
 
   // ── Favorites ──────────────────────────────────────────────────────────────

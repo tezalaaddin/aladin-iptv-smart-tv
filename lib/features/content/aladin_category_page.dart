@@ -5,6 +5,7 @@ import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_category_model.dart';
 import '../../core/services/aladin_channel_service.dart';
 import '../../core/services/aladin_parental_service.dart';
+import '../../core/services/aladin_content_visibility_service.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../../core/state/aladin_app_prefs.dart';
 import '../../shared/theme/aladin_app_theme.dart';
@@ -142,7 +143,24 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
   @override
   void initState() {
     super.initState();
+    final scope =
+        '${widget.playlistId}_${widget.category.contentType}_${widget.category.name}';
+    _sortBy =
+        AladinPrefs.instance.getString('category_sort_$scope') ?? 'default';
+    _isAscending =
+        AladinPrefs.instance.getBool('category_sort_ascending_$scope');
+    _hideWatched = AladinPrefs.instance.getBool('category_hide_watched_$scope');
     _loadAll();
+  }
+
+  Future<void> _saveViewPreferences() async {
+    final scope =
+        '${widget.playlistId}_${widget.category.contentType}_${widget.category.name}';
+    await AladinPrefs.instance.setString('category_sort_$scope', _sortBy);
+    await AladinPrefs.instance
+        .setBool('category_sort_ascending_$scope', _isAscending);
+    await AladinPrefs.instance
+        .setBool('category_hide_watched_$scope', _hideWatched);
   }
 
   Future<void> _loadAll() async {
@@ -247,6 +265,16 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               ),
             ),
             actions: [
+              IconButton(
+                tooltip: 'Kategoriyi gizle',
+                onPressed: () async {
+                  await ContentVisibilityService.instance
+                      .hideCategory(widget.category);
+                  if (mounted)
+                    (widget.onBack ?? () => Navigator.pop(context))();
+                },
+                icon: const Icon(Icons.visibility_off_outlined),
+              ),
               if (widget.category.contentType == 'tv')
                 IconButton(
                   tooltip: 'Tam program rehberi',
@@ -289,6 +317,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                     });
                   }
                   _applySort();
+                  _saveViewPreferences();
                 },
               ),
               _SortButton(
@@ -306,6 +335,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                     });
                   }
                   _applySort();
+                  _saveViewPreferences();
                 },
               ),
               _SortButton(
@@ -323,6 +353,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                     });
                   }
                   _applySort();
+                  _saveViewPreferences();
                 },
               ),
               _SortButton(
@@ -332,6 +363,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                 isAscending: false,
                 onTap: () {
                   setState(() => _hideWatched = !_hideWatched);
+                  _saveViewPreferences();
                 },
               ),
               SizedBox(width: safePadding), // En sağdaki boşluk

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_epg_model.dart';
 import '../../core/services/aladin_epg_service.dart';
+import '../../core/services/aladin_epg_engine.dart';
+import '../../core/state/aladin_app_state.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 
 class AladinEpgGridPage extends StatefulWidget {
@@ -27,14 +30,15 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
   @override
   Widget build(BuildContext context) {
     final channels = widget.channels.take(150).toList(growable: false);
+    final s = context.watch<AppState>().s;
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.surface,
-        title: const Text('Elektronik Program Rehberi'),
+        title: Text(s.v49('epgGuide')),
         actions: [
           IconButton(
-            tooltip: 'Önceki gün',
+            tooltip: s.v49('previousDay'),
             onPressed:
                 _dayOffset > -1 ? () => setState(() => _dayOffset--) : null,
             icon: const Icon(Icons.chevron_left),
@@ -47,7 +51,7 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
             ),
           ),
           IconButton(
-            tooltip: 'Sonraki gün',
+            tooltip: s.v49('nextDay'),
             onPressed:
                 _dayOffset < 2 ? () => setState(() => _dayOffset++) : null,
             icon: const Icon(Icons.chevron_right),
@@ -55,15 +59,34 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
           const SizedBox(width: 24),
         ],
       ),
-      body: ListView.builder(
-        itemCount: channels.length,
-        itemExtent: 92,
-        itemBuilder: (context, index) => _EpgChannelRow(
-          key: ValueKey('${channels[index].id}:$_dayOffset'),
-          channel: channels[index],
-          day: _day,
-          onPlay: () => widget.onPlay(channels[index]),
-        ),
+      body: FutureBuilder<Map<String, List<EpgProgramModel>>>(
+        future: EpgService.instance.getDayGrid(_day),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final grid = snapshot.data!;
+          return ListView.builder(
+            itemCount: channels.length,
+            itemExtent: 92,
+            itemBuilder: (context, index) {
+              final channel = channels[index];
+              final id = channel.tvgId?.trim().isNotEmpty == true
+                  ? channel.tvgId!
+                  : channel.name;
+              final normalized = AladinEpgEngine.normalizeId(id);
+              final byName = AladinEpgEngine.normalizeId(channel.name);
+              return _EpgChannelRow(
+                key: ValueKey('${channel.id}:$_dayOffset'),
+                channel: channel,
+                programs: grid[normalized] ?? grid[byName] ?? const [],
+                noProgramText: s.v49('noProgram'),
+                catchupText: s.v49('catchup'),
+                onPlay: () => widget.onPlay(channel),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -71,23 +94,22 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
 
 class _EpgChannelRow extends StatelessWidget {
   final ChannelModel channel;
-  final DateTime day;
+  final List<EpgProgramModel> programs;
   final VoidCallback onPlay;
+  final String noProgramText;
+  final String catchupText;
 
   const _EpgChannelRow({
     super.key,
     required this.channel,
-    required this.day,
+    required this.programs,
     required this.onPlay,
+    required this.noProgramText,
+    required this.catchupText,
   });
 
   @override
   Widget build(BuildContext context) {
-    final start = DateTime(day.year, day.month, day.day);
-    final end = start.add(const Duration(days: 1));
-    final id = channel.tvgId?.trim().isNotEmpty == true
-        ? channel.tvgId!
-        : channel.name;
     return Row(
       children: [
         SizedBox(
@@ -99,29 +121,20 @@ class _EpgChannelRow extends StatelessWidget {
             title: Text(channel.name,
                 maxLines: 2, overflow: TextOverflow.ellipsis),
             subtitle: (channel.catchupDays ?? 0) > 0
-                ? const Text('Arşiv',
-                    style: TextStyle(color: Colors.greenAccent))
+                ? Text(catchupText,
+                    style: const TextStyle(color: Colors.greenAccent))
                 : null,
           ),
         ),
         const VerticalDivider(width: 1, color: Colors.white12),
         Expanded(
-          child: FutureBuilder<List<EpgProgramModel>>(
-            future:
-                EpgService.instance.getPrograms(id, cleanName: channel.name),
-            builder: (context, snapshot) {
-              final programs = (snapshot.data ?? const <EpgProgramModel>[])
-                  .where((p) =>
-                      p.endTime.isAfter(start) && p.startTime.isBefore(end))
-                  .toList();
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const LinearProgressIndicator(minHeight: 2);
-              }
+          child: Builder(
+            builder: (context) {
               if (programs.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Program bilgisi yok',
-                      style: TextStyle(color: AppTheme.textMuted)),
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(noProgramText,
+                      style: const TextStyle(color: AppTheme.textMuted)),
                 );
               }
               return ListView.separated(

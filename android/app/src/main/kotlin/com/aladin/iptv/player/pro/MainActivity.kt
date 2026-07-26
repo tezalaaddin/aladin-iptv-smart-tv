@@ -99,6 +99,7 @@ class MainActivity : FlutterFragmentActivity() {
                 val i18n = call.argument<Map<String, String>>("i18n")
                 val decoderMode = call.argument<String>("decoderMode") ?: "auto"
                 val videoLimit = call.argument<Int>("videoLimit") ?: 0
+                val matchFrameRate = call.argument<Boolean>("matchFrameRate") ?: false
                 
                 val intent = Intent(this, NativePlayerActivity::class.java).apply {
                     putStringArrayListExtra("URL_LIST", if (urls != null) ArrayList(urls) else ArrayList())
@@ -114,6 +115,7 @@ class MainActivity : FlutterFragmentActivity() {
                     putExtra("CURRENT_INDEX", index)
                     putExtra("DECODER_MODE", decoderMode)
                     putExtra("VIDEO_LIMIT", videoLimit)
+                    putExtra("MATCH_FRAME_RATE", matchFrameRate)
                     if (i18n != null) {
                         for ((key, value) in i18n) {
                             putExtra("i18n_$key", value)
@@ -123,6 +125,11 @@ class MainActivity : FlutterFragmentActivity() {
                 startActivity(intent)
                 result.success(true)
             } else if (call.method == "addToWatchNext") {
+                val tvPrefs = getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)
+                if (tvPrefs.getBoolean("watch_next_unsupported", false)) {
+                    result.success(false)
+                    return@setMethodCallHandler
+                }
                 val title = call.argument<String>("title")
                 val description = call.argument<String>("description")
                 val poster = call.argument<String>("poster")
@@ -153,12 +160,23 @@ class MainActivity : FlutterFragmentActivity() {
                         var existingId: Long? = null
                         contentResolver.query(
                             TvContract.WatchNextPrograms.CONTENT_URI,
-                            arrayOf(TvContract.WatchNextPrograms._ID),
-                            "${TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID} = ?",
-                            arrayOf(channelId),
+                            arrayOf(
+                                TvContract.WatchNextPrograms._ID,
+                                TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID,
+                                TvContract.WatchNextPrograms.COLUMN_INTENT_URI
+                            ),
+                            null,
+                            null,
                             null
                         )?.use { cursor ->
-                            if (cursor.moveToFirst()) existingId = cursor.getLong(0)
+                            while (cursor.moveToNext()) {
+                                val providerId = cursor.getString(1)
+                                val intentUri = cursor.getString(2) ?: ""
+                                if (providerId == channelId && intentUri.startsWith("aladin://")) {
+                                    existingId = cursor.getLong(0)
+                                    break
+                                }
+                            }
                         }
                         val changed = if (existingId != null) {
                             val existingUri = ContentUris.withAppendedId(
@@ -174,6 +192,11 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                         result.success(changed)
                     } catch (e: Exception) {
+                        if (e is SecurityException) {
+                            tvPrefs.edit().putBoolean("watch_next_unsupported", true).apply()
+                            result.success(false)
+                            return@setMethodCallHandler
+                        }
                         result.error("WATCH_NEXT_ERROR", e.message, null)
                     }
                 } else {
@@ -197,13 +220,37 @@ class MainActivity : FlutterFragmentActivity() {
                             db.insert("search_items", null, values)
                         }
                         db.setTransactionSuccessful()
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            for (blockedId in blockedIds) {
-                                contentResolver.delete(
-                                    TvContract.WatchNextPrograms.CONTENT_URI,
-                                    "${TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID} = ?",
-                                    arrayOf(blockedId)
-                                )
+                        val tvPrefs = getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                            !tvPrefs.getBoolean("watch_next_unsupported", false)) {
+                            val blocked = blockedIds.toHashSet()
+                            contentResolver.query(
+                                TvContract.WatchNextPrograms.CONTENT_URI,
+                                arrayOf(
+                                    TvContract.WatchNextPrograms._ID,
+                                    TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID,
+                                    TvContract.WatchNextPrograms.COLUMN_INTENT_URI
+                                ),
+                                null,
+                                null,
+                                null
+                            )?.use { cursor ->
+                                while (cursor.moveToNext()) {
+                                    val providerId = cursor.getString(1)
+                                    val intentUri = cursor.getString(2) ?: ""
+                                    if (providerId in blocked && intentUri.startsWith("aladin://")) {
+                                        val uri = ContentUris.withAppendedId(
+                                            TvContract.WatchNextPrograms.CONTENT_URI,
+                                            cursor.getLong(0)
+                                        )
+                                        try {
+                                            contentResolver.delete(uri, null, null)
+                                        } catch (error: SecurityException) {
+                                            tvPrefs.edit().putBoolean("watch_next_unsupported", true).apply()
+                                            break
+                                        }
+                                    }
+                                }
                             }
                         }
                         result.success(true)

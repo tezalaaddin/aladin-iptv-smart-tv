@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+48
+version: 2.3.1+49
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1922,3 +1922,17 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 7. **Android TV Entegrasyonu:** Watch Next ilerleme ve süre bilgisi oynatma sırasında güncelleniyor. Kilitlenen içerik Android TV sistem araması ve mevcut Watch Next kayıtlarından temizleniyor.
 8. **Erişilebilirlik:** Büyük yazı ve yüksek kontrast seçenekleri eklendi; yeni güvenlik ve EPG arayüzlerine TalkBack semantik etiketleri ile renk dışı durum metinleri kondu.
 9. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+48`, Android versionCode `1048` olarak güncellendi. Ayrıntılı uygulama ve test durumu `V2.3.1+48_GELISTIRME_TAKIP.txt` dosyasında tutuluyor. Bu sürüm final TV testleri tamamlanmadan GitHub'a gönderilmeyecektir.
+
+## V2.3.1+49 Sürüm Notları: Kalıcı Güvenlik, Hızlı EPG ve Şifreli Yedek
+1. **Yenilemeye Dayanıklı Kilitler:** Kanal kilitleri değişken veritabanı kimliği yerine tvg-id veya yayın adresinden türetilen SHA-256 kararlı kimlikle saklanıyor. +48 kilitleri ilk açılışta kayıpsız biçimde yeni formata geçiriliyor.
+2. **Güçlendirilmiş PIN:** Ebeveyn PIN'i 60.000 turlu PBKDF2-HMAC-SHA256 ile türetiliyor. Eski SHA-256 kayıtları başarılı girişte otomatik yükseltiliyor; hatalı deneme sayacı ve geçici engelleme uygulama kapatılsa bile güvenli depolamada korunuyor.
+3. **Merkezi Kilit Yönetimi:** Ayarlar > Ebeveyn Kontrolü altında bütün elle kilitlenen kategori ve içerikleri gösteren, kumandayla tek tek açılabilen Kilitli İçerikler ekranı eklendi.
+4. **EPG Performansı:** Program rehberindeki kanal başına sorgu modeli kaldırıldı. Seçilen günün programları tek Isar sorgusunda alınıp normalize edilmiş kanal kimliklerine göre dağıtılıyor; 1-2 GB RAM'li TV'lerde sorgu ve GC yükü azaltıldı.
+5. **Sekiz Dilli Yeni Arayüzler:** Güvenlik, EPG, sağlık raporu, şifreli yedek, kare hızı, gizleme ve erişilebilirlik yüzeyleri Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça tanımlandı; eksik anahtar regresyon testi eklendi.
+6. **AES-256-GCM Yedek:** Playlist ayarları, favoriler, ilerleme ve kilitler PBKDF2 ile türetilen kullanıcı anahtarıyla AES-256-GCM şifreli `.aladin` dosyasına aktarılıp geri yüklenebiliyor. Xtream şifresi ve ebeveyn PIN'i yedeğe alınmıyor.
+7. **Anlık Erişilebilirlik:** Büyük yazı ve gerçek yüksek kontrast tema uygulamayı yeniden başlatmadan uygulanıyor. Yeni diyalog, EPG ve içerik menülerinde semantik açıklamalar ile metin tabanlı durumlar güçlendirildi.
+8. **Tutarlı Uzun-Bas Menüsü:** Dashboard, kategori rafları, arama ve favorilerde uzun OK; ebeveyn kilidi, favori, kanal bazlı decoder/kalite ve içerik gizleme seçeneklerini aynı menüde açıyor.
+9. **İçerik Yönetimi ve Keşif:** Kategori görünüm sıralaması ve izlenenleri gizleme tercihi kalıcı hale getirildi. Kanal/kategori gizleme ve Ayarlar'dan toplu geri gösterme eklendi. Oynatma sayacıyla beslenen En Sık İzlenenler rafı Dashboard'a eklendi; favoriler canlı/film/dizi akıllı gruplarını koruyor.
+10. **Kare Hızı Eşleştirme:** Ayarlardan etkinleştirilebilen içerik kare hızı eşleştirme, Android 11+ cihazlarda video yüzeyine kaynağın gerçek kare hızını iletiyor.
+11. **Android TV Sistem Temizliği:** Kilitli içerik temizliği yalnız ilk 1000 kayıtla sınırlı kalmıyor; playlist kontrollü batch'lerle bütünüyle taranarak Android TV Search ve Watch Next kayıtları temizleniyor. SQL selection kabul etmeyen üretici sağlayıcılarında URI bazlı işlem kullanılıyor; Watch Next yazma iznini tamamen kapatan eski TV'lerde özellik ilk güvenlik reddinden sonra sessizce devre dışı kalıyor ve tekrar eden sistem hatası üretmiyor.
+12. **Sürüm ve Yayın Durumu:** Flutter sürümü `2.3.1+49`, Play Console AAB versionCode `1049` yapıldı. Ayrıntılı durum `V2.3.1+49_GELISTIRME_TAKIP.txt` dosyasındadır. Final doğrulama tamamlanana ve kullanıcı ayrıca istemeden bu sürüm GitHub'a gönderilmeyecektir.

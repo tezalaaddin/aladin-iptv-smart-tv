@@ -5,6 +5,7 @@ import '../../core/services/aladin_channel_service.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
+import '../../shared/widgets/aladin_channel_options.dart';
 import '../player/aladin_player_page.dart';
 import '../series/aladin_series_page.dart';
 
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   List<ChannelModel> _discovery = [];
   List<ChannelModel> _movieShelf = [];
   List<ChannelModel> _seriesShelf = [];
+  List<ChannelModel> _mostWatched = [];
   Map<String, double> _seriesProgress = {};
   bool _loading = true;
 
@@ -49,6 +51,8 @@ class _HomePageState extends State<HomePage> {
     final series =
         await ChannelService.instance.getHomeShelf(id, 'series', limit: 15);
     final prog = await ChannelService.instance.getSeriesProgressMap(id);
+    final mostWatched =
+        await ChannelService.instance.getMostWatched(id, limit: 15);
 
     favs.sort((a, b) => b.id.compareTo(a.id));
     final recentFavs = favs.take(15).toList();
@@ -62,6 +66,7 @@ class _HomePageState extends State<HomePage> {
         _movieShelf = movies;
         _seriesShelf = series;
         _seriesProgress = prog;
+        _mostWatched = mostWatched;
         _loading = false;
       });
     }
@@ -147,6 +152,13 @@ class _HomePageState extends State<HomePage> {
                     seriesProgressMap: _seriesProgress,
                     onTap: _onTap,
                   ),
+                if (_mostWatched.isNotEmpty)
+                  _SliverHorizontalSection(
+                    title: 'En Sık İzlenenler',
+                    items: _mostWatched,
+                    seriesProgressMap: _seriesProgress,
+                    onTap: _onTap,
+                  ),
                 if (_movieShelf.isNotEmpty)
                   _SliverHorizontalSection(
                     title: s.navMovies,
@@ -223,6 +235,7 @@ class _SliverHorizontalSection extends StatelessWidget {
                     channel: ch,
                     seriesProgress: prog,
                     onTap: () => onTap(ch),
+                    onLongPress: () => showAladinChannelOptions(context, ch),
                   ),
                 );
               },

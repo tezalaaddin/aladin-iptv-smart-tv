@@ -1,0 +1,28 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+49 GELISTIRME TAKIP DOSYASI
+================================================================
+Baslangic: 26.07.2026
+Hedef surum: 2.3.1+49
+Android AAB versionCode: 1049
+GitHub durumu: FINAL TESTLER BITENE KADAR GONDERILMEYECEK
+
+Durumlar: [BEKLIYOR] [DEVAM EDIYOR] [TAMAMLANDI] [TV TESTI TAMAMLANDI]
+
+01 [TAMAMLANDI] Kanal kilitleri kararlı URL/tvg-id hash kimligine tasindi; +48 kilitleri otomatik goc ediyor.
+02 [TAMAMLANDI] EPG gun verisi tek Isar sorgusuyla toplu yuklenip kanal satirlarina dagitiliyor.
+03 [TAMAMLANDI] +49 guvenlik, EPG, yedek ve erisilebilirlik yuzeyleri sekiz dilde tanimlandi ve test edildi.
+04 [TAMAMLANDI] PIN PBKDF2-HMAC-SHA256/60.000 tura yukseltildi; sayac ve engel guvenli depoda kalici.
+05 [TAMAMLANDI] Ayarlar altina merkezi Kilitli Icerikler yonetim ekrani eklendi.
+06 [TAMAMLANDI] Android TV Search/Watch Next temizligi playlistin tum kanal batch'lerini kapsiyor.
+07 [TAMAMLANDI] PBKDF2 + AES-256-GCM parolali .aladin yedegi ve geri yukleme eklendi.
+08 [TAMAMLANDI] Buyuk yazi/yuksek kontrast yeniden baslatmadan uygulanir; yeni yuzeylere semantik eklendi.
+09 [TAMAMLANDI] Uzun-bas menusu Dashboard, kategori raflari, Arama ve Favorilere yayildi.
+10 [DEVAM EDIYOR] Kare hizi eslestirme tamamlandi; ses/altyazi gecikmesi Media3 guvenli tasarimi bekliyor.
+11 [TAMAMLANDI] Kalici kategori siralama/gizleme, icerik gizleme, akilli favori gruplari ve en sik izlenenler eklendi.
+12 [TAMAMLANDI] SKILL.md en altina +49 surum notlari eklendi.
+13 [TV TESTI TAMAMLANDI] 6/6 test, analyzer, AAB/split APK ve ARMv7 TV D-pad/native testleri gecti.
+14 [TAMAMLANDI] Basarili sonuc yerel commit edildi; +49 GitHub'a push edilmedi.
+
+NOTLAR
+------
+- +48 commit 1b64cc4 GitHub smart-tv/main dalina gonderildi.
+- +49 calismasi bu noktadan sonra yalnizca yerelde tutulacaktir.

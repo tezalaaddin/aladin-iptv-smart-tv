@@ -1,7 +1,7 @@
 name: aladin_iptv_pro
 description: aladin IPTV Player Pro TV — High-Performance Android TV Media Player
 publish_to: 'none'
-version: 2.3.1+48
+version: 2.3.1+49
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -45,6 +45,7 @@ dependencies:
   fuzzy: ^0.5.1
   flutter_secure_storage: 10.2.0
   crypto: ^3.0.6
+  cryptography: ^2.7.0
   connectivity_plus: ^6.1.3
 
 dev_dependencies:

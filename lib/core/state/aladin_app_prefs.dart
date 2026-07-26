@@ -14,6 +14,7 @@ class AladinPrefs {
   bool _loaded = false;
   Timer? _saveTimer;
   int _launchShuffleSeed = 0;
+  final ValueNotifier<int> accessibilityRevision = ValueNotifier<int>(0);
 
   int get launchShuffleSeed => _launchShuffleSeed;
   bool get shuffleOnLaunch => getBool('shuffle_on_launch');
@@ -88,6 +89,9 @@ class AladinPrefs {
     _cache[key] = val;
     _saveDebounced();
     if (key == 'shuffle_on_launch') beginLaunchSession();
+    if (key.startsWith('accessibility_')) {
+      accessibilityRevision.value++;
+    }
   }
 
   int getInt(String key, {int def = 0}) =>

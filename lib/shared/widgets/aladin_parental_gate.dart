@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/services/aladin_parental_service.dart';
+import '../../core/state/aladin_app_state.dart';
 import '../theme/aladin_app_theme.dart';
 
 /// Requests the parental PIN when [protectedContent] is true.
@@ -11,6 +13,7 @@ Future<bool> requestParentalUnlock(
   String? title,
 }) async {
   final parental = ParentalService.instance;
+  final strings = context.read<AppState>().s;
   if (!protectedContent || parental.isSessionUnlocked) return true;
   final controller = TextEditingController();
   final confirmNode = FocusNode(debugLabel: 'parental_confirm');
@@ -44,7 +47,7 @@ Future<bool> requestParentalUnlock(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Devam etmek için ebeveyn PIN kodunu girin.'),
+                Text(strings.v49('enterPin')),
                 const SizedBox(height: 16),
                 TextField(
                   controller: controller,
@@ -68,14 +71,14 @@ Future<bool> requestParentalUnlock(
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('İptal'),
+              child: Text(strings.cancel),
             ),
             FilledButton(
               focusNode: confirmNode,
               autofocus: true,
               onPressed: verify,
               style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-              child: const Text('Kilidi Aç'),
+              child: Text(strings.v49('unlock')),
             ),
           ],
         );

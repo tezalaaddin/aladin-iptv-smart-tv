@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../../core/models/aladin_playlist_model.dart';
 import '../../../core/services/aladin_playlist_service.dart';
 import '../../../core/services/aladin_update_service.dart';
 import '../../../core/services/aladin_parental_service.dart';
+import '../../../core/services/aladin_content_visibility_service.dart';
 import '../../core/services/aladin_epg_engine.dart';
 import '../../../core/state/aladin_app_prefs.dart';
 import '../../../core/state/aladin_app_state.dart';
@@ -66,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Focus Management
   late final FocusNode _pageFocusNode = FocusNode(debugLabel: 'settings_page');
   late final List<FocusNode> _leftNodes =
-      List.generate(11, (i) => FocusNode(debugLabel: 'left_$i'));
+      List.generate(12, (i) => FocusNode(debugLabel: 'left_$i'));
   final List<FocusNode> _playlistNodes = [];
 
   final ScrollController _leftScroll = ScrollController();
@@ -562,7 +564,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SetupTile(
                           focusNode: _leftNodes[7],
                           icon: Icons.lock_person,
-                          title: 'Ebeveyn Kontrolü',
+                          title: s.v49('parental'),
                           subtitle: ParentalService.instance.isEnabled
                               ? 'Etkin · PIN ile korunuyor'
                               : 'Kapalı · Kanal ve kategori kilidi',
@@ -579,7 +581,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SetupTile(
                           focusNode: _leftNodes[8],
                           icon: Icons.format_size,
-                          title: 'Büyük Yazı',
+                          title: s.v49('largeText'),
                           subtitle: AladinPrefs.instance
                                   .getBool('accessibility_large_text')
                               ? 'Etkin · uygulama yeniden açılınca uygulanır'
@@ -603,7 +605,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SetupTile(
                           focusNode: _leftNodes[9],
                           icon: Icons.contrast,
-                          title: 'Yüksek Kontrast',
+                          title: s.v49('highContrast'),
                           subtitle: AladinPrefs.instance
                                   .getBool('accessibility_high_contrast')
                               ? 'Etkin · renk dışı odak işaretleri güçlendirilir'
@@ -626,6 +628,30 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[10],
+                          icon: Icons.speed,
+                          title: s.v49('frameRate'),
+                          subtitle: AladinPrefs.instance
+                                  .getBool('match_content_frame_rate')
+                              ? 'Etkin · desteklenen Android TV cihazlarında'
+                              : 'Kapalı',
+                          onTap: () async {
+                            final value = AladinPrefs.instance
+                                .getBool('match_content_frame_rate');
+                            await AladinPrefs.instance
+                                .setBool('match_content_frame_rate', !value);
+                            setState(() {});
+                          },
+                          onFocus: (v) {
+                            if (v)
+                              setState(() {
+                                _inLeftPanel = true;
+                                _leftFocusedIndex = 10;
+                              });
+                            _ensureVisible(_leftNodes[10]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[11],
                           icon: Icons.info_outline,
                           title: s.about,
                           subtitle:
@@ -635,9 +661,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             if (v)
                               setState(() {
                                 _inLeftPanel = true;
-                                _leftFocusedIndex = 10;
+                                _leftFocusedIndex = 11;
                               });
-                            _ensureVisible(_leftNodes[10]);
+                            _ensureVisible(_leftNodes[11]);
                           },
                         ),
                       ]),
@@ -760,7 +786,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 _SetupTile(
                   icon: Icons.lock_person,
-                  title: 'Ebeveyn Kontrolü',
+                  title: s.v49('parental'),
                   subtitle: ParentalService.instance.isEnabled
                       ? 'Etkin · PIN ile korunuyor'
                       : 'Kapalı · Kanal ve kategori kilidi',
@@ -768,7 +794,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 _SetupTile(
                   icon: Icons.format_size,
-                  title: 'Büyük Yazı',
+                  title: s.v49('largeText'),
                   subtitle:
                       AladinPrefs.instance.getBool('accessibility_large_text')
                           ? 'Etkin · yeniden açılışta uygulanır'
@@ -783,7 +809,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 _SetupTile(
                   icon: Icons.contrast,
-                  title: 'Yüksek Kontrast',
+                  title: s.v49('highContrast'),
                   subtitle: AladinPrefs.instance
                           .getBool('accessibility_high_contrast')
                       ? 'Etkin'
@@ -793,6 +819,21 @@ class _SettingsPageState extends State<SettingsPage> {
                         .getBool('accessibility_high_contrast');
                     await AladinPrefs.instance
                         .setBool('accessibility_high_contrast', !value);
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _SetupTile(
+                  icon: Icons.speed,
+                  title: s.v49('frameRate'),
+                  subtitle:
+                      AladinPrefs.instance.getBool('match_content_frame_rate')
+                          ? 'Etkin'
+                          : 'Kapalı',
+                  onTap: () async {
+                    final value = AladinPrefs.instance
+                        .getBool('match_content_frame_rate');
+                    await AladinPrefs.instance
+                        .setBool('match_content_frame_rate', !value);
                     if (mounted) setState(() {});
                   },
                 ),
@@ -1221,6 +1262,29 @@ class _SettingsPageState extends State<SettingsPage> {
             ]),
           ),
           SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context);
+              _exportEncryptedBackup();
+            },
+            child: Row(children: [
+              const Icon(Icons.enhanced_encryption, color: Colors.greenAccent),
+              const SizedBox(width: 12),
+              Text(s.v49('encryptedExport'))
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.pop(context);
+              _importEncryptedBackup(state);
+            },
+            child: Row(children: [
+              const Icon(Icons.settings_backup_restore,
+                  color: Colors.greenAccent),
+              const SizedBox(width: 12),
+              Text(s.v49('encryptedImport'))
+            ]),
+          ),
+          SimpleDialogOption(
             onPressed: () async {
               Navigator.pop(context);
               final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -1294,6 +1358,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _showPlaylistHealth(PlaylistModel playlist) async {
+    final strings = context.read<AppState>().s;
     final report = await PlaylistService.instance.getHealthReport(playlist.id);
     final xtream = await PlaylistService.instance.getXtreamHealth(playlist);
     if (!mounted) return;
@@ -1316,11 +1381,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Divider(),
                 ListTile(
                     dense: true,
-                    title: const Text('Sunucu gecikmesi'),
+                    title: Text(strings.v49('serverLatency')),
                     trailing: Text('${xtream['latencyMs']} ms')),
                 ListTile(
                     dense: true,
-                    title: const Text('Hesap durumu'),
+                    title: Text(strings.v49('accountStatus')),
                     trailing: Text('${xtream['status']}')),
                 ListTile(
                     dense: true,
@@ -1329,7 +1394,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         '${xtream['activeConnections']} / ${xtream['maxConnections']}')),
                 ListTile(
                     dense: true,
-                    title: const Text('Abonelik bitişi'),
+                    title: Text(strings.v49('subscriptionExpiry')),
                     trailing: Text('${xtream['expiry']}')),
               ],
               const SizedBox(height: 12),
@@ -1350,6 +1415,52 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+  }
+
+  Future<String?> _requestBackupPassword(String title) => showDialog<String>(
+        context: context,
+        builder: (_) => AladinInputDialog(
+          title: title,
+          hint: 'En az 6 karakter',
+          obscure: true,
+        ),
+      );
+
+  Future<void> _exportEncryptedBackup() async {
+    final password = await _requestBackupPassword('Yedek parolası');
+    if (password == null) return;
+    try {
+      final bytes =
+          await PlaylistService.instance.exportEncryptedBackup(password);
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Şifreli Aladin yedeğini kaydet',
+        fileName:
+            'aladin-backup-${DateTime.now().millisecondsSinceEpoch}.aladin',
+        bytes: bytes,
+      );
+      _snack('Şifreli yedek dosyası hazırlandı.');
+    } catch (e) {
+      _snack('Yedek oluşturulamadı: $e', error: true);
+    }
+  }
+
+  Future<void> _importEncryptedBackup(AppState state) async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['aladin'],
+      withData: true,
+    );
+    final bytes = picked?.files.single.bytes;
+    if (bytes == null || !mounted) return;
+    final password = await _requestBackupPassword('Yedek parolası');
+    if (password == null) return;
+    try {
+      await PlaylistService.instance.importEncryptedBackup(bytes, password);
+      await state.refresh();
+      _snack('Şifreli yedek geri yüklendi.');
+    } catch (e) {
+      _snack('Parola yanlış veya yedek bozuk.', error: true);
+    }
   }
 
   Widget _healthRow(String label, int value) => ListTile(
@@ -1528,6 +1639,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _showParentalDialog() async {
     final service = ParentalService.instance;
+    final strings = context.read<AppState>().s;
     if (!await _authenticateParental()) return;
     if (!await service.hasPin()) await _setNewParentalPin();
     if (!await service.hasPin() || !mounted) return;
@@ -1536,7 +1648,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, update) => AlertDialog(
           backgroundColor: AppTheme.card,
-          title: const Text('Ebeveyn Kontrolü'),
+          title: Text(strings.v49('parental')),
           content: SizedBox(
             width: 520,
             child: Column(
@@ -1544,7 +1656,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 SwitchListTile(
                   autofocus: true,
-                  title: const Text('PIN koruması'),
+                  title: Text(strings.v49('pinProtection')),
                   subtitle: const Text(
                       'Yetişkin ve elle kilitlenen içerikleri korur.'),
                   value: service.isEnabled,
@@ -1555,7 +1667,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
                 SwitchListTile(
-                  title: const Text('Kilitli içerikleri gizle'),
+                  title: Text(strings.v49('hideLocked')),
                   subtitle: const Text(
                       'Afiş, başlık ve sonuçları listelerden kaldırır.'),
                   value: service.hideLockedContent,
@@ -1565,7 +1677,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Kilit açık kalma süresi'),
+                  title: Text(strings.v49('unlockDuration')),
                   subtitle: Text('${service.sessionMinutes} dakika'),
                   trailing: DropdownButton<int>(
                     value: service.sessionMinutes,
@@ -1581,7 +1693,27 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 ListTile(
-                  title: const Text('PIN kodunu değiştir'),
+                  title: Text(strings.v49('manageLocked')),
+                  subtitle: Text(
+                      '${service.lockedContent.length} elle kilitlenmiş öğe'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    _showLockedContentManager();
+                  },
+                ),
+                ListTile(
+                  title: Text(strings.v49('showHidden')),
+                  subtitle: Text(
+                      '${ContentVisibilityService.instance.hiddenCount} gizli öğe'),
+                  trailing: const Icon(Icons.visibility),
+                  onTap: () async {
+                    await ContentVisibilityService.instance.showAll();
+                    update(() {});
+                  },
+                ),
+                ListTile(
+                  title: Text(strings.v49('changePin')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     Navigator.pop(dialogContext);
@@ -1589,7 +1721,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Kilidi şimdi kapat'),
+                  title: Text(strings.v49('lockNow')),
                   subtitle:
                       const Text('Açık olan PIN oturumunu hemen sonlandırır.'),
                   trailing: const Icon(Icons.lock),
@@ -1609,6 +1741,56 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showLockedContentManager() async {
+    final service = ParentalService.instance;
+    final strings = context.read<AppState>().s;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) {
+          final entries = service.lockedContent;
+          return AlertDialog(
+            backgroundColor: AppTheme.card,
+            title: Text(strings.v49('lockedContent')),
+            content: SizedBox(
+              width: 620,
+              height: 420,
+              child: entries.isEmpty
+                  ? Center(child: Text(strings.v49('noManualLocks')))
+                  : ListView.builder(
+                      itemCount: entries.length,
+                      itemBuilder: (context, index) {
+                        final entry = entries[index];
+                        return ListTile(
+                          autofocus: index == 0,
+                          leading: Icon(entry.isCategory
+                              ? Icons.folder_off_outlined
+                              : Icons.lock_outline),
+                          title: Text(entry.name,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: Text(entry.subtitle),
+                          trailing: const Icon(Icons.lock_open),
+                          onTap: () async {
+                            await service.unlockEntry(entry);
+                            update(() {});
+                          },
+                        );
+                      },
+                    ),
+            ),
+            actions: [
+              FilledButton(
+                autofocus: entries.isEmpty,
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Tamam'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

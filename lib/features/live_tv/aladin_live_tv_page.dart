@@ -312,7 +312,7 @@ class _HorizStrip extends StatelessWidget {
             child: Text(title, style: AppTheme.headingMedium),
           ),
           SizedBox(
-            height: 175,
+            height: 158,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -322,8 +322,8 @@ class _HorizStrip extends StatelessWidget {
               itemBuilder: (_, i) => ChannelCard(
                 channel: channels[i],
                 tvMode: true,
-                width: 240,
-                height: 135,
+                width: 212,
+                height: 119,
                 onTap: () => onTap(channels[i]),
                 onLongPress: onLongPress != null
                     ? () => onLongPress!(channels[i])

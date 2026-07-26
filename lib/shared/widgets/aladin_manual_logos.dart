@@ -1,4 +1,3 @@
-
 /// AladinManualLogos — GitHub üzerinde barındırılan TV kanal logoları.
 ///
 /// Logolar `aladinTVLogos` reposunun ana dizinindedir (root).

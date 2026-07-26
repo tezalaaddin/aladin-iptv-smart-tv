@@ -6,6 +6,7 @@ import '../../core/state/aladin_app_state.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_app_bar.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
+import '../../shared/widgets/aladin_channel_options.dart';
 import '../../shared/widgets/aladin_empty_state.dart';
 import '../player/aladin_player_page.dart';
 
@@ -182,7 +183,7 @@ class _FavoritesPageState extends State<FavoritesPage>
             channel: ch,
             margin: EdgeInsets.zero,
             onTap: () => _play(ch, list),
-            onLongPress: () => _showRemoveConfirm(ch),
+            onLongPress: () => showAladinChannelOptions(context, ch),
           ),
         );
       },

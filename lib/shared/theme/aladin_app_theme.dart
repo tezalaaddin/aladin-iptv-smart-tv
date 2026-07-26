@@ -108,4 +108,17 @@ class AppTheme {
           ),
         ),
       );
+
+  static ThemeData get highContrastTheme => darkTheme.copyWith(
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFFFB000),
+          secondary: Colors.white,
+          surface: Colors.black,
+          onSurface: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.black,
+        dividerTheme:
+            const DividerThemeData(color: Colors.white54, thickness: 1.5),
+        focusColor: Colors.white,
+      );
 }

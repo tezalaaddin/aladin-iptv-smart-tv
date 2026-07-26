@@ -9,6 +9,7 @@ import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_app_bar.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_input_dialog.dart';
+import '../../shared/widgets/aladin_channel_options.dart';
 import '../player/aladin_player_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -211,6 +212,7 @@ class _SearchPageState extends State<SearchPage> {
                 final ch = all[i];
                 return ChannelCard(
                   channel: ch,
+                  onLongPress: () => showAladinChannelOptions(context, ch),
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(

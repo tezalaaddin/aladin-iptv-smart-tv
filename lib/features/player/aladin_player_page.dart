@@ -76,6 +76,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   Future<void> _launchNativePlayer() async {
     try {
+      await ChannelService.instance.recordPlay(widget.channel);
       final state = context.read<AppState>();
       final s = state.s;
 
@@ -140,6 +141,8 @@ class _PlayerPageState extends State<PlayerPage> {
         'index': filteredIndex >= 0 ? filteredIndex : 0,
         'decoderMode': decoderMode,
         'videoLimit': videoLimit,
+        'matchFrameRate':
+            AladinPrefs.instance.getBool('match_content_frame_rate'),
         // Localization
         'i18n': {
           'subtitles': s.subtitles,

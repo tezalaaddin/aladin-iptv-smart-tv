@@ -395,8 +395,8 @@ class _ChannelCardState extends State<ChannelCard> {
         httpHeaders: _kHeaders,
         fit: fit,
         // ⚡ PERFORMANS: memCacheWidth/Height ile RAM kullanımını 4x azalt
-        memCacheWidth: isTv ? 240 : 140,
-        memCacheHeight: isTv ? 135 : 200,
+        memCacheWidth: isTv ? 212 : 140,
+        memCacheHeight: isTv ? 119 : 200,
         placeholder: (_, __) => _placeholder(color),
         errorWidget: (_, __, ___) {
           if (vodUrl != null && vodUrl.isNotEmpty)

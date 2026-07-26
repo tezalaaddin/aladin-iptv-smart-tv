@@ -21,6 +21,8 @@ import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.Surface
+import android.view.SurfaceView
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -670,6 +672,7 @@ class NativePlayerActivity : AppCompatActivity(),
                     mainHandler.postDelayed(bufferingTimeoutRunnable, BUFFERING_TIMEOUT_MS)
                 }
                 Player.STATE_READY -> {
+                    applyContentFrameRate()
                     retryCount = 0
                     bufferingRetryCount = 0
                     bufferingStartTime = 0L
@@ -1092,6 +1095,18 @@ class NativePlayerActivity : AppCompatActivity(),
         playerView.resizeMode = modes[next]
         prefs.edit().putInt("aspect_${channelUrls?.getOrNull(currentIndex)?.hashCode() ?: 0}", modes[next]).apply()
         showStatus("${t("aspect", "Ekran Oranı")}: ${names[next]}")
+    }
+
+    private fun applyContentFrameRate() {
+        if (!intent.getBooleanExtra("MATCH_FRAME_RATE", false) || Build.VERSION.SDK_INT < 30) return
+        val rate = player?.videoFormat?.frameRate ?: return
+        if (rate <= 0f) return
+        val surface = (playerView.videoSurfaceView as? SurfaceView)?.holder?.surface ?: return
+        try {
+            surface.setFrameRate(rate, Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
+        } catch (error: Exception) {
+            Log.w(TAG, "Frame-rate matching unavailable", error)
+        }
     }
 
     private fun cycleSleepTimer() {

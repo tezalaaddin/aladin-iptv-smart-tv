@@ -4,6 +4,7 @@ import '../../core/models/aladin_category_model.dart';
 import '../../core/services/aladin_channel_service.dart';
 import '../theme/aladin_app_theme.dart';
 import 'aladin_channel_card.dart';
+import 'aladin_channel_options.dart';
 
 class CategoryRow extends StatefulWidget {
   final CategoryModel category;
@@ -87,9 +88,11 @@ class _CategoryRowState extends State<CategoryRow> {
 
   @override
   Widget build(BuildContext context) {
-    final cardWidth = widget.tvMode ? 240.0 : AppTheme.cardWidth;
-    final cardHeight = widget.tvMode ? 135.0 : AppTheme.cardHeight;
-    final rowHeight = widget.tvMode ? 175.0 : AppTheme.listHeight;
+    // Compact 16:9 live-TV cards show more channels per 1080p row while
+    // preserving enough room for the two-line EPG overlay and D-pad focus.
+    final cardWidth = widget.tvMode ? 212.0 : AppTheme.cardWidth;
+    final cardHeight = widget.tvMode ? 119.0 : AppTheme.cardHeight;
+    final rowHeight = widget.tvMode ? 158.0 : AppTheme.listHeight;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Kategori Başlığı ve Kanal Sayısı Alanı
       Padding(
@@ -159,6 +162,8 @@ class _CategoryRowState extends State<CategoryRow> {
                         showEpg: widget.showEpg,
                         seriesProgress: prog,
                         onTap: () => widget.onChannelTap(ch, _channels),
+                        onLongPress: () =>
+                            showAladinChannelOptions(context, ch),
                         onFavoriteTap: () => widget.onFavorite?.call(ch),
                       );
                     },

@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar_community/isar.dart';
 import '../di/aladin_di.dart';
@@ -22,6 +25,56 @@ class PlaylistService {
 
   Isar get _db => sl<IsarService>().db;
   static const _secure = FlutterSecureStorage();
+
+  Future<Uint8List> exportEncryptedBackup(String password) async {
+    if (password.length < 6) {
+      throw const FormatException('Yedek parolası en az 6 karakter olmalıdır.');
+    }
+    final random = Random.secure();
+    final salt = List<int>.generate(16, (_) => random.nextInt(256));
+    final nonce = List<int>.generate(12, (_) => random.nextInt(256));
+    final kdf =
+        Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: 100000, bits: 256);
+    final key = await kdf.deriveKey(
+        secretKey: SecretKey(utf8.encode(password)), nonce: salt);
+    final box = await AesGcm.with256bits().encrypt(
+      utf8.encode(await exportAppBackup()),
+      secretKey: key,
+      nonce: nonce,
+    );
+    return Uint8List.fromList(utf8.encode(jsonEncode({
+      'format': 'aladin-encrypted-backup-v1',
+      'kdf': 'PBKDF2-HMAC-SHA256',
+      'iterations': 100000,
+      'salt': base64Url.encode(salt),
+      'nonce': base64Url.encode(nonce),
+      'cipherText': base64Url.encode(box.cipherText),
+      'mac': base64Url.encode(box.mac.bytes),
+    })));
+  }
+
+  Future<void> importEncryptedBackup(Uint8List bytes, String password) async {
+    final root = jsonDecode(utf8.decode(bytes));
+    if (root is! Map || root['format'] != 'aladin-encrypted-backup-v1') {
+      throw const FormatException('Geçersiz şifreli yedek.');
+    }
+    final iterations = (root['iterations'] as num?)?.toInt() ?? 100000;
+    final salt = base64Url.decode(root['salt'].toString());
+    final nonce = base64Url.decode(root['nonce'].toString());
+    final kdf =
+        Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: iterations, bits: 256);
+    final key = await kdf.deriveKey(
+        secretKey: SecretKey(utf8.encode(password)), nonce: salt);
+    final clear = await AesGcm.with256bits().decrypt(
+      SecretBox(
+        base64Url.decode(root['cipherText'].toString()),
+        nonce: nonce,
+        mac: Mac(base64Url.decode(root['mac'].toString())),
+      ),
+      secretKey: key,
+    );
+    await importAppBackup(utf8.decode(clear));
+  }
 
   // ── Secure Storage Helpers ────────────────────────────────────────────────
 
@@ -161,6 +214,8 @@ class PlaylistService {
             prefs.getString('parental_locked_categories_v2'),
         'parental_locked_channels_v2':
             prefs.getString('parental_locked_channels_v2'),
+        'parental_locked_channels_v3':
+            prefs.getString('parental_locked_channels_v3'),
       },
     });
   }
@@ -176,7 +231,8 @@ class PlaylistService {
       'decoderMode',
       'preferredQuality',
       'parental_locked_categories_v2',
-      'parental_locked_channels_v2'
+      'parental_locked_channels_v2',
+      'parental_locked_channels_v3'
     ]) {
       final value = settings[key];
       if (value is String) await AladinPrefs.instance.setString(key, value);

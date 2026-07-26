@@ -180,6 +180,8 @@ class _AladinAppState extends State<AladinApp>
       AppState.instance.init(), // Artık içinde load() yok, sadece okuma yapıyor
     ]);
 
+    await ChannelService.instance.migrateParentalLocks();
+
     await AppState.instance.loadPlaylists();
 
     final hasLang = AladinPrefs.instance.getString('lang') != null;
@@ -202,35 +204,41 @@ class _AladinAppState extends State<AladinApp>
         ChangeNotifierProvider.value(value: MetadataSyncService.instance),
         ChangeNotifierProvider.value(value: AladinEpgEngine.instance),
       ],
-      child: MaterialApp(
-        title: 'aladin IPTV Player Pro TV',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        builder: (context, child) {
-          final media = MediaQuery.of(context);
-          final largeText =
-              AladinPrefs.instance.getBool('accessibility_large_text');
+      child: ValueListenableBuilder<int>(
+        valueListenable: AladinPrefs.instance.accessibilityRevision,
+        builder: (context, _, __) {
           final highContrast =
               AladinPrefs.instance.getBool('accessibility_high_contrast');
-          return MediaQuery(
-            data: media.copyWith(
-              textScaler: TextScaler.linear(largeText ? 1.16 : 1.0),
-              highContrast: highContrast,
+          return MaterialApp(
+            title: 'aladin IPTV Player Pro TV',
+            debugShowCheckedModeBanner: false,
+            theme:
+                highContrast ? AppTheme.highContrastTheme : AppTheme.darkTheme,
+            builder: (context, child) {
+              final media = MediaQuery.of(context);
+              final largeText =
+                  AladinPrefs.instance.getBool('accessibility_large_text');
+              return MediaQuery(
+                data: media.copyWith(
+                  textScaler: TextScaler.linear(largeText ? 1.16 : 1.0),
+                  highContrast: highContrast,
+                ),
+                child: child!,
+              );
+            },
+            home: FocusScope(
+              autofocus: true,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: switch (_phase) {
+                  1 => _LangSelect(onSelect: _onLangSelected),
+                  2 => const MainPage(),
+                  _ => _Splash(fade: _fade),
+                },
+              ),
             ),
-            child: child!,
           );
         },
-        home: FocusScope(
-          autofocus: true,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            child: switch (_phase) {
-              1 => _LangSelect(onSelect: _onLangSelected),
-              2 => const MainPage(),
-              _ => _Splash(fade: _fade),
-            },
-          ),
-        ),
       ),
     );
   }

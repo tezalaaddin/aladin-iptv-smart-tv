@@ -12,6 +12,329 @@ class AppStrings {
 
   String _t(String k) => _map[k] ?? k;
 
+  /// +49 feature strings. Kept in a compact matrix to guarantee that every
+  /// newly introduced TV surface has all eight supported languages.
+  String v49(String key) {
+    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    final values = _v49[key];
+    if (values == null) return key;
+    final index = codes.indexOf(langCode);
+    return values[index < 0 ? 1 : index];
+  }
+
+  static const Map<String, List<String>> _v49 = {
+    'parental': [
+      'Ebeveyn Kontrolü',
+      'Parental Controls',
+      'Kindersicherung',
+      'Contrôle parental',
+      'Control parental',
+      'Родительский контроль',
+      '家长控制',
+      'الرقابة الأبوية'
+    ],
+    'largeText': [
+      'Büyük Yazı',
+      'Large Text',
+      'Große Schrift',
+      'Grand texte',
+      'Texto grande',
+      'Крупный текст',
+      '大字体',
+      'نص كبير'
+    ],
+    'highContrast': [
+      'Yüksek Kontrast',
+      'High Contrast',
+      'Hoher Kontrast',
+      'Contraste élevé',
+      'Alto contraste',
+      'Высокая контрастность',
+      '高对比度',
+      'تباين عالٍ'
+    ],
+    'lockedContent': [
+      'Kilitli İçerikler',
+      'Locked Content',
+      'Gesperrte Inhalte',
+      'Contenu verrouillé',
+      'Contenido bloqueado',
+      'Заблокированный контент',
+      '已锁定内容',
+      'المحتوى المقفل'
+    ],
+    'manageLocked': [
+      'Kilitli içerikleri yönet',
+      'Manage locked content',
+      'Gesperrte Inhalte verwalten',
+      'Gérer le contenu verrouillé',
+      'Gestionar contenido bloqueado',
+      'Управление блокировками',
+      '管理已锁定内容',
+      'إدارة المحتوى المقفل'
+    ],
+    'noManualLocks': [
+      'Elle kilitlenmiş içerik yok.',
+      'No manually locked content.',
+      'Keine manuell gesperrten Inhalte.',
+      'Aucun contenu verrouillé manuellement.',
+      'No hay contenido bloqueado manualmente.',
+      'Нет заблокированного вручную контента.',
+      '没有手动锁定的内容。',
+      'لا يوجد محتوى مقفل يدويًا.'
+    ],
+    'pinProtection': [
+      'PIN koruması',
+      'PIN protection',
+      'PIN-Schutz',
+      'Protection par PIN',
+      'Protección con PIN',
+      'Защита PIN-кодом',
+      'PIN 保护',
+      'حماية PIN'
+    ],
+    'hideLocked': [
+      'Kilitli içerikleri gizle',
+      'Hide locked content',
+      'Gesperrte Inhalte ausblenden',
+      'Masquer le contenu verrouillé',
+      'Ocultar contenido bloqueado',
+      'Скрывать заблокированное',
+      '隐藏已锁定内容',
+      'إخفاء المحتوى المقفل'
+    ],
+    'unlockDuration': [
+      'Kilidin açık kalma süresi',
+      'Unlock duration',
+      'Entsperrdauer',
+      'Durée de déverrouillage',
+      'Duración del desbloqueo',
+      'Время разблокировки',
+      '解锁时长',
+      'مدة فتح القفل'
+    ],
+    'changePin': [
+      'PIN kodunu değiştir',
+      'Change PIN',
+      'PIN ändern',
+      'Modifier le PIN',
+      'Cambiar PIN',
+      'Изменить PIN',
+      '更改 PIN',
+      'تغيير PIN'
+    ],
+    'lockNow': [
+      'Kilidi şimdi kapat',
+      'Lock now',
+      'Jetzt sperren',
+      'Verrouiller maintenant',
+      'Bloquear ahora',
+      'Заблокировать сейчас',
+      '立即锁定',
+      'القفل الآن'
+    ],
+    'enterPin': [
+      'Devam etmek için ebeveyn PIN kodunu girin.',
+      'Enter the parental PIN to continue.',
+      'Geben Sie zum Fortfahren die Eltern-PIN ein.',
+      'Saisissez le PIN parental pour continuer.',
+      'Introduce el PIN parental para continuar.',
+      'Введите родительский PIN-код.',
+      '输入家长 PIN 以继续。',
+      'أدخل رمز PIN الأبوي للمتابعة.'
+    ],
+    'unlock': [
+      'Kilidi Aç',
+      'Unlock',
+      'Entsperren',
+      'Déverrouiller',
+      'Desbloquear',
+      'Разблокировать',
+      '解锁',
+      'فتح القفل'
+    ],
+    'wrongPin': [
+      'PIN yanlış veya geçici olarak engellendi.',
+      'Incorrect PIN or temporarily blocked.',
+      'Falsche PIN oder vorübergehend gesperrt.',
+      'PIN incorrect ou temporairement bloqué.',
+      'PIN incorrecto o bloqueado temporalmente.',
+      'Неверный PIN или временная блокировка.',
+      'PIN 错误或暂时被阻止。',
+      'رمز PIN غير صحيح أو محظور مؤقتًا.'
+    ],
+    'epgGuide': [
+      'Elektronik Program Rehberi',
+      'Electronic Programme Guide',
+      'Elektronischer Programmführer',
+      'Guide électronique des programmes',
+      'Guía electrónica de programas',
+      'Электронная программа передач',
+      '电子节目指南',
+      'دليل البرامج الإلكتروني'
+    ],
+    'previousDay': [
+      'Önceki gün',
+      'Previous day',
+      'Vorheriger Tag',
+      'Jour précédent',
+      'Día anterior',
+      'Предыдущий день',
+      '前一天',
+      'اليوم السابق'
+    ],
+    'nextDay': [
+      'Sonraki gün',
+      'Next day',
+      'Nächster Tag',
+      'Jour suivant',
+      'Día siguiente',
+      'Следующий день',
+      '后一天',
+      'اليوم التالي'
+    ],
+    'noProgram': [
+      'Program bilgisi yok',
+      'No programme information',
+      'Keine Programminformationen',
+      'Aucune information de programme',
+      'Sin información de programa',
+      'Нет информации о программе',
+      '暂无节目信息',
+      'لا توجد معلومات عن البرنامج'
+    ],
+    'catchup': [
+      'Arşiv',
+      'Catch-up',
+      'Archiv',
+      'Rattrapage',
+      'Repetición',
+      'Архив',
+      '回看',
+      'الأرشيف'
+    ],
+    'fullGuide': [
+      'Tam program rehberi',
+      'Full programme guide',
+      'Vollständiger Programmführer',
+      'Guide complet',
+      'Guía completa',
+      'Полная программа',
+      '完整节目指南',
+      'دليل البرامج الكامل'
+    ],
+    'healthReport': [
+      'Playlist sağlık raporu',
+      'Playlist health report',
+      'Playlist-Zustandsbericht',
+      'Rapport de santé de la playlist',
+      'Informe de estado de la lista',
+      'Отчёт о состоянии плейлиста',
+      '播放列表健康报告',
+      'تقرير سلامة قائمة التشغيل'
+    ],
+    'secureBackup': [
+      'Güvenli yedeği panoya kopyala',
+      'Copy secure backup',
+      'Sicheres Backup kopieren',
+      'Copier la sauvegarde sécurisée',
+      'Copiar copia segura',
+      'Копировать защищённую резервную копию',
+      '复制安全备份',
+      'نسخ النسخة الاحتياطية الآمنة'
+    ],
+    'restoreBackup': [
+      'Panodaki yedeği geri yükle',
+      'Restore backup from clipboard',
+      'Backup aus Zwischenablage wiederherstellen',
+      'Restaurer depuis le presse-papiers',
+      'Restaurar desde el portapapeles',
+      'Восстановить из буфера обмена',
+      '从剪贴板恢复备份',
+      'استعادة النسخة من الحافظة'
+    ],
+    'serverLatency': [
+      'Sunucu gecikmesi',
+      'Server latency',
+      'Serverlatenz',
+      'Latence du serveur',
+      'Latencia del servidor',
+      'Задержка сервера',
+      '服务器延迟',
+      'زمن استجابة الخادم'
+    ],
+    'accountStatus': [
+      'Hesap durumu',
+      'Account status',
+      'Kontostatus',
+      'État du compte',
+      'Estado de la cuenta',
+      'Статус аккаунта',
+      '账户状态',
+      'حالة الحساب'
+    ],
+    'subscriptionExpiry': [
+      'Abonelik bitişi',
+      'Subscription expiry',
+      'Ablauf des Abos',
+      'Expiration de l’abonnement',
+      'Vencimiento de suscripción',
+      'Окончание подписки',
+      '订阅到期',
+      'انتهاء الاشتراك'
+    ],
+    'encryptedExport': [
+      'Parolalı yedek dosyası oluştur',
+      'Create password-protected backup',
+      'Passwortgeschütztes Backup erstellen',
+      'Créer une sauvegarde protégée',
+      'Crear copia protegida',
+      'Создать защищённую копию',
+      '创建密码备份',
+      'إنشاء نسخة احتياطية محمية'
+    ],
+    'encryptedImport': [
+      'Parolalı yedek dosyasını aç',
+      'Open password-protected backup',
+      'Passwortgeschütztes Backup öffnen',
+      'Ouvrir une sauvegarde protégée',
+      'Abrir copia protegida',
+      'Открыть защищённую копию',
+      '打开密码备份',
+      'فتح نسخة احتياطية محمية'
+    ],
+    'frameRate': [
+      'İçerik kare hızını eşleştir',
+      'Match content frame rate',
+      'Bildrate des Inhalts anpassen',
+      'Adapter la fréquence d’images',
+      'Igualar frecuencia de fotogramas',
+      'Согласовать частоту кадров',
+      '匹配内容帧率',
+      'مطابقة معدل إطارات المحتوى'
+    ],
+    'hideContent': [
+      'Bu içeriği gizle',
+      'Hide this content',
+      'Diesen Inhalt ausblenden',
+      'Masquer ce contenu',
+      'Ocultar este contenido',
+      'Скрыть этот контент',
+      '隐藏此内容',
+      'إخفاء هذا المحتوى'
+    ],
+    'showHidden': [
+      'Gizlenen içerikleri yeniden göster',
+      'Show hidden content again',
+      'Ausgeblendete Inhalte wieder anzeigen',
+      'Réafficher le contenu masqué',
+      'Volver a mostrar contenido oculto',
+      'Показать скрытый контент',
+      '重新显示隐藏内容',
+      'إظهار المحتوى المخفي مجددًا'
+    ],
+  };
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   String get appNameShort => _t('appNameShort');
   String get navHome => _t('navHome');

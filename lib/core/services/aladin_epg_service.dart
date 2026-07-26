@@ -147,4 +147,28 @@ class EpgService {
 
     return results;
   }
+
+  /// Loads a complete day window once and groups it for an EPG grid. This
+  /// replaces one Isar query per visible channel on low-memory televisions.
+  Future<Map<String, List<EpgProgramModel>>> getDayGrid(DateTime day) async {
+    if (_isPaused) return {};
+    final start = DateTime(day.year, day.month, day.day);
+    final end = start.add(const Duration(days: 1));
+    final programs = await _db.epgProgramModels
+        .filter()
+        .startTimeLessThan(end)
+        .and()
+        .endTimeGreaterThan(start)
+        .sortByStartTime()
+        .findAll();
+    final grouped = <String, List<EpgProgramModel>>{};
+    for (final program in programs) {
+      grouped.putIfAbsent(program.normalizedChannelId, () => []).add(program);
+      final raw = AladinEpgEngine.normalizeId(program.channelId);
+      if (raw != program.normalizedChannelId) {
+        grouped.putIfAbsent(raw, () => []).add(program);
+      }
+    }
+    return grouped;
+  }
 }
