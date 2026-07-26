@@ -1,0 +1,16 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+52 GELISTIRME TAKIP DOSYASI
+================================================================
+Baslangic: 26.07.2026
+Hedef surum: 2.3.1+52
+Android AAB versionCode: 1052
+GitHub durumu: TESTLER BASARILI OLURSA GONDERILECEK
+
+01 [TAMAMLANDI] Ana Sayfa ustune premium, odakta etikete genisleyen soru isareti eklendi.
+02 [TAMAMLANDI] TV kumandasina ozel iki panelli, aranabilir Yardim Merkezi olusturuldu.
+03 [TAMAMLANDI] Ilk kurulum, playlist, Ana Sayfa, Canli TV/EPG, Film/Dizi ve kategori kullanimi aciklandi.
+04 [TAMAMLANDI] Oynatici tuslari, uzun OK islemleri, favoriler, arama ve sayi kisayollari belgelendi.
+05 [TAMAMLANDI] Ebeveyn kontrolu, decoder/kalite, yedek, gizlilik, guncelleme ve sorun giderme belgelendi.
+06 [TAMAMLANDI] Rehber tamamen cevrimdisi calisacak ve aktif dili izleyecek sekilde tasarlandi.
+07 [TAMAMLANDI] Turkce, Ingilizce, Almanca, Fransizca, Ispanyolca, Rusca, Cince ve Arapca 14 konu tamamlandi.
+08 [TAMAMLANDI] Dart format uygulandi; Flutter testleri 9/9 gecti, analyzer hata sayisi 0. Uc ABI release APK uretildi. ARMv7 paket gercek Android TV'ye kuruldu; simge, OK ile acilis, D-pad konu gecisi, okunabilirlik ve Geri davranisi cokmesiz dogrulandi.
+09 [TAMAMLANDI] SKILL.md +52 notlari eklendi; final AAB, commit ve GitHub push icin kaynaklar hazirlandi.

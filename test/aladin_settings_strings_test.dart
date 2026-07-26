@@ -1,5 +1,6 @@
 import 'package:aladin_iptv_pro/core/state/aladin_app_strings.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:aladin_iptv_pro/features/help/aladin_help_page.dart';
 
 void main() {
   test('new playback settings are localized in every supported language', () {
@@ -93,6 +94,22 @@ void main() {
       for (final key in keys) {
         expect(strings.v51(key), isNot(key), reason: '$language:$key');
         expect(strings.v51(key).trim(), isNotEmpty, reason: '$language:$key');
+      }
+    }
+  });
+
+  test('+52 offline help center is complete in every supported language', () {
+    for (final language in AladinHelpCatalog.supportedLanguages) {
+      final labels = AladinHelpCatalog.labels(language);
+      final topics = AladinHelpCatalog.topics(language);
+      expect(labels.values.every((value) => value.trim().isNotEmpty), isTrue,
+          reason: '$language labels');
+      expect(topics.length, 14, reason: '$language topic count');
+      for (final topic in topics) {
+        expect(topic.title.trim(), isNotEmpty, reason: '$language title');
+        expect(topic.summary.trim(), isNotEmpty, reason: '$language summary');
+        expect(topic.steps.length, greaterThanOrEqualTo(3),
+            reason: '$language:${topic.title}');
       }
     }
   });

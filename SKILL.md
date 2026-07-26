@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+51
+version: 2.3.1+52
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1958,3 +1958,12 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 5. **Yönetim Eylemleri:** Tüm Kategoriler kısayolu ve gizlenen kategori/içerikleri tek tek ya da topluca geri getiren doğrudan yönetim ekranı panele eklendi.
 6. **Sekiz Dilli Arayüz:** Yeni kategori gezinme metinleri Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça tamamlandı; yerelleştirme regresyon testi genişletildi.
 7. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+51`, Play Console AAB versionCode `1051`, split APK versionCode `2051` oldu. Flutter testleri 8/8 geçti, analyzer hata sayısı 0 bulundu, AAB ve ABI bazlı APK'lar TMDB anahtarıyla üretildi. ARMv7 paket gerçek Android TV'de panel, D-pad, Geri ve oynatıcı geçişiyle çökmesiz test edildi.
+
+## V2.3.1+52 Sürüm Notları: Çok Dilli Premium Kullanım Rehberi
+1. **Ana Sayfa Yardım Girişi:** Ana Sayfanın üst bölümüne arayüzü kalabalıklaştırmayan dairesel soru işareti eklendi. Düğme kumanda odağı aldığında turuncu renge geçip aktif dilde “Kullanım Rehberi” etiketine genişliyor.
+2. **TV Yardım Merkezi:** Klasik uzun metin yerine solda konu listesi, sağda seçilen konunun açıklaması bulunan iki panelli, 1080p Android TV ve D-pad için tasarlanmış çevrimdışı rehber oluşturuldu.
+3. **Arama ve Kumanda İpuçları:** Özellik, menü veya işlem adına göre rehber araması; sürekli görünen OK, Uzun OK ve Geri tuşu açıklamaları eklendi. Konu geçişi, kaydırma ve geri dönüş odağı gerçek kumanda akışına göre düzenlendi.
+4. **Eksiksiz Özellik Kapsamı:** Hızlı kurulum, M3U/Xtream/yerel liste yönetimi, Ana Sayfa, Canlı TV ve EPG, Film/Dizi, kategori paneli, oynatıcı, favoriler, arama ve sayı kısayolları adım adım açıklandı.
+5. **Gelişmiş Araçların Keşfi:** Uzun OK eylemleri, ebeveyn kontrolü, decoder/kalite profilleri, kare hızı, karıştırma, şifreli yedek, gizlilik, Watch Next, mağaza güncellemesi ve sorun giderme kullanıcı dilinde belgelendi.
+6. **Sekiz Tam Dil:** 14 rehber konusu Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça olarak uygulamaya gömüldü. Rehber aktif uygulama dilini otomatik izliyor ve internet olmadan çalışıyor.
+7. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+52`, Play Console AAB versionCode `1052`, split APK versionCode `2052` oldu. Yerelleştirme/katalog testiyle toplam 9/9 test geçti, analyzer hata sayısı 0 bulundu ve üç ABI release APK üretildi. ARMv7 paket gerçek Android TV'de yardım simgesi, OK ile açılış, D-pad konu geçişi, okunabilirlik ve Geri davranışıyla çökmesiz test edildi.

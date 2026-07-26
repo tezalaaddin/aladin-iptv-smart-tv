@@ -22,6 +22,7 @@ import 'settings/aladin_settings_page.dart';
 import 'player/aladin_player_page.dart';
 import 'content/aladin_category_page.dart';
 import 'home/aladin_home_page.dart';
+import 'help/aladin_help_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -437,12 +438,6 @@ class _MainPageState extends State<MainPage> {
                 Positioned.fill(child: _DynamicBackdrop()),
 
                 // ── METADATA SYNC INDICATOR (ELITE UX) ──────────────────────
-                const Positioned(
-                  top: 20,
-                  right: 40,
-                  child: _SyncIndicator(),
-                ),
-
                 Row(
                   children: [
                     if (isLandscape)
@@ -469,6 +464,27 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ),
                   ],
+                ),
+                Positioned(
+                  top: 20,
+                  right: 180,
+                  child: Row(
+                    children: [
+                      if (_index == 0 && _selectedCategory == null) ...[
+                        _HelpEntryButton(
+                          label: AladinHelpCatalog.labels(state.lang)['title']!,
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AladinHelpPage(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      const _SyncIndicator(),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -534,6 +550,87 @@ class _MainPageState extends State<MainPage> {
           ),
         ) ??
         false;
+  }
+}
+
+class _HelpEntryButton extends StatefulWidget {
+  const _HelpEntryButton({required this.label, required this.onPressed});
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  State<_HelpEntryButton> createState() => _HelpEntryButtonState();
+}
+
+class _HelpEntryButtonState extends State<_HelpEntryButton> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: FocusableActionDetector(
+        onShowFocusHighlight: (value) => setState(() => _focused = value),
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onPressed();
+              return null;
+            },
+          ),
+        },
+        child: GestureDetector(
+          onTap: widget.onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            height: 46,
+            padding: EdgeInsets.symmetric(horizontal: _focused ? 16 : 11),
+            decoration: BoxDecoration(
+              color:
+                  _focused ? AppTheme.accent : AppTheme.card.withOpacity(.92),
+              borderRadius: BorderRadius.circular(23),
+              border: Border.all(
+                color: _focused ? Colors.white70 : Colors.white24,
+                width: _focused ? 2 : 1,
+              ),
+              boxShadow: _focused
+                  ? [
+                      BoxShadow(
+                          color: AppTheme.accent.withOpacity(.28),
+                          blurRadius: 18)
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.question_mark_rounded,
+                    size: 23, color: _focused ? Colors.black : AppTheme.accent),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 180),
+                  child: _focused
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 9),
+                          child: Text(widget.label,
+                              style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800)),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
