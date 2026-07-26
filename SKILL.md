@@ -1,7 +1,7 @@
 ---
 name: aladin Media Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.0+43
+version: 2.3.0+1
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1874,8 +1874,8 @@ Bu sÃ¼rÃ¼mle birlikte yayÄ±nlarÄ±n aÃ§Ä±lma baÅŸarÄ± oranÄ± artÄ±rÄ±lmÄ±ÅŸ ve Go
     *   OynatÄ±lamayan bir kanal olduÄŸunda hata mesajÄ±nda artÄ±k "Hata Veren Adres" aÃ§Ä±kÃ§a gÃ¶steriliyor.
     *   Logcat/Terminal Ã¼zerinden yayÄ±n linklerinin teknik analizini yapmayÄ± saÄŸlayan debug katmanÄ± gÃ¼Ã§lendirildi.
 
-## V2.3.0 +1 Sürüm Notları:
-1. **Android 16 (API 36) Desteği:** Google Play Store'un yeni gereksinimlerine tam uyum sağlamak amacıyla 	argetSdk ve compileSdk sürümleri 36'ya yükseltildi.
-2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son sürümlerindeki güvenlik ve performans standartlarına göre optimize edildi.
-3. **Sürüm Senkronizasyonu:** Tüm modüllerde ve dökümantasyonda sürüm bilgileri v2.3.0+43 olarak güncellendi.
-4. **GitHub Yayınlama:** Uygulamanın en güncel hali v2.3.0 etiketiyle GitHub reposuna gönderildi.
+## V2.3.0 +1 Sï¿½rï¿½m Notlarï¿½:
+1. **Android 16 (API 36) Desteï¿½i:** Google Play Store'un yeni gereksinimlerine tam uyum saï¿½lamak amacï¿½yla 	argetSdk ve compileSdk sï¿½rï¿½mleri 36'ya yï¿½kseltildi.
+2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son sï¿½rï¿½mlerindeki gï¿½venlik ve performans standartlarï¿½na gï¿½re optimize edildi.
+3. **Sï¿½rï¿½m Senkronizasyonu:** Tï¿½m modï¿½llerde ve dï¿½kï¿½mantasyonda sï¿½rï¿½m bilgileri v2.3.0+43 olarak gï¿½ncellendi.
+4. **GitHub Yayï¿½nlama:** Uygulamanï¿½n en gï¿½ncel hali v2.3.0 etiketiyle GitHub reposuna gï¿½nderildi.
