@@ -1,7 +1,7 @@
 ---
 name: aladin IPTV Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.1+52
+version: 2.3.1+53
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1967,3 +1967,11 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
 5. **Gelişmiş Araçların Keşfi:** Uzun OK eylemleri, ebeveyn kontrolü, decoder/kalite profilleri, kare hızı, karıştırma, şifreli yedek, gizlilik, Watch Next, mağaza güncellemesi ve sorun giderme kullanıcı dilinde belgelendi.
 6. **Sekiz Tam Dil:** 14 rehber konusu Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Rusça, Çince ve Arapça olarak uygulamaya gömüldü. Rehber aktif uygulama dilini otomatik izliyor ve internet olmadan çalışıyor.
 7. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+52`, Play Console AAB versionCode `1052`, split APK versionCode `2052` oldu. Yerelleştirme/katalog testiyle toplam 9/9 test geçti, analyzer hata sayısı 0 bulundu ve üç ABI release APK üretildi. ARMv7 paket gerçek Android TV'de yardım simgesi, OK ile açılış, D-pad konu geçişi, okunabilirlik ve Geri davranışıyla çökmesiz test edildi.
+
+## V2.3.1+53 Sürüm Notları: Ana Sayfa Yardım Odağı ve Eylem Hizası
+1. **Ortak Sağ Üst Eylem Grubu:** Kullanım Rehberi soru işareti, Ana Sayfa düzenleme düğmesinin yanına taşındı. İki düğme 52 dp daire, ortak dikey hiza ve 10 dp aralıkla görsel olarak standartlaştırıldı.
+2. **Kesin Kumanda Rotası:** Sol menüde Ana Sayfa odaklıyken Sağ tuş doğrudan Yardım düğmesine gidiyor; bir sonraki Sağ tuş düzenleme düğmesine geçiyor. OK, Enter ve Gamepad A her iki düğmede de çalışıyor.
+3. **Odak Görünürlüğü:** Odaklanan eylem turuncu dolgu, beyaz çerçeve ve kontrollü ışımayla belirginleşiyor. TalkBack semantik etiketi aktif uygulama dilinden geliyor.
+4. **Katman Çakışması Düzeltmesi:** Veri senkronizasyonu bildirimi sağ üst eylemlerin altına taşındı; yardım ve düzenleme düğmelerinin arkasından geçmesi engellendi.
+5. **Sürüm ve Doğrulama:** Flutter sürümü `2.3.1+53`, Play Console AAB versionCode `1053`, split APK versionCode `2053` oldu. Flutter testleri 9/9 geçti, analyzer hata sayısı 0 bulundu. ARMv7 release gerçek Android TV'de Ana Sayfa → Sağ → Yardım → Sağ → Düzenleme rotasıyla doğrulandı.
+6. **Rehber Açıklama Paneli Odağı:** Sol konu listesindeki karttan Sağ tuşla açıklama paneline doğrudan geçiş eklendi. Odaklanan panel turuncu çerçeveyle belirginleşiyor; Yukarı/Aşağı 180 dp adımlarla metni kaydırıyor, Sol aynı konuya dönüyor ve görünür kaydırma çubuğu kalan içeriği gösteriyor.

@@ -1,0 +1,15 @@
+ALADIN IPTV PLAYER PRO TV - V2.3.1+53 GELISTIRME TAKIP DOSYASI
+================================================================
+Tarih: 26.07.2026
+Hedef surum: 2.3.1+53
+Android AAB versionCode: 1053
+
+01 [TAMAMLANDI] Yardim ve Ana Sayfa duzenleme dugmeleri ayni sag ust eylem grubuna alindi.
+02 [TAMAMLANDI] Iki dugme 52 dp daire, ortak dikey hiza ve 10 dp aralikla standartlastirildi.
+03 [TAMAMLANDI] Sol menude Ana Sayfa uzerinden Sag tus dogrudan Yardim dugmesine baglandi.
+04 [TAMAMLANDI] Yardimdan Sag tusla duzenleme dugmesine deterministik gecis eklendi.
+05 [TAMAMLANDI] OK, Enter ve Gamepad A tuslari her iki eylemde desteklendi.
+06 [TAMAMLANDI] Senkronizasyon bildirimi eylem dugmelerinin altina tasinarak cakisma giderildi.
+07 [TAMAMLANDI] Flutter testleri 9/9 gecti, analyzer hata sayisi 0 bulundu.
+08 [TAMAMLANDI] ARMv7 release gercek TV'de Yardim ve Duzenleme odaklariyla dogrulandi.
+09 [TAMAMLANDI] Rehber konu kartinda Sag ile aciklama paneline gecis, Yukari/Asagi ile 180 dp kaydirma, Sol ile konu listesine donus ve kalici kaydirma cubugu eklendi.

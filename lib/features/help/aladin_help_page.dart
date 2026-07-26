@@ -966,10 +966,12 @@ class _AladinHelpPageState extends State<AladinHelpPage> {
   int _selected = 0;
   String _query = '';
   final _searchNode = FocusNode(debugLabel: 'help_search');
+  final _detailNode = FocusNode(debugLabel: 'help_topic_detail');
 
   @override
   void dispose() {
     _searchNode.dispose();
+    _detailNode.dispose();
     super.dispose();
   }
 
@@ -1049,10 +1051,16 @@ class _AladinHelpPageState extends State<AladinHelpPage> {
                                       selected: i == _selected,
                                       autofocus: i == 0 && _query.isEmpty,
                                       onTap: () =>
-                                          setState(() => _selected = i)),
+                                          setState(() => _selected = i),
+                                      onRight: () {
+                                        setState(() => _selected = i);
+                                        _detailNode.requestFocus();
+                                      }),
                                 )),
                             const SizedBox(width: 24),
-                            Expanded(child: _TopicDetail(topic: active!)),
+                            Expanded(
+                                child: _TopicDetail(
+                                    topic: active!, focusNode: _detailNode)),
                           ])),
           ]),
         ),
@@ -1066,95 +1074,194 @@ class _TopicTile extends StatelessWidget {
       {required this.topic,
       required this.selected,
       required this.autofocus,
-      required this.onTap});
+      required this.onTap,
+      required this.onRight});
   final AladinHelpTopic topic;
   final bool selected, autofocus;
   final VoidCallback onTap;
+  final VoidCallback onRight;
   @override
   Widget build(BuildContext context) => Material(
       color: selected ? AppTheme.accent.withOpacity(.16) : AppTheme.card,
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
+      child: Focus(
         autofocus: autofocus,
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: selected ? AppTheme.accent : Colors.white12,
-                    width: selected ? 2 : 1)),
-            child: Row(children: [
-              Icon(topic.icon,
-                  color: selected ? AppTheme.accent : AppTheme.textSecondary),
-              const SizedBox(width: 14),
-              Expanded(
-                  child: Text(topic.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 17,
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w500)))
-            ])),
+        onKeyEvent: (_, event) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.arrowRight) {
+            onRight();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: selected ? AppTheme.accent : Colors.white12,
+                      width: selected ? 2 : 1)),
+              child: Row(children: [
+                Icon(topic.icon,
+                    color: selected ? AppTheme.accent : AppTheme.textSecondary),
+                const SizedBox(width: 14),
+                Expanded(
+                    child: Text(topic.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 17,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)))
+              ])),
+        ),
       ));
 }
 
-class _TopicDetail extends StatelessWidget {
-  const _TopicDetail({required this.topic});
+class _TopicDetail extends StatefulWidget {
+  const _TopicDetail({required this.topic, required this.focusNode});
   final AladinHelpTopic topic;
+  final FocusNode focusNode;
+
   @override
-  Widget build(BuildContext context) => Container(
+  State<_TopicDetail> createState() => _TopicDetailState();
+}
+
+class _TopicDetailState extends State<_TopicDetail> {
+  final ScrollController _scrollController = ScrollController();
+  bool _focused = false;
+
+  @override
+  void didUpdateWidget(covariant _TopicDetail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.topic.title != widget.topic.title &&
+        _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      node.focusInDirection(TraversalDirection.left);
+      return KeyEventResult.handled;
+    }
+    final direction = event.logicalKey == LogicalKeyboardKey.arrowDown
+        ? 1
+        : event.logicalKey == LogicalKeyboardKey.arrowUp
+            ? -1
+            : 0;
+    if (direction == 0 || !_scrollController.hasClients) {
+      return KeyEventResult.ignored;
+    }
+    final position = _scrollController.position;
+    final target = (_scrollController.offset + direction * 180.0)
+        .clamp(0.0, position.maxScrollExtent);
+    _scrollController.animateTo(target,
+        duration: const Duration(milliseconds: 190), curve: Curves.easeOut);
+    return KeyEventResult.handled;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      focusNode: widget.focusNode,
+      onFocusChange: (value) => setState(() => _focused = value),
+      onKeyEvent: _handleKey,
+      child: Container(
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
-            color: AppTheme.card.withOpacity(.94),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white12)),
-        child: SingleChildScrollView(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                  color: AppTheme.accent.withOpacity(.16),
-                  borderRadius: BorderRadius.circular(16)),
-              child: Icon(topic.icon, color: AppTheme.accent, size: 31)),
-          const SizedBox(height: 20),
-          Text(topic.title,
-              style:
-                  const TextStyle(fontSize: 29, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text(topic.summary,
-              style: const TextStyle(
-                  fontSize: 17, color: AppTheme.textSecondary, height: 1.45)),
-          const SizedBox(height: 25),
-          ...List.generate(
-              topic.steps.length,
-              (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 17),
-                  child: Row(
+          color: AppTheme.card.withOpacity(.94),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: _focused ? AppTheme.accent : Colors.white12,
+            width: _focused ? 2.5 : 1,
+          ),
+          boxShadow: _focused
+              ? [
+                  BoxShadow(
+                    color: AppTheme.accent.withOpacity(.16),
+                    blurRadius: 18,
+                  )
+                ]
+              : null,
+        ),
+        child: Scrollbar(
+          controller: _scrollController,
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.only(right: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(.16),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child:
+                      Icon(widget.topic.icon, color: AppTheme.accent, size: 31),
+                ),
+                const SizedBox(height: 20),
+                Text(widget.topic.title,
+                    style: const TextStyle(
+                        fontSize: 29, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(widget.topic.summary,
+                    style: const TextStyle(
+                        fontSize: 17,
+                        color: AppTheme.textSecondary,
+                        height: 1.45)),
+                const SizedBox(height: 25),
+                ...List.generate(
+                  widget.topic.steps.length,
+                  (i) => Padding(
+                    padding: const EdgeInsets.only(bottom: 17),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                            width: 30,
-                            height: 30,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                                color: AppTheme.accent, shape: BoxShape.circle),
-                            child: Text('${i + 1}',
-                                style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w800))),
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                              color: AppTheme.accent, shape: BoxShape.circle),
+                          child: Text('${i + 1}',
+                              style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w800)),
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
-                            child: Text(topic.steps[i],
-                                style: const TextStyle(
-                                    fontSize: 17, height: 1.5))),
-                      ]))),
-        ])),
-      );
+                          child: Text(widget.topic.steps[i],
+                              style:
+                                  const TextStyle(fontSize: 17, height: 1.5)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _RemoteLegend extends StatelessWidget {

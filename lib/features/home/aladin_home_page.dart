@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/services/aladin_channel_service.dart';
@@ -11,9 +12,12 @@ import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_channel_options.dart';
 import '../player/aladin_player_page.dart';
 import '../series/aladin_series_page.dart';
+import '../help/aladin_help_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.helpFocusNode});
+
+  final FocusNode? helpFocusNode;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -244,10 +248,33 @@ class _HomePageState extends State<HomePage> {
                   alignment: Alignment.centerRight,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(24, 12, 32, 0),
-                    child: IconButton(
-                      tooltip: s.v50('customizeDashboard'),
-                      onPressed: _customizeShelves,
-                      icon: const Icon(Icons.tune, color: AppTheme.textMuted),
+                    child: FocusTraversalGroup(
+                      policy: OrderedTraversalPolicy(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _HomeActionButton(
+                            focusNode: widget.helpFocusNode,
+                            order: 1,
+                            icon: Icons.question_mark_rounded,
+                            tooltip:
+                                AladinHelpCatalog.labels(state.lang)['title']!,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AladinHelpPage(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          _HomeActionButton(
+                            order: 2,
+                            icon: Icons.tune,
+                            tooltip: s.v50('customizeDashboard'),
+                            onPressed: _customizeShelves,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 )),
@@ -278,6 +305,83 @@ class _HomePageState extends State<HomePage> {
         onTap: _onTap,
       )
     ];
+  }
+}
+
+class _HomeActionButton extends StatefulWidget {
+  const _HomeActionButton({
+    required this.order,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.focusNode,
+  });
+
+  final double order;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final FocusNode? focusNode;
+
+  @override
+  State<_HomeActionButton> createState() => _HomeActionButtonState();
+}
+
+class _HomeActionButtonState extends State<_HomeActionButton> {
+  bool _focused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return FocusTraversalOrder(
+      order: NumericFocusOrder(widget.order),
+      child: Semantics(
+        button: true,
+        label: widget.tooltip,
+        child: Focus(
+          focusNode: widget.focusNode,
+          onFocusChange: (value) => setState(() => _focused = value),
+          onKeyEvent: (_, event) {
+            if (event is KeyDownEvent &&
+                (event.logicalKey == LogicalKeyboardKey.select ||
+                    event.logicalKey == LogicalKeyboardKey.enter ||
+                    event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
+              widget.onPressed();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          child: GestureDetector(
+            onTap: widget.onPressed,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: _focused ? AppTheme.accent : AppTheme.card,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _focused ? Colors.white : Colors.white24,
+                  width: _focused ? 2.5 : 1,
+                ),
+                boxShadow: _focused
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.accent.withOpacity(.32),
+                          blurRadius: 18,
+                        )
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                widget.icon,
+                size: 26,
+                color: _focused ? Colors.black : AppTheme.textMuted,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
