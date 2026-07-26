@@ -1,7 +1,6 @@
-# Görev Listesi - v2.3.0 Release
+# Görev Listesi - v2.3.0 +1 Güncellemesi
 
-- [x] `pubspec.yaml` dosyasında versiyonu `2.3.0+43` olarak güncelle
-- [x] Git deposunu ilklendir ve uzak sunucuyu bağla
-- [/] Android App Bundle (AAB) oluştur
-- [ ] Değişiklikleri commit et ve etiketle (v2.3.0)
-- [ ] GitHub'a push yap
+- [/] `SKILL.MD` dosyasını v2.3.0 sürüm notlarıyla güncelle
+- [ ] `README.md` dosyasını temizle ve isimlendirmeleri düzelt
+- [ ] `local.properties` dosyasındaki sürüm bilgilerini güncelle (İPTAL)
+- [ ] GitHub'a commit ve push yap

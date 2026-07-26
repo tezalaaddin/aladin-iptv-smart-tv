@@ -1,20 +1,25 @@
-# Target SDK 36 (Android 16) Güncellemesi Tamamlandı
+# v2.3.0 Yayınlama Özeti
 
-Bu güncelleme ile uygulamanın hedef API düzeyi, Google Play Store'un yeni gereksinimlerine uygun olarak Android 16 (API 36) seviyesine yükseltilmiştir.
+Uygulamanın yeni sürümü başarıyla hazırlandı, paketlendi ve GitHub'a gönderildi.
 
-## Yapılan Değişiklikler
+## Yapılan İşlemler
 
-### Android Modülü
+### 1. Versiyon ve SDK Güncellemesi
+- **Versiyon:** `2.2.0+42` -> `2.3.0+43` ([pubspec.yaml](file:///D:/Development/Projects/aladin-iptv-smart-tv/pubspec.yaml))
+- **Target SDK:** `35` -> `36` ([build.gradle.kts](file:///D:/Development/Projects/aladin-iptv-smart-tv/android/app/build.gradle.kts))
 
-#### [build.gradle.kts](file:///D:/Development/Projects/aladin-iptv-smart-tv/android/app/build.gradle.kts)
-- `compileSdk` değeri `35`'ten `36`'ya yükseltildi.
-- `targetSdk` değeri `35`'ten `36`'ya yükseltildi.
+### 2. Android App Bundle (AAB) Oluşturma
+- `flutter build appbundle --release` komutu ile üretim paketi oluşturuldu.
+- **Dosya Konumu:** `build/app/outputs/bundle/release/app-release.aab`
+- **Dosya Boyutu:** ~66.0 MB
 
-> [!NOTE]
-> Projenin ana `build.gradle.kts` dosyasında tüm alt projeler (kütüphaneler) için zaten SDK 36 zorlaması bulunduğu için ek bir merkezi işlem gerekmemiştir.
+### 3. GitHub Senkronizasyonu
+- Yerel Git deposu ilklendirildi.
+- Uzak sunucu bağlandı: `https://github.com/tezalaaddin/aladin-media-player-pro-tv`
+- Değişiklikler commit edildi: `release: v2.3.0 (build 43) - Target SDK 36 upgrade`
+- Etiket (Tag) oluşturuldu: `v2.3.0`
+- Kodlar ve etiketler GitHub'a başarıyla gönderildi (Force push ile senkronize edildi).
 
-## Test ve Doğrulama
-- SDK sürümleri dosyada doğru şekilde güncellendi.
-- `minSdk` değeri korunarak eski sürüm uyumluluğu muhafaza edildi.
-
-Uygulamanın yeni bir sürümünü (AAB) oluşturup Play Console'a yüklediğinizde uyarı mesajının kaybolması beklenmektedir.
+## Sonraki Adımlar
+- `build/app/outputs/bundle/release/app-release.aab` dosyasını Google Play Console'a yükleyerek yayınlayabilirsiniz.
+- SDK 36 güncellemesi sayesinde Play Store uyarıları yeni sürüm yayına girdiğinde kaybolacaktır.

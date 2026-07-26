@@ -1,35 +1,40 @@
-# v2.3.0 Güncelleme, AAB Oluşturma ve GitHub Yayınlama Planı
+# v2.3.0 +1 Sürüm Güncellemesi ve Dokümantasyon Planı
 
-Bu plan, uygulamanın versiyonunu yükseltmek, Android App Bundle (AAB) oluşturmak ve değişiklikleri GitHub'a göndermek için gerekli adımları içerir.
+Bu plan, uygulamanın v2.3.0 sürümüne ait bilgilerin `SKILL.MD` dosyasına eklenmesini, uygulama içindeki sürüm bilgilerinin güncellenmesini ve GitHub senkronizasyonunu içerir.
 
 ## Kullanıcı İncelemesi Gerekenler
 
 > [!IMPORTANT]
-> - Uygulama versiyonu `2.3.0+43` olarak güncellenecektir.
-> - Yerel dizinde Git deposu bulunamadığı için yeni bir depo başlatılacak ve `https://github.com/tezalaaddin/aladin-media-player-pro-tv` adresine bağlanacaktır.
-> - `flutter build appbundle` komutu çalıştırılacaktır. Bu işlem bilgisayarınızın performansına bağlı olarak birkaç dakika sürebilir.
+> - `SKILL.MD` dosyası v2.3.0 sürüm notlarıyla güncellenecek.
+> - `README.md` dosyasındaki merge conflict (çakışma) işaretleri temizlenecek ve isimler "Aladin Media Player Pro TV" olarak standartlaştırılacak.
+> - `local.properties` dosyasındaki sürüm bilgileri `2.3.0` ve `43` olarak güncellenecek.
 
 ## Yapılacak Değişiklikler
 
-### Uygulama Versiyonu
+### Dokümantasyon
 
-#### [MODIFY] [pubspec.yaml](file:///D:/Development/Projects/aladin-iptv-smart-tv/pubspec.yaml)
-- `version` değeri `2.2.0+42`'den `2.3.0+43`'e yükseltilecek.
+#### [MODIFY] [SKILL.MD](file:///D:/Development/Projects/aladin-iptv-smart-tv/SKILL.md)
+- Frontmatter'daki `version` değeri `2.3.0+43` yapılacak.
+- Metin içindeki eski sürüm referansları (2.0.0, 2.1.0 vb.) güncellenecek.
+- Dosyanın sonuna "V2.3.0 +1 Sürüm Notları" eklenecek.
 
-### Derleme Süreci
-- `flutter build appbundle` komutu ile üretim sürümü AAB dosyası oluşturulacak.
+#### [MODIFY] [README.md](file:///D:/Development/Projects/aladin-iptv-smart-tv/README.md)
+- Merge conflict işaretleri temizlenecek.
+- Marka ismi "Aladin Media Player Pro TV" olarak güncellenecek.
 
-### GitHub ve Versiyon Kontrolü
-- `git init` ile yerel depo başlatılacak (eğer yoksa).
-- `git remote add origin https://github.com/tezalaaddin/aladin-media-player-pro-tv` ile uzak sunucu eklenecek.
-- Değişiklikler commit edilecek.
-- `v2.3.0` etiketi (tag) eklenecek.
-- Kod ve etiketler GitHub'a gönderilecek.
+### Konfigürasyon
+
+#### [MODIFY] [local.properties](file:///D:/Development/Projects/aladin-iptv-smart-tv/android/local.properties)
+- `flutter.versionName=2.3.0`
+- `flutter.versionCode=43` olarak güncellenecek.
+
+### GitHub Senkronizasyonu
+- Değişiklikler commit edilecek (`docs: update versioning to v2.3.0`).
+- GitHub'a push yapılacak.
 
 ## Doğrulama Planı
 
-### Otomatik Testler
-- AAB dosyasının `build/app/outputs/bundle/release/app-release.aab` konumunda oluşup oluşmadığının kontrolü.
-
 ### Manuel Doğrulama
-- GitHub üzerindeki depoda yeni commit ve etiketin göründüğünün kontrolü.
+- `SKILL.MD` dosyasının doğru göründüğünün kontrolü.
+- `README.md` dosyasının temizlendiğinin kontrolü.
+- Uygulamanın "Hakkında" sayfasında `2.3.0 (43)` yazdığının (build sonrası) teyit edilmesi.

@@ -1,7 +1,7 @@
 ---
 name: aladin Media Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.2.0+31
+version: 2.3.0+43
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -71,7 +71,7 @@ Bu dosya, **aladin Media Player Pro TV** projesinin geliÅŸtirilme sÃ¼recinde kul
 ---
 
 # aladin Media Player Pro TV â€” Skill Manifest
-### Version 2.1.0 Â· Flutter Â· Android TV
+### Version 2.3.0 Â· Flutter Â· Android TV
 
 ---
 
@@ -1873,3 +1873,9 @@ Bu sÃ¼rÃ¼mle birlikte yayÄ±nlarÄ±n aÃ§Ä±lma baÅŸarÄ± oranÄ± artÄ±rÄ±lmÄ±ÅŸ ve Go
 5.  **GeliÅŸmiÅŸ Hata TanÄ±lama:**
     *   OynatÄ±lamayan bir kanal olduÄŸunda hata mesajÄ±nda artÄ±k "Hata Veren Adres" aÃ§Ä±kÃ§a gÃ¶steriliyor.
     *   Logcat/Terminal Ã¼zerinden yayÄ±n linklerinin teknik analizini yapmayÄ± saÄŸlayan debug katmanÄ± gÃ¼Ã§lendirildi.
+
+## V2.3.0 +1 Sürüm Notları:
+1. **Android 16 (API 36) Desteği:** Google Play Store'un yeni gereksinimlerine tam uyum sağlamak amacıyla 	argetSdk ve compileSdk sürümleri 36'ya yükseltildi.
+2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son sürümlerindeki güvenlik ve performans standartlarına göre optimize edildi.
+3. **Sürüm Senkronizasyonu:** Tüm modüllerde ve dökümantasyonda sürüm bilgileri v2.3.0+43 olarak güncellendi.
+4. **GitHub Yayınlama:** Uygulamanın en güncel hali v2.3.0 etiketiyle GitHub reposuna gönderildi.
