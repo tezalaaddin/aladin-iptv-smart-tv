@@ -1,7 +1,7 @@
 ---
 name: aladin Media Player Pro TV
 description: Next-gen IPTV solution with high-performance EPG management and Netflix-style UI.
-version: 2.3.0+1
+version: 2.3.0+2
 author: tezalaaddin
 tags: [iptv, flutter, media-kit, streaming, isar]
 last_real_code_audit: 2025-05-22
@@ -1725,7 +1725,7 @@ Neler Yaptım?
 4.  **Stabilite ve Hata Düzeltmeleri:** Oynatıcı bilgilerini gösterirken yaşanan uygulama çökme hatası (String format hatası) giderildi ve Tanılama verilerinin doğruluğu artırıldı.
 
 ## V2.2.0+32 Sürüm Notları:
-1.  **Bellek ve Performans (OOM Koruması):** 
+1.  **Bellek ve Performans (OOM Koruması):**
     *   `getRecentlyAdded()` ve `_enrichChannelLogos()` fonksiyonları, on binlerce kanal içeren listelerde belleğin dolmasını (OOM) önlemek için veritabanı seviyesinde limitli ve batch (paket) tabanlı çalışacak şekilde optimize edildi.
     *   `updateCategoryCountsForPlaylist` fonksiyonu, N+1 sorgu sorununu çözecek şekilde toplu işlem mimarisine geçirildi.
 2.  **Veri Güvenliği ve Kararlılık:**
@@ -1734,7 +1734,7 @@ Neler Yaptım?
 3.  **İzleme Deneyimi İyileştirmeleri:**
     *   **Dizi İlerleme Takibi:** Dizi ana sayfasındaki ilerleme çubukları, artık dizideki tüm bölümlerin gerçek izlenme ortalamasını yansıtıyor.
     *   **Akıllı Dizi Cache:** Dizi detay sayfaları, her açılışta API'ye gitmek yerine 24 saatlik önbellek (cache) kuralını uygulamaya başladı.
-4.  **Hata Yönetimi ve Temizlik:** 
+4.  **Hata Yönetimi ve Temizlik:**
     *   TMDB API anahtarı build sırasında verilmemişse, uygulamanın çökmesi yerine ilgili özelliklerin (afiş/özet) sessizce ve güvenle devre dışı kalması sağlandı.
     *   Üretim (Production) logları temizlendi; `print` komutları yerini `debugPrint`'e bıraktı.
 
@@ -1773,15 +1773,15 @@ Neler Yaptım?
     *   **Kaydırma Kilidi:** Grid içinde gezerken TabView'ın yanlışlıkla diğer sekmelere kayması (Swipe) engellendi.
 2.  **Veri Güvenliği ve Stabilite:**
     *   **Empty State Navigasyonu:** Favori listesi boş olsa dahi odağın TabBar'da kalarak kullanıcıyı hapsetmemesi sağlandı.
- 
+
 ## V2.2.0+36 Sürüm Notları:
-1.  **Elite Deep Link & Play Request Handling:** 
+1.  **Elite Deep Link & Play Request Handling:**
     *   Android TV "Watch Next" veya sistem arama sonuçlarından gelen tıklamalar için `playUrl` desteği eklendi. Uygulama, dışarıdan gelen içeriği otomatik olarak bulup oynatıcıyı başlatabiliyor.
-2.  **Gelişmiş Geri (Back) Tuşu Mimarisi:** 
+2.  **Gelişmiş Geri (Back) Tuşu Mimarisi:**
     *   Navigasyon hiyerarşisi modernize edildi: İçerik alanındayken "Geri" -> Yan menüye odaklan; Yan menüdeyken "Geri" -> Home sekmesine git; Home sekmesindeyken "Geri" -> Çıkış onayı.
-3.  **Kesintisiz Odak (Root Focus Scope):** 
+3.  **Kesintisiz Odak (Root Focus Scope):**
     *   `main.dart` ve `MainPage` seviyesine eklenen hiyerarşik `FocusScope` yapıları ile uygulama açılışında veya sayfa geçişlerinde odağın "boşluğa" düşme ihtimali ortadan kaldırıldı.
-4.  **Hızlı Sekme Görselleştirme:** 
+4.  **Hızlı Sekme Görselleştirme:**
     *   Sayı tuşları (0-6) ile yapılan hızlı geçişlerde, yan menüdeki odak halkası (focus ring) ve seçili durumun anlık senkronizasyonu sağlandı.
 5.  **Sesli Arama & İzin Yönetimi:**
     *   `RECORD_AUDIO` izni ve sesli arama altyapısı tüm input diyaloğu bileşenlerine entegre edildi.
@@ -1839,22 +1839,22 @@ Neler Yaptım?
 ## V2.2.0+41 Sürüm Notları: Maksimum Performans ve Uyumluluk Güncellemesi
 **Bu sürümle birlikte, özellikle düşük donanımlı (1-2GB RAM) Android TV ve Box cihazlarda yaşanan kronik sorunlar giderilmiş ve oynatıcı motoru "Maksimum Stabilite" moduna yükseltilmiştir.**
 1. Video Stabilizasyonu (Titreme ve Jitter Fix):
-◦ Düşük donanımlı cihazlarda 1080p ve 4K yayınların işlemciyi yormasından kaynaklanan "titreme" ve "ileri-geri sarma" hissi yaratan senkronizasyon hataları giderildi.
-◦ 1-2GB RAM'li cihazlar için akıllı çözünürlük yönetimi getirilerek, stabilite için 720p (HD) kalitesine öncelik verildi.
+   ◦ Düşük donanımlı cihazlarda 1080p ve 4K yayınların işlemciyi yormasından kaynaklanan "titreme" ve "ileri-geri sarma" hissi yaratan senkronizasyon hataları giderildi.
+   ◦ 1-2GB RAM'li cihazlar için akıllı çözünürlük yönetimi getirilerek, stabilite için 720p (HD) kalitesine öncelik verildi.
 2. Gelişmiş Tampon (Buffer) Mimarisi:
-◦ Düşük hızlı internet bağlantılarında (örn: 2 Mbps) yaşanan donmaları engellemek için tampon bellek kapasitesi 24 MB'a çıkarıldı.
-◦ Oynatıcı artık yaklaşık 40 saniyelik videoyu önceden indirip hafızada tutarak ağ dalgalanmalarına karşı tam koruma sağlar.
-◦ Videonun açılışındaki "resim donması" sorununu çözmek için oynatma başlangıç eşiği (playback start) optimize edildi.
+   ◦ Düşük hızlı internet bağlantılarında (örn: 2 Mbps) yaşanan donmaları engellemek için tampon bellek kapasitesi 24 MB'a çıkarıldı.
+   ◦ Oynatıcı artık yaklaşık 40 saniyelik videoyu önceden indirip hafızada tutarak ağ dalgalanmalarına karşı tam koruma sağlar.
+   ◦ Videonun açılışındaki "resim donması" sorununu çözmek için oynatma başlangıç eşiği (playback start) optimize edildi.
 3. Ses Uyumluluğu (No Sound Fix):
-◦ Amlogic ve Rockchip chipsetli cihazlarda ses gelmeme sorununa neden olan 32-bit Float ses çıkış modu kapatılarak, eski tip ses donanımlarıyla tam uyumluluk sağlandı.
-◦ AC3, DTS ve EAC3 gibi film formatlarındaki ses kayıpları için FFmpeg kod çözücüleri optimize edildi.
+   ◦ Amlogic ve Rockchip chipsetli cihazlarda ses gelmeme sorununa neden olan 32-bit Float ses çıkış modu kapatılarak, eski tip ses donanımlarıyla tam uyumluluk sağlandı.
+   ◦ AC3, DTS ve EAC3 gibi film formatlarındaki ses kayıpları için FFmpeg kod çözücüleri optimize edildi.
 4. Hassas Cihaz Tanımlama:
-◦ Düşük donanım eşiği 2GB RAM olarak güncellendi. Artık piyasadaki çoğu "Stick" ve "Box" cihaz otomatik olarak koruma altına alınarak en akıcı ayarlarda çalıştırılır.
+   ◦ Düşük donanım eşiği 2GB RAM olarak güncellendi. Artık piyasadaki çoğu "Stick" ve "Box" cihaz otomatik olarak koruma altına alınarak en akıcı ayarlarda çalıştırılır.
 5. Live TV Arayüz Akıcılığı:
-◦ Canlı TV sayfasında kanallar arasında gezerken (odak değişimlerinde) listenin en başa dönmesi ve "kapanıp açılma" efekti tamamen kaldırıldı.
-◦ Favorilere ekleme/çıkarma işlemleri sırasında liste pozisyonunun korunması sağlandı.
+   ◦ Canlı TV sayfasında kanallar arasında gezerken (odak değişimlerinde) listenin en başa dönmesi ve "kapanıp açılma" efekti tamamen kaldırıldı.
+   ◦ Favorilere ekleme/çıkarma işlemleri sırasında liste pozisyonunun korunması sağlandı.
 6. Hibrit Kod Çözücü Yönetimi:
-◦ Düşük RAM'li cihazlarda görüntünün kasmaması için Video için Donanımsal (Hardware), ses uyumluluğu için ise Ses için Yazılımsal (FFmpeg) çalışan hibrit bir yapıya geçildi.
+   ◦ Düşük RAM'li cihazlarda görüntünün kasmaması için Video için Donanımsal (Hardware), ses uyumluluğu için ise Ses için Yazılımsal (FFmpeg) çalışan hibrit bir yapıya geçildi.
 
 ## V2.2.0+42 Sürüm Notları: Yayın Uyumluluğu ve Modernizasyon Güncellemesi
 Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Google Play Store'un en güncel Android 15 standartlarına tam uyum sağlanmıştır.
@@ -1874,8 +1874,15 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
     *   Oynatılamayan bir kanal olduğunda hata mesajında artık "Hata Veren Adres" açıkça gösteriliyor.
     *   Logcat/Terminal üzerinden yayın linklerinin teknik analizini yapmayı sağlayan debug katmanı güçlendirildi.
 
-## V2.3.0+1 S�r�m Notlar�:
-1. **Android 16 (API 36) Deste�i:** Google Play Store'un yeni gereksinimlerine tam uyum sa�lamak amac�yla 	argetSdk ve compileSdk s�r�mleri 36'ya y�kseltildi.
-2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son s�r�mlerindeki g�venlik ve performans standartlar�na g�re optimize edildi.
-3. **S�r�m Senkronizasyonu:** T�m mod�llerde ve d�k�mantasyonda s�r�m bilgileri v2.3.0+43 olarak g�ncellendi.
-4. **GitHub Yay�nlama:** Uygulaman�n en g�ncel hali v2.3.0 etiketiyle GitHub reposuna g�nderildi.
+## V2.3.0 +1 Sürüm Notlarý:
+1. **Android 16 (API 36) Deste𩺪* Google Play Store'un yeni gereksinimlerine tam uyum sa𬡭ak amacýyla 	argetSdk ve compileSdk sürümleri 36'ya yükseltildi.
+2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son sürümlerindeki güvenlik ve performans standartlarýna göre optimize edildi.
+3. **Sürüm Senkronizasyonu:** Tüm modüllerde ve dökümantasyonda sürüm bilgileri v2.3.0+43 olarak güncellendi.
+4. **GitHub Yayýnlama:** Uygulamanýn en güncel hali v2.3.0 etiketiyle GitHub reposuna gönderildi.
+
+## V2.3.0+2 Sürüm Notları:
+1. **Play Console Optimizasyonları:** Google Play Console tarafından önerilen performans ve kullanıcı deneyimi güncellemeleri uygulandı.
+2. **Edge-to-Edge Desteği:** Android 15+ standartlarına uygun modern uçtan uca ekran (Edge-to-Edge) desteği MainActivity seviyesinde pekiştirildi.
+3. **R8 Full Mode:** Uygulama boyutunu küçülten ve performansı artıran R8 Full Mode etkinleştirildi ve optimizasyon kuralları güçlendirildi.
+4. **Hafıza Yönetimi:** `android:largeHeap="true"` ile yüksek çözünürlüklü içerik ve posterlerin yönetimi için bellek alanı optimize edildi.
+5. **Versiyon Güncelleme:** Uygulama sürümü 2.3.0+2 (Build 2) olarak güncellendi.

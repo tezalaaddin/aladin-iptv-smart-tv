@@ -31,3 +31,7 @@
 -dontwarn com.google.android.play.core.**
 -dontwarn com.google.android.gms.common.**
 -dontwarn io.flutter.embedding.engine.deferredcomponents.**
+
+# R8 Optimizations
+-allowaccessmodification
+-mergeinterfacesaggressively
