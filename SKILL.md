@@ -1874,7 +1874,7 @@ Bu sürümle birlikte yayınların açılma başarı oranı artırılmış ve Go
     *   Oynatılamayan bir kanal olduğunda hata mesajında artık "Hata Veren Adres" açıkça gösteriliyor.
     *   Logcat/Terminal üzerinden yayın linklerinin teknik analizini yapmayı sağlayan debug katmanı güçlendirildi.
 
-## V2.3.0 +1 S�r�m Notlar�:
+## V2.3.0+1 S�r�m Notlar�:
 1. **Android 16 (API 36) Deste�i:** Google Play Store'un yeni gereksinimlerine tam uyum sa�lamak amac�yla 	argetSdk ve compileSdk s�r�mleri 36'ya y�kseltildi.
 2. **Gelecek Nesil Uyumluluk:** Uygulama, Android'in en son s�r�mlerindeki g�venlik ve performans standartlar�na g�re optimize edildi.
 3. **S�r�m Senkronizasyonu:** T�m mod�llerde ve d�k�mantasyonda s�r�m bilgileri v2.3.0+43 olarak g�ncellendi.
