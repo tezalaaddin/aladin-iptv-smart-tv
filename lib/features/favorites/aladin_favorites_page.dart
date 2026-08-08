@@ -95,14 +95,23 @@ class _FavoritesPageState extends State<FavoritesPage>
     );
   }
 
-  void _play(ChannelModel ch, List<ChannelModel> currentList) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => PlayerPage(
-                  channel: ch,
-                  playlist: currentList,
-                )));
+  Future<void> _play(ChannelModel ch, List<ChannelModel> currentList) async {
+    final activePlaylist = context.read<AppState>().active;
+    final categoryQueue = await ChannelService.instance.getPlaybackQueue(ch);
+    if (!mounted) return;
+    final playbackQueue = categoryQueue.length > 1
+        ? categoryQueue
+        : (currentList.isNotEmpty ? currentList : [ch]);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlayerPage(
+          channel: ch,
+          playlist: playbackQueue,
+          playlistModel: activePlaylist,
+        ),
+      ),
+    );
   }
 
   @override
