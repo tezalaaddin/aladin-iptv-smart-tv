@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Flutter SDK/tool state
+/.flutter-tool-data/
+/.local-flutter/
+/ios/Flutter/
+/linux/flutter/ephemeral/
+/macos/Flutter/ephemeral/
+
+# Local signing material (never commit private keys or credentials)
+**/key.properties
+**/*.jks
+**/*.keystore
+
+# Local build helpers and generated reports
+/android/build/reports/
+/build*.log
+/gradle_stop.cmd
+/tool_build_*.cmd

@@ -108,6 +108,13 @@ class NativePlayerActivity : AppCompatActivity(),
         private const val LOW_MEM_BUFFER_BYTES = 24 * 1024 * 1024  // 24 MB cap (Safe for 1-2GB RAM)
         private const val NORMAL_BUFFER_BYTES  = DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES
 
+        // High-memory profile (roughly 4 GB+ RAM devices)
+        private const val HIGH_MEM_LIVE_MIN_MS  = 8_000
+        private const val HIGH_MEM_LIVE_MAX_MS  = 25_000
+        private const val HIGH_MEM_VOD_MIN_MS   = 25_000
+        private const val HIGH_MEM_VOD_MAX_MS   = 75_000
+        private const val HIGH_MEM_BUFFER_BYTES = 64 * 1024 * 1024
+
         // OSD / UI timings
         private const val OSD_HIDE_DELAY_MS    = 5_000L
         private const val STATUS_HIDE_DELAY_MS = 5_000L
@@ -223,6 +230,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // NEW: device profile — computed once at init
     private var isLowMem = false
+    private var isHighMem = false
     private var preferSoftwareDecoder = false
     private var decoderFallbackAttempted = false
 
@@ -389,6 +397,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
         // Compute device profile once
         isLowMem = isLowMemoryDevice()
+        isHighMem = isHighMemoryDevice()
         preferSoftwareDecoder = shouldPreferSoftwareDecoder()
 
         // Read intent data
@@ -589,6 +598,11 @@ class NativePlayerActivity : AppCompatActivity(),
                 maxMs = 8_000          // 8 s max for live + low-mem
                 bufBytes = LOW_MEM_BUFFER_BYTES
             }
+            isLive && isHighMem -> {
+                minMs = HIGH_MEM_LIVE_MIN_MS
+                maxMs = HIGH_MEM_LIVE_MAX_MS
+                bufBytes = HIGH_MEM_BUFFER_BYTES
+            }
             isLive -> {
                 minMs = LIVE_MIN_BUFFER_MS
                 maxMs = LIVE_MAX_BUFFER_MS
@@ -598,6 +612,11 @@ class NativePlayerActivity : AppCompatActivity(),
                 minMs = LOW_MEM_MIN_MS
                 maxMs = LOW_MEM_MAX_MS
                 bufBytes = LOW_MEM_BUFFER_BYTES
+            }
+            isHighMem -> {
+                minMs = HIGH_MEM_VOD_MIN_MS
+                maxMs = HIGH_MEM_VOD_MAX_MS
+                bufBytes = HIGH_MEM_BUFFER_BYTES
             }
             else -> {
                 minMs = VOD_MIN_BUFFER_MS
@@ -1427,6 +1446,13 @@ class NativePlayerActivity : AppCompatActivity(),
         am.getMemoryInfo(info)
         // 2GB RAM ve altındaki cihazları "Low-end" olarak kabul et (TV'ler için kritik eşik)
         info.totalMem < 2_100L * 1024 * 1024  // < ~2.1 GB
+    } catch (e: Exception) { false }
+
+    private fun isHighMemoryDevice(): Boolean = try {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val info = android.app.ActivityManager.MemoryInfo()
+        am.getMemoryInfo(info)
+        !am.isLowRamDevice && info.totalMem >= 3_500L * 1024 * 1024
     } catch (e: Exception) { false }
 
     private fun shouldPreferSoftwareDecoder(): Boolean {

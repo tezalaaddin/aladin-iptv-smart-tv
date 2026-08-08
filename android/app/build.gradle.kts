@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.io.FileInputStream
+import javax.imageio.ImageIO
 
 plugins {
     id("com.android.application")
@@ -31,8 +32,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        // Public release 53 follows Android versionCode 1052.
-        versionCode = 1053
+        // Version 1060 includes policy-compliant TV artwork and launcher metadata.
+        versionCode = 1060
         versionName = flutter.versionName
     }
 
@@ -120,4 +121,92 @@ dependencies {
 
     // FFmpeg extension (yerel AAR)
     implementation(files("libs/media3-ffmpeg.aar"))
+}
+
+val verifyTvArtwork by tasks.registering {
+    group = "verification"
+    description = "Validates every Android TV launcher icon and banner before packaging."
+
+    doLast {
+        val policyDir = file("src/main/res/drawable-xhdpi")
+        val policyIconFile = policyDir.resolve("tv_launcher_icon.png")
+        val policyBannerFile = policyDir.resolve("tv_banner.png")
+
+        check(policyIconFile.isFile) { "Missing Google Play xhdpi TV icon: $policyIconFile" }
+        check(policyBannerFile.isFile) { "Missing Google Play xhdpi TV banner: $policyBannerFile" }
+
+        val policyIcon = ImageIO.read(policyIconFile)
+            ?: error("Unreadable Google Play xhdpi TV icon: $policyIconFile")
+        val policyBanner = ImageIO.read(policyBannerFile)
+            ?: error("Unreadable Google Play xhdpi TV banner: $policyBannerFile")
+
+        check(policyIcon.width == 512 && policyIcon.height == 512) {
+            "Google Play xhdpi TV icon must be 512x512, found ${policyIcon.width}x${policyIcon.height}"
+        }
+        check(policyBanner.width == 320 && policyBanner.height == 180) {
+            "Google Play xhdpi TV banner must be 320x180, found ${policyBanner.width}x${policyBanner.height}"
+        }
+        check(listOf(
+            policyIcon.getRGB(0, 0),
+            policyIcon.getRGB(policyIcon.width - 1, 0),
+            policyIcon.getRGB(0, policyIcon.height - 1),
+            policyIcon.getRGB(policyIcon.width - 1, policyIcon.height - 1),
+        ).all { (it ushr 24) == 0xFF }) {
+            "Google Play xhdpi TV icon must fill the complete 512x512 canvas"
+        }
+
+        val expectedSizes = mapOf(
+            "mdpi" to Pair(80, 80),
+            "hdpi" to Pair(120, 120),
+            "xhdpi" to Pair(160, 160),
+            "xxhdpi" to Pair(240, 240),
+            "xxxhdpi" to Pair(320, 320),
+        )
+
+        expectedSizes.forEach { (density, iconSize) ->
+            val densityDir = file("src/main/res/mipmap-$density")
+            val iconFile = densityDir.resolve("tv_launcher_icon.png")
+            val bannerFile = densityDir.resolve("tv_banner.png")
+            val bannerSize = Pair(iconSize.first * 2, iconSize.second * 9 / 8)
+
+            check(iconFile.isFile) { "Missing Android TV icon: $iconFile" }
+            check(bannerFile.isFile) { "Missing Android TV banner: $bannerFile" }
+
+            val icon = ImageIO.read(iconFile)
+                ?: error("Unreadable Android TV icon: $iconFile")
+            val banner = ImageIO.read(bannerFile)
+                ?: error("Unreadable Android TV banner: $bannerFile")
+
+            check(icon.width == iconSize.first && icon.height == iconSize.second) {
+                "$density TV icon must be ${iconSize.first}x${iconSize.second}, " +
+                    "found ${icon.width}x${icon.height}"
+            }
+            check(banner.width == bannerSize.first && banner.height == bannerSize.second) {
+                "$density TV banner must be ${bannerSize.first}x${bannerSize.second}, " +
+                    "found ${banner.width}x${banner.height}"
+            }
+
+            val iconCorners = listOf(
+                icon.getRGB(0, 0),
+                icon.getRGB(icon.width - 1, 0),
+                icon.getRGB(0, icon.height - 1),
+                icon.getRGB(icon.width - 1, icon.height - 1),
+            )
+            check(iconCorners.all { (it ushr 24) == 0xFF }) {
+                "$density TV icon must fill the complete canvas with opaque pixels"
+            }
+        }
+
+        val manifest = file("src/main/AndroidManifest.xml").readText()
+        check("android:icon=\"@drawable/tv_launcher_icon\"" in manifest) {
+            "AndroidManifest.xml must reference @drawable/tv_launcher_icon"
+        }
+        check("android:banner=\"@drawable/tv_banner\"" in manifest) {
+            "AndroidManifest.xml must reference @drawable/tv_banner"
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(verifyTvArtwork)
 }

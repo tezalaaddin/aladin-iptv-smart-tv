@@ -216,11 +216,7 @@ class _SearchPageState extends State<SearchPage> {
                     final changed = await showAladinChannelOptions(context, ch);
                     if (changed && mounted) await _doSearch(_query);
                   },
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              PlayerPage(channel: ch, playlist: [ch]))),
+                  onTap: () => _openResult(ch),
                 );
               },
               childCount: all.length,
@@ -228,6 +224,23 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _openResult(ChannelModel channel) async {
+    final activePlaylist = context.read<AppState>().active;
+    final playbackQueue =
+        await ChannelService.instance.getPlaybackQueue(channel);
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlayerPage(
+          channel: channel,
+          playlist: playbackQueue,
+          playlistModel: activePlaylist,
+        ),
+      ),
     );
   }
 

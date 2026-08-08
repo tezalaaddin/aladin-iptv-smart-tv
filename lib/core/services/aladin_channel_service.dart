@@ -488,6 +488,59 @@ class ChannelService {
   Future<ChannelModel?> getByUrl(String url) =>
       _db.channelModels.filter().urlEqualTo(url).findFirst();
 
+  /// Builds the bounded playback context for an item opened outside a normal
+  /// category screen (for example, Search). This keeps remote up/down
+  /// navigation useful without loading an entire large IPTV category into RAM.
+  Future<List<ChannelModel>> getPlaybackQueue(ChannelModel selected,
+      {int radius = 50}) async {
+    if (selected.url.trim().isEmpty) return [selected];
+
+    if (selected.contentType == 'series') {
+      final seriesName = selected.seriesName?.trim();
+      if (seriesName != null && seriesName.isNotEmpty) {
+        final episodes =
+            await getSeriesEpisodes(selected.playlistId, seriesName);
+        final playable = episodes
+            .where((item) => item.url.trim().isNotEmpty)
+            .where(ParentalService.instance.canExpose)
+            .where(ContentVisibilityService.instance.isChannelVisible)
+            .toList(growable: false);
+        if (playable.any((item) => item.id == selected.id)) return playable;
+      }
+    }
+
+    final before = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(selected.playlistId)
+        .and()
+        .categoryNameEqualTo(selected.categoryName.trim())
+        .and()
+        .contentTypeEqualTo(selected.contentType)
+        .and()
+        .sortOrderLessThan(selected.sortOrder)
+        .sortBySortOrderDesc()
+        .limit(radius)
+        .findAll();
+    final after = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(selected.playlistId)
+        .and()
+        .categoryNameEqualTo(selected.categoryName.trim())
+        .and()
+        .contentTypeEqualTo(selected.contentType)
+        .and()
+        .sortOrderGreaterThan(selected.sortOrder)
+        .sortBySortOrder()
+        .limit(radius)
+        .findAll();
+
+    return <ChannelModel>[...before.reversed, selected, ...after]
+        .where((item) => item.url.trim().isNotEmpty)
+        .where(ParentalService.instance.canExpose)
+        .where(ContentVisibilityService.instance.isChannelVisible)
+        .toList(growable: false);
+  }
+
   Future<List<ChannelModel>> search(
       {required int playlistId, required String query, int limit = 50}) async {
     final trimmed = query.trim();

@@ -50,7 +50,7 @@
     <application
         android:label="aladin IPTV Player Pro TV"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon"
+        android:icon="@drawable/tv_launcher_icon"
         android:banner="@drawable/tv_banner"
         android:allowBackup="false"
         android:fullBackupContent="false"
@@ -58,6 +58,8 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
+            android:icon="@drawable/tv_launcher_icon"
+            android:banner="@drawable/tv_banner"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
