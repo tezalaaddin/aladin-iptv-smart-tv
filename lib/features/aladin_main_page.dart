@@ -63,10 +63,47 @@ class _MainPageState extends State<MainPage> {
       if (activeId != null) {
         MetadataSyncService.instance.startSync(activeId, lang: state.lang);
         _autoPlayLast(activeId);
+      } else {
+        _showFirstRunSetupPrompt();
       }
       _checkUpdates();
       _checkAppUpdate();
     });
+  }
+
+  Future<void> _showFirstRunSetupPrompt() async {
+    final prefs = AladinPrefs.instance;
+    if (prefs.getBool('first_run_setup_prompt_seen') || !mounted) return;
+    await prefs.setBool('first_run_setup_prompt_seen', true);
+    if (!mounted) return;
+    final s = AppState.instance.s;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        title: Text(s.setupWizard),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Text(s.addPlaylistHint),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(s.cancel),
+          ),
+          FilledButton.icon(
+            autofocus: true,
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _goTo(6);
+            },
+            icon: const Icon(Icons.settings),
+            label: Text(s.goToSettings),
+          ),
+        ],
+      ),
+    );
   }
 
   void _autoPlayLast(int playlistId) async {

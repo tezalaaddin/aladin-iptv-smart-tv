@@ -211,6 +211,12 @@ class _PlayerPageState extends State<PlayerPage> {
           'diag_video_bitrate': s.v52('videoBitrate'),
           'diag_connection': s.v52('connection'),
           'diag_unavailable': s.v52('unavailable'),
+          'diag_buffer_events': s.v52('bufferEvents'),
+          'diag_buffer_duration': s.v52('bufferDuration'),
+          'diag_buffered_ahead': s.v52('bufferedAhead'),
+          'diag_last_error': s.v52('lastPlaybackError'),
+          'diag_none': s.v52('none'),
+          'diag_dropped_frames': s.v52('droppedFrames'),
         }
       });
 

@@ -50,6 +50,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -189,11 +190,20 @@ class NativePlayerActivity : AppCompatActivity(),
     private lateinit var tvDiagInternet: TextView
     private lateinit var tvDiagServer: TextView
     private lateinit var tvDiagResolution: TextView
+    private lateinit var tvDiagBuffer: TextView
+    private lateinit var tvDiagError: TextView
     private val diagnosticsExecutor = Executors.newSingleThreadExecutor()
     @Volatile private var latencyProbeRunning = false
     @Volatile private var serverLatencyMs: Long? = null
     private var latencyHost = ""
     private var lastLatencyProbeAt = 0L
+    private var diagnosticsIndex = -1
+    private var playbackWasReady = false
+    private var activeRebufferStartedAt = 0L
+    private var rebufferEventCount = 0
+    private var totalRebufferDurationMs = 0L
+    private var lastPlaybackError = ""
+    private var droppedVideoFrames = 0
 
     // NEW: Auto-play Next Episode Overlay
     private lateinit var autoPlayOverlay: LinearLayout
@@ -248,6 +258,19 @@ class NativePlayerActivity : AppCompatActivity(),
     private var decoderFallbackAttempted = false
     private var bufferProfile = "auto"
     private var autoPlayNextEpisode = true
+
+    private val diagnosticsAnalyticsListener = object : AnalyticsListener {
+        override fun onDroppedVideoFrames(
+            eventTime: AnalyticsListener.EventTime,
+            droppedFrames: Int,
+            elapsedMs: Long
+        ) {
+            droppedVideoFrames += droppedFrames
+            if (diagnosticsLayout.visibility == View.VISIBLE) {
+                mainHandler.post { updateDiagnostics(false) }
+            }
+        }
+    }
 
     // ── WiFi Lock (NEW) ───────────────────────────────────────────────────────
     // Prevents WiFi chipset from entering doze during playback on cheap TV boxes.
@@ -604,6 +627,7 @@ class NativePlayerActivity : AppCompatActivity(),
         playerView.useController = false
 
         player?.addListener(playerListener)
+        player?.addAnalyticsListener(diagnosticsAnalyticsListener)
     }
 
     /**
@@ -682,6 +706,8 @@ class NativePlayerActivity : AppCompatActivity(),
 
         override fun onPlayerError(error: PlaybackException) {
             Log.e(TAG, "Playback Error [${error.errorCode}]: ${error.message}", error)
+            lastPlaybackError = "${error.errorCodeName}: ${error.message ?: t("error", "Playback error")}".take(180)
+            if (diagnosticsLayout.visibility == View.VISIBLE) updateDiagnostics(false)
 
             val isDecoderError = error.errorCode in listOf(
                 PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
@@ -747,12 +773,22 @@ class NativePlayerActivity : AppCompatActivity(),
             when (state) {
                 Player.STATE_BUFFERING -> {
                     if (bufferingStartTime == 0L) bufferingStartTime = System.currentTimeMillis()
+                    if (playbackWasReady && activeRebufferStartedAt == 0L) {
+                        activeRebufferStartedAt = SystemClock.elapsedRealtime()
+                        rebufferEventCount++
+                    }
                     mainHandler.removeCallbacks(bufferingStatusRunnable)
                     mainHandler.post(bufferingStatusRunnable)
                     mainHandler.removeCallbacks(bufferingTimeoutRunnable)
                     mainHandler.postDelayed(bufferingTimeoutRunnable, BUFFERING_TIMEOUT_MS)
                 }
                 Player.STATE_READY -> {
+                    if (activeRebufferStartedAt > 0L) {
+                        totalRebufferDurationMs +=
+                            SystemClock.elapsedRealtime() - activeRebufferStartedAt
+                        activeRebufferStartedAt = 0L
+                    }
+                    playbackWasReady = true
                     decoderFallbackAttempted = false
                     applyContentFrameRate()
                     retryCount = 0
@@ -769,6 +805,7 @@ class NativePlayerActivity : AppCompatActivity(),
                         }
                     }
                     showOSD()
+                    if (diagnosticsLayout.visibility == View.VISIBLE) updateDiagnostics(false)
                 }
                 Player.STATE_ENDED -> {
                     mainHandler.removeCallbacks(bufferingTimeoutRunnable)
@@ -814,6 +851,18 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // ── Playback Control ──────────────────────────────────────────────────────
     private fun prepareAndPlay() {
+        if (diagnosticsIndex != currentIndex) {
+            diagnosticsIndex = currentIndex
+            playbackWasReady = false
+            activeRebufferStartedAt = 0L
+            rebufferEventCount = 0
+            totalRebufferDurationMs = 0L
+            lastPlaybackError = ""
+            droppedVideoFrames = 0
+            serverLatencyMs = null
+            latencyHost = ""
+            lastLatencyProbeAt = 0L
+        }
         mainHandler.removeCallbacks(prepareRunnable)
         autoPlayHandler.removeCallbacks(autoPlayRunnable)
         autoPlayOverlay.visibility = View.GONE
@@ -1365,6 +1414,21 @@ class NativePlayerActivity : AppCompatActivity(),
                 ).trim()
             }
 
+            val activeBufferMs = if (activeRebufferStartedAt > 0L) {
+                SystemClock.elapsedRealtime() - activeRebufferStartedAt
+            } else 0L
+            val totalBufferSeconds = (totalRebufferDurationMs + activeBufferMs) / 1_000.0
+            val bufferedAheadSeconds = p.totalBufferedDuration / 1_000.0
+            tvDiagBuffer.text = String.format(
+                Locale.getDefault(), "%s: %d â€¢ %s: %.1f s â€¢ %s: %.1f s â€¢ %s: %d",
+                t("diag_buffer_events", "Buffer events"), rebufferEventCount,
+                t("diag_buffer_duration", "Total buffer time"), totalBufferSeconds,
+                t("diag_buffered_ahead", "Buffered ahead"), bufferedAheadSeconds,
+                t("diag_dropped_frames", "Dropped frames"), droppedVideoFrames
+            )
+            tvDiagError.text = "${t("diag_last_error", "Last playback error")}: " +
+                if (lastPlaybackError.isBlank()) t("diag_none", "None") else lastPlaybackError
+
             // If loading, show diagnostics in the status overlay too for visibility
             if (isLoading) {
                 diagnosticsLayout.visibility = View.VISIBLE
@@ -1709,6 +1773,8 @@ class NativePlayerActivity : AppCompatActivity(),
         tvDiagInternet     = findViewById(R.id.tv_diag_internet)
         tvDiagServer       = findViewById(R.id.tv_diag_server)
         tvDiagResolution   = findViewById(R.id.tv_diag_resolution)
+        tvDiagBuffer       = findViewById(R.id.tv_diag_buffer)
+        tvDiagError        = findViewById(R.id.tv_diag_error)
 
         autoPlayOverlay    = findViewById(R.id.autoplay_overlay)
         tvAutoPlayTitle    = findViewById(R.id.tv_autoplay_title)

@@ -32,8 +32,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        // Version 1062 includes the MediaSession uniqueness crash fix.
-        versionCode = 1062
+        // Version 1063 adds adaptive TV layouts and playback diagnostics.
+        versionCode = 1063
         versionName = flutter.versionName
     }
 

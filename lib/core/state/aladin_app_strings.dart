@@ -10,6 +10,9 @@ class AppStrings {
   final Map<String, String> _map;
   final String langCode;
 
+  /// Read-only snapshot used by localization QA and ARB migration tooling.
+  Map<String, String> get allTranslations => Map.unmodifiable(_map);
+
   String _t(String k) => _map[k] ?? k;
 
   /// +49 feature strings. Kept in a compact matrix to guarantee that every
@@ -836,6 +839,106 @@ class AppStrings {
       'Далее',
       '接下来',
       'التالي'
+    ],
+    'cardDensity': [
+      'TV kart boyutu',
+      'TV card size',
+      'TV-Kartengröße',
+      'Taille des cartes TV',
+      'Tamaño de tarjetas TV',
+      'Размер ТВ-карточек',
+      '电视卡片大小',
+      'حجم بطاقات التلفاز'
+    ],
+    'cardCompact': [
+      'Kompakt',
+      'Compact',
+      'Kompakt',
+      'Compact',
+      'Compacto',
+      'Компактный',
+      '紧凑',
+      'مضغوط'
+    ],
+    'cardStandard': [
+      'Standart',
+      'Standard',
+      'Standard',
+      'Standard',
+      'Estándar',
+      'Стандартный',
+      '标准',
+      'قياسي'
+    ],
+    'cardLarge': [
+      'Büyük',
+      'Large',
+      'Groß',
+      'Grand',
+      'Grande',
+      'Крупный',
+      '大',
+      'كبير'
+    ],
+    'bufferEvents': [
+      'Buffer olayları',
+      'Buffer events',
+      'Pufferereignisse',
+      'Événements de mise en mémoire tampon',
+      'Eventos de búfer',
+      'События буферизации',
+      '缓冲次数',
+      'مرات التخزين المؤقت'
+    ],
+    'bufferDuration': [
+      'Toplam buffer süresi',
+      'Total buffer time',
+      'Gesamte Pufferzeit',
+      'Temps total de mise en mémoire tampon',
+      'Tiempo total de búfer',
+      'Общее время буферизации',
+      '总缓冲时间',
+      'إجمالي وقت التخزين المؤقت'
+    ],
+    'bufferedAhead': [
+      'Hazır video',
+      'Buffered ahead',
+      'Vorgeladen',
+      'Données préchargées',
+      'Vídeo almacenado',
+      'Загружено вперёд',
+      '已预缓冲',
+      'المخزن مسبقًا'
+    ],
+    'lastPlaybackError': [
+      'Son oynatma hatası',
+      'Last playback error',
+      'Letzter Wiedergabefehler',
+      'Dernière erreur de lecture',
+      'Último error de reproducción',
+      'Последняя ошибка воспроизведения',
+      '上次播放错误',
+      'آخر خطأ تشغيل'
+    ],
+    'none': [
+      'Yok',
+      'None',
+      'Keine',
+      'Aucune',
+      'Ninguno',
+      'Нет',
+      '无',
+      'لا يوجد'
+    ],
+    'droppedFrames': [
+      'Düşürülen kare',
+      'Dropped frames',
+      'Verworfene Frames',
+      'Images perdues',
+      'Fotogramas perdidos',
+      'Пропущенные кадры',
+      '丢帧',
+      'الإطارات المفقودة'
     ],
   };
 

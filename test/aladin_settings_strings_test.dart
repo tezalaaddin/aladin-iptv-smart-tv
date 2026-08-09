@@ -1,8 +1,23 @@
 import 'package:aladin_iptv_pro/core/state/aladin_app_strings.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:aladin_iptv_pro/features/help/aladin_help_page.dart';
+import 'package:aladin_iptv_pro/shared/widgets/aladin_category_row.dart';
 
 void main() {
+  test('all base language maps have the same keys as English', () {
+    final englishKeys = AppStrings.of('en').allTranslations.keys.toSet();
+    for (final language in AppStrings.getLanguageNames().keys) {
+      final keys = AppStrings.of(language).allTranslations.keys.toSet();
+      expect(keys.difference(englishKeys), isEmpty,
+          reason: '$language has unexpected base keys');
+      expect(englishKeys.difference(keys), isEmpty,
+          reason: '$language is missing base keys');
+      expect(AppStrings.of(language).allTranslations.values,
+          everyElement(isNotEmpty),
+          reason: '$language contains an empty translation');
+    }
+  });
+
   test('new playback settings are localized in every supported language', () {
     for (final language in AppStrings.getLanguageNames().keys) {
       final strings = AppStrings.of(language);
@@ -112,5 +127,42 @@ void main() {
             reason: '$language:${topic.title}');
       }
     }
+  });
+
+  test('+52 settings and player diagnostics are localized', () {
+    const languages = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    const keys = [
+      'cardDensity',
+      'cardCompact',
+      'cardStandard',
+      'cardLarge',
+      'bufferEvents',
+      'bufferDuration',
+      'bufferedAhead',
+      'lastPlaybackError',
+      'none',
+      'droppedFrames',
+    ];
+    for (final language in languages) {
+      final strings = AppStrings.of(language);
+      for (final key in keys) {
+        expect(strings.v52(key), isNot(key), reason: '$language:$key');
+        expect(strings.v52(key).trim(), isNotEmpty, reason: '$language:$key');
+      }
+    }
+  });
+
+  test('TV card density presets stay 16:9 and ordered by size', () {
+    final compact = TvCardMetrics.fromPreference(null);
+    final standard = TvCardMetrics.fromPreference('standard');
+    final large = TvCardMetrics.fromPreference('large');
+
+    expect(compact.width / compact.height, closeTo(16 / 9, 0.01));
+    expect(standard.width / standard.height, closeTo(16 / 9, 0.01));
+    expect(large.width / large.height, closeTo(16 / 9, 0.01));
+    expect(compact.width, lessThan(standard.width));
+    expect(standard.width, lessThan(large.width));
+    expect(compact.rowHeight, lessThan(standard.rowHeight));
+    expect(standard.rowHeight, lessThan(large.rowHeight));
   });
 }

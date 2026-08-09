@@ -15,6 +15,7 @@ class AladinPrefs {
   Timer? _saveTimer;
   int _launchShuffleSeed = 0;
   final ValueNotifier<int> accessibilityRevision = ValueNotifier<int>(0);
+  final ValueNotifier<int> layoutRevision = ValueNotifier<int>(0);
 
   int get launchShuffleSeed => _launchShuffleSeed;
   bool get shuffleOnLaunch => getBool('shuffle_on_launch');
@@ -81,6 +82,7 @@ class AladinPrefs {
     if (_cache[key] == val) return;
     _cache[key] = val;
     _saveDebounced();
+    if (key == 'tv_card_density') layoutRevision.value++;
   }
 
   bool getBool(String key, {bool def = false}) => _cache[key] as bool? ?? def;

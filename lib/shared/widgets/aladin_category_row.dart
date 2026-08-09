@@ -3,6 +3,7 @@ import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_category_model.dart';
 import '../../core/services/aladin_channel_service.dart';
 import '../../core/services/aladin_content_visibility_service.dart';
+import '../../core/state/aladin_app_prefs.dart';
 import '../theme/aladin_app_theme.dart';
 import 'aladin_channel_card.dart';
 import 'aladin_channel_options.dart';
@@ -41,17 +42,23 @@ class _CategoryRowState extends State<CategoryRow> {
   bool _fetching = false;
   static const _pageSize = 100;
 
+  void _refreshLayout() {
+    if (mounted) setState(() {});
+  }
+
   // Layout Standards from AppTheme
   @override
   void initState() {
     super.initState();
     _fetchNext();
     _scroll.addListener(_onScroll);
+    AladinPrefs.instance.layoutRevision.addListener(_refreshLayout);
   }
 
   @override
   void dispose() {
     _scroll.dispose();
+    AladinPrefs.instance.layoutRevision.removeListener(_refreshLayout);
     super.dispose();
   }
 
@@ -91,9 +98,12 @@ class _CategoryRowState extends State<CategoryRow> {
   Widget build(BuildContext context) {
     // Compact 16:9 live-TV cards show more channels per 1080p row while
     // preserving enough room for the two-line EPG overlay and D-pad focus.
-    final cardWidth = widget.tvMode ? 127.2 : AppTheme.cardWidth;
-    final cardHeight = widget.tvMode ? 71.4 : AppTheme.cardHeight;
-    final rowHeight = widget.tvMode ? 96.0 : AppTheme.listHeight;
+    final metrics = TvCardMetrics.fromPreference(
+      AladinPrefs.instance.getString('tv_card_density'),
+    );
+    final cardWidth = widget.tvMode ? metrics.width : AppTheme.cardWidth;
+    final cardHeight = widget.tvMode ? metrics.height : AppTheme.cardHeight;
+    final rowHeight = widget.tvMode ? metrics.rowHeight : AppTheme.listHeight;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Kategori Başlığı ve Kanal Sayısı Alanı
       Padding(
@@ -180,6 +190,21 @@ class _CategoryRowState extends State<CategoryRow> {
       ),
     ]);
   }
+}
+
+@immutable
+class TvCardMetrics {
+  const TvCardMetrics(this.width, this.height, this.rowHeight);
+
+  final double width;
+  final double height;
+  final double rowHeight;
+
+  static TvCardMetrics fromPreference(String? density) => switch (density) {
+        'standard' => const TvCardMetrics(176, 99, 128),
+        'large' => const TvCardMetrics(212, 119, 152),
+        _ => const TvCardMetrics(127.2, 71.4, 96),
+      };
 }
 
 class _Placeholder extends StatelessWidget {

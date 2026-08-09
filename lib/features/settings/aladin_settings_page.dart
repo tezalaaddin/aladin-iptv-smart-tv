@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Focus Management
   late final FocusNode _pageFocusNode = FocusNode(debugLabel: 'settings_page');
   late final List<FocusNode> _leftNodes =
-      List.generate(14, (i) => FocusNode(debugLabel: 'left_$i'));
+      List.generate(15, (i) => FocusNode(debugLabel: 'left_$i'));
   final List<FocusNode> _playlistNodes = [];
 
   final ScrollController _leftScroll = ScrollController();
@@ -227,6 +227,43 @@ class _SettingsPageState extends State<SettingsPage> {
       _ => s.v52('bufferAuto'),
     };
   }
+
+  Future<void> _showCardDensityPreferences() async {
+    final s = context.read<AppState>().s;
+    final current =
+        AladinPrefs.instance.getString('tv_card_density') ?? 'compact';
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        backgroundColor: AppTheme.card,
+        title: Text(s.v52('cardDensity')),
+        children: {
+          'compact': s.v52('cardCompact'),
+          'standard': s.v52('cardStandard'),
+          'large': s.v52('cardLarge'),
+        }
+            .entries
+            .map((entry) => RadioListTile<String>(
+                  value: entry.key,
+                  groupValue: current,
+                  title: Text(entry.value),
+                  onChanged: (value) => Navigator.pop(ctx, value),
+                ))
+            .toList(),
+      ),
+    );
+    if (selected != null) {
+      await AladinPrefs.instance.setString('tv_card_density', selected);
+    }
+    if (mounted) setState(() {});
+  }
+
+  String _cardDensityLabel(AppStrings s) =>
+      switch (AladinPrefs.instance.getString('tv_card_density')) {
+        'standard' => s.v52('cardStandard'),
+        'large' => s.v52('cardLarge'),
+        _ => s.v52('cardCompact'),
+      };
 
   String _pt(ImportProgress p, int c) {
     final state = context.read<AppState>();
@@ -703,6 +740,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[12],
+                          icon: Icons.view_module_outlined,
+                          title: s.v52('cardDensity'),
+                          subtitle: _cardDensityLabel(s),
+                          onTap: _showCardDensityPreferences,
+                          onFocus: (v) {
+                            if (v) setState(() => _leftFocusedIndex = 12);
+                            _ensureVisible(_leftNodes[12]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[13],
                           icon: Icons.skip_next,
                           title: s.v52('autoPlayNext'),
                           subtitle: AladinPrefs.instance
@@ -717,12 +765,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             setState(() {});
                           },
                           onFocus: (v) {
-                            if (v) setState(() => _leftFocusedIndex = 12);
-                            _ensureVisible(_leftNodes[12]);
+                            if (v) setState(() => _leftFocusedIndex = 13);
+                            _ensureVisible(_leftNodes[13]);
                           },
                         ),
                         _SetupTile(
-                          focusNode: _leftNodes[13],
+                          focusNode: _leftNodes[14],
                           icon: Icons.info_outline,
                           title: s.about,
                           subtitle:
@@ -732,9 +780,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             if (v)
                               setState(() {
                                 _inLeftPanel = true;
-                                _leftFocusedIndex = 13;
+                                _leftFocusedIndex = 14;
                               });
-                            _ensureVisible(_leftNodes[13]);
+                            _ensureVisible(_leftNodes[14]);
                           },
                         ),
                       ]),
@@ -928,6 +976,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         .setBool('auto_play_next_episode', !value);
                     if (mounted) setState(() {});
                   },
+                ),
+                _SetupTile(
+                  icon: Icons.view_module_outlined,
+                  title: s.v52('cardDensity'),
+                  subtitle: _cardDensityLabel(s),
+                  onTap: _showCardDensityPreferences,
                 ),
                 _SetupTile(
                   icon: Icons.info_outline,

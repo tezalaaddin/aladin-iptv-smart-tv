@@ -454,6 +454,27 @@
             android:text="Video: --"
             android:textColor="#BBBBBB"
             android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tv_diag_buffer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Buffer: --"
+            android:textColor="#BBBBBB"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tv_diag_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxWidth="420dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:text="Last error: --"
+            android:textColor="#FFAB91"
+            android:textSize="10sp" />
     </LinearLayout>
 
     <!-- Auto-play Next Episode Overlay (NEW) -->
