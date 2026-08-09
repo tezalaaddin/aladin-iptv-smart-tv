@@ -32,8 +32,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        // Version 1061 adds low-memory playback, history, EPG and collection improvements.
-        versionCode = 1061
+        // Version 1062 includes the MediaSession uniqueness crash fix.
+        versionCode = 1062
         versionName = flutter.versionName
     }
 

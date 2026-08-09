@@ -29,12 +29,12 @@ Future<bool> showAladinChannelOptions(
               context: context,
               builder: (ctx) => AlertDialog(
                 backgroundColor: AppTheme.card,
-                title: const Text('Favori koleksiyonu'),
+                title: Text(s.v52('favoriteCollection')),
                 content: TextField(
                   controller: controller,
                   autofocus: true,
-                  decoration: const InputDecoration(
-                      hintText: 'Spor, Çocuk, Sonra İzle...'),
+                  decoration:
+                      InputDecoration(hintText: s.v52('collectionHint')),
                 ),
                 actions: [
                   TextButton(
@@ -53,14 +53,15 @@ Future<bool> showAladinChannelOptions(
               }
               await FavoriteCollectionService.instance.add(name, channel);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('$name koleksiyonuna eklendi')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                        s.v52('collectionAdded').replaceAll('{name}', name))));
               }
             }
           },
-          child: const ListTile(
-            leading: Icon(Icons.create_new_folder_outlined),
-            title: Text('Koleksiyona ekle'),
+          child: ListTile(
+            leading: const Icon(Icons.create_new_folder_outlined),
+            title: Text(s.v52('addToCollection')),
           ),
         ),
         SimpleDialogOption(

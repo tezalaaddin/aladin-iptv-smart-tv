@@ -38,6 +38,807 @@ class AppStrings {
     return values[index < 0 ? 1 : index];
   }
 
+  String v52(String key) {
+    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    final values = _v52[key];
+    if (values == null) return key;
+    final index = codes.indexOf(langCode);
+    return values[index < 0 ? 1 : index];
+  }
+
+  static const Map<String, List<String>> _v52 = {
+    'enabled': [
+      'Etkin',
+      'Enabled',
+      'Aktiv',
+      'Activé',
+      'Activado',
+      'Включено',
+      '已启用',
+      'مفعّل'
+    ],
+    'disabled': [
+      'Kapalı',
+      'Disabled',
+      'Aus',
+      'Désactivé',
+      'Desactivado',
+      'Выключено',
+      '已关闭',
+      'متوقف'
+    ],
+    'parentalEnabledSub': [
+      'PIN ile korunuyor',
+      'Protected by PIN',
+      'Durch PIN geschützt',
+      'Protégé par PIN',
+      'Protegido con PIN',
+      'Защищено PIN-кодом',
+      '受 PIN 保护',
+      'محمي برمز PIN'
+    ],
+    'parentalDisabledSub': [
+      'Kanal ve kategori kilidi',
+      'Channel and category lock',
+      'Kanal- und Kategoriesperre',
+      'Verrouillage des chaînes et catégories',
+      'Bloqueo de canales y categorías',
+      'Блокировка каналов и категорий',
+      '频道和分类锁定',
+      'قفل القنوات والفئات'
+    ],
+    'largeTextEnabledSub': [
+      'Yeniden açılışta uygulanır',
+      'Applied after restart',
+      'Wird nach Neustart angewendet',
+      'Appliqué après redémarrage',
+      'Se aplica tras reiniciar',
+      'Применится после перезапуска',
+      '重启后生效',
+      'يُطبّق بعد إعادة التشغيل'
+    ],
+    'standardText': [
+      'Standart metin boyutu',
+      'Standard text size',
+      'Standardtextgröße',
+      'Taille de texte standard',
+      'Tamaño de texto estándar',
+      'Стандартный размер текста',
+      '标准文字大小',
+      'حجم النص القياسي'
+    ],
+    'highContrastEnabledSub': [
+      'Odak işaretleri güçlendirilir',
+      'Focus indicators are enhanced',
+      'Fokusmarkierungen werden verstärkt',
+      'Les indicateurs de focus sont renforcés',
+      'Se refuerzan los indicadores de foco',
+      'Индикаторы фокуса усилены',
+      '增强焦点指示',
+      'تعزيز مؤشرات التركيز'
+    ],
+    'standardContrast': [
+      'Standart kontrast',
+      'Standard contrast',
+      'Standardkontrast',
+      'Contraste standard',
+      'Contraste estándar',
+      'Стандартная контрастность',
+      '标准对比度',
+      'التباين القياسي'
+    ],
+    'frameRateEnabledSub': [
+      'Desteklenen cihazlarda etkin',
+      'Enabled on supported devices',
+      'Auf unterstützten Geräten aktiv',
+      'Activé sur les appareils compatibles',
+      'Activo en dispositivos compatibles',
+      'Включено на поддерживаемых устройствах',
+      '在支持的设备上启用',
+      'مفعّل على الأجهزة المدعومة'
+    ],
+    'bufferProfile': [
+      'Buffer profili',
+      'Buffer profile',
+      'Pufferprofil',
+      'Profil de mémoire tampon',
+      'Perfil de búfer',
+      'Профиль буфера',
+      '缓冲配置',
+      'ملف التخزين المؤقت'
+    ],
+    'autoPlayNext': [
+      'Sonraki bölümü otomatik oynat',
+      'Automatically play next episode',
+      'Nächste Folge automatisch abspielen',
+      'Lire automatiquement l’épisode suivant',
+      'Reproducir automáticamente el siguiente episodio',
+      'Автоматически включать следующую серию',
+      '自动播放下一集',
+      'تشغيل الحلقة التالية تلقائيًا'
+    ],
+    'playbackBuffer': [
+      'Oynatma ve buffer',
+      'Playback and buffering',
+      'Wiedergabe und Pufferung',
+      'Lecture et mise en mémoire tampon',
+      'Reproducción y búfer',
+      'Воспроизведение и буферизация',
+      '播放与缓冲',
+      'التشغيل والتخزين المؤقت'
+    ],
+    'bufferAuto': [
+      'Otomatik (cihaza göre)',
+      'Automatic (device based)',
+      'Automatisch (je nach Gerät)',
+      'Automatique (selon l’appareil)',
+      'Automático (según el dispositivo)',
+      'Автоматически (по устройству)',
+      '自动（根据设备）',
+      'تلقائي (حسب الجهاز)'
+    ],
+    'bufferLowLatency': [
+      'Düşük gecikme',
+      'Low latency',
+      'Niedrige Latenz',
+      'Faible latence',
+      'Baja latencia',
+      'Низкая задержка',
+      '低延迟',
+      'زمن استجابة منخفض'
+    ],
+    'bufferBalanced': [
+      'Dengeli',
+      'Balanced',
+      'Ausgewogen',
+      'Équilibré',
+      'Equilibrado',
+      'Сбалансированный',
+      '均衡',
+      'متوازن'
+    ],
+    'bufferStable': [
+      'Kararlı',
+      'Stable',
+      'Stabil',
+      'Stable',
+      'Estable',
+      'Стабильный',
+      '稳定',
+      'مستقر'
+    ],
+    'diagnostics': [
+      'YAYIN TANILAMA',
+      'STREAM DIAGNOSTICS',
+      'STREAM-DIAGNOSE',
+      'DIAGNOSTIC DU FLUX',
+      'DIAGNÓSTICO DE EMISIÓN',
+      'ДИАГНОСТИКА ПОТОКА',
+      '播放诊断',
+      'تشخيص البث'
+    ],
+    'estimatedBandwidth': [
+      'Tahmini bant genişliği',
+      'Estimated bandwidth',
+      'Geschätzte Bandbreite',
+      'Bande passante estimée',
+      'Ancho de banda estimado',
+      'Расчётная пропускная способность',
+      '估算带宽',
+      'عرض النطاق التقديري'
+    ],
+    'serverLatency': [
+      'Sunucu gecikmesi',
+      'Server latency',
+      'Serverlatenz',
+      'Latence du serveur',
+      'Latencia del servidor',
+      'Задержка сервера',
+      '服务器延迟',
+      'زمن استجابة الخادم'
+    ],
+    'videoBitrate': [
+      'Video bitrate',
+      'Video bitrate',
+      'Video-Bitrate',
+      'Débit vidéo',
+      'Tasa de bits de vídeo',
+      'Битрейт видео',
+      '视频码率',
+      'معدل بت الفيديو'
+    ],
+    'connection': [
+      'Bağlantı',
+      'Connection',
+      'Verbindung',
+      'Connexion',
+      'Conexión',
+      'Подключение',
+      '连接',
+      'الاتصال'
+    ],
+    'unavailable': [
+      'Ölçülemedi',
+      'Unavailable',
+      'Nicht verfügbar',
+      'Indisponible',
+      'No disponible',
+      'Недоступно',
+      '不可用',
+      'غير متاح'
+    ],
+    'favoriteCollections': [
+      'Favori koleksiyonları',
+      'Favorite collections',
+      'Favoritensammlungen',
+      'Collections de favoris',
+      'Colecciones de favoritos',
+      'Коллекции избранного',
+      '收藏集合',
+      'مجموعات المفضلة'
+    ],
+    'noCollections': [
+      'Henüz özel koleksiyon oluşturulmadı.',
+      'No custom collection has been created yet.',
+      'Noch keine eigene Sammlung erstellt.',
+      'Aucune collection personnalisée créée.',
+      'Aún no se ha creado ninguna colección.',
+      'Пользовательские коллекции ещё не созданы.',
+      '尚未创建自定义集合。',
+      'لم يتم إنشاء مجموعة مخصصة بعد.'
+    ],
+    'itemsCount': [
+      '{count} içerik',
+      '{count} items',
+      '{count} Inhalte',
+      '{count} éléments',
+      '{count} elementos',
+      '{count} элементов',
+      '{count} 个内容',
+      '{count} عنصر'
+    ],
+    'collections': [
+      'Koleksiyonlar',
+      'Collections',
+      'Sammlungen',
+      'Collections',
+      'Colecciones',
+      'Коллекции',
+      '集合',
+      'المجموعات'
+    ],
+    'programSearch': [
+      'Program ara',
+      'Search programmes',
+      'Programme suchen',
+      'Rechercher des programmes',
+      'Buscar programas',
+      'Поиск программ',
+      '搜索节目',
+      'البحث عن البرامج'
+    ],
+    'searchInEpg': [
+      'EPG içinde ara',
+      'Search in EPG',
+      'Im EPG suchen',
+      'Rechercher dans l’EPG',
+      'Buscar en la EPG',
+      'Поиск в телепрограмме',
+      '在 EPG 中搜索',
+      'البحث في دليل البرامج'
+    ],
+    'clear': [
+      'Temizle',
+      'Clear',
+      'Leeren',
+      'Effacer',
+      'Limpiar',
+      'Очистить',
+      '清除',
+      'مسح'
+    ],
+    'search': [
+      'Ara',
+      'Search',
+      'Suchen',
+      'Rechercher',
+      'Buscar',
+      'Поиск',
+      '搜索',
+      'بحث'
+    ],
+    'reminderSet': [
+      'Program başlamadan 5 dakika önce hatırlatılacak.',
+      'You will be reminded 5 minutes before the programme starts.',
+      'Sie werden 5 Minuten vor Programmbeginn erinnert.',
+      'Un rappel sera envoyé 5 minutes avant le début.',
+      'Recibirás un aviso 5 minutos antes del programa.',
+      'Напоминание сработает за 5 минут до начала.',
+      '节目开始前 5 分钟提醒。',
+      'سيتم التذكير قبل بدء البرنامج بـ5 دقائق.'
+    ],
+    'watchLive': [
+      'CANLI İZLE',
+      'WATCH LIVE',
+      'LIVE ANSEHEN',
+      'REGARDER EN DIRECT',
+      'VER EN DIRECTO',
+      'СМОТРЕТЬ ЭФИР',
+      '观看直播',
+      'مشاهدة مباشرة'
+    ],
+    'browseCatchup': [
+      'ARŞİVE GÖZ AT',
+      'BROWSE CATCH-UP',
+      'ARCHIV ÖFFNEN',
+      'PARCOURIR LE RATTRAPAGE',
+      'VER ARCHIVO',
+      'ОТКРЫТЬ АРХИВ',
+      '浏览回看',
+      'تصفح الأرشيف'
+    ],
+    'catchupPrompt': [
+      'Bu kanal için geçmiş yayın arşivi mevcut. Ne yapmak istersiniz?',
+      'Catch-up is available for this channel. What would you like to do?',
+      'Für diesen Kanal ist ein Archiv verfügbar. Was möchten Sie tun?',
+      'Le rattrapage est disponible pour cette chaîne. Que voulez-vous faire ?',
+      'Este canal dispone de archivo. ¿Qué quieres hacer?',
+      'Для этого канала доступен архив. Что вы хотите сделать?',
+      '此频道支持回看。您想做什么？',
+      'الأرشيف متاح لهذه القناة. ماذا تريد أن تفعل؟'
+    ],
+    'resumePlayback': [
+      'Oynatmaya devam et',
+      'Resume playback',
+      'Wiedergabe fortsetzen',
+      'Reprendre la lecture',
+      'Reanudar reproducción',
+      'Продолжить воспроизведение',
+      '继续播放',
+      'متابعة التشغيل'
+    ],
+    'resumeFromMinute': [
+      '{minute}. dakikadan devam edilsin mi?',
+      'Resume from minute {minute}?',
+      'Bei Minute {minute} fortsetzen?',
+      'Reprendre à la minute {minute} ?',
+      '¿Reanudar desde el minuto {minute}?',
+      'Продолжить с {minute}-й минуты?',
+      '从第 {minute} 分钟继续？',
+      'المتابعة من الدقيقة {minute}؟'
+    ],
+    'restart': [
+      'Baştan başlat',
+      'Start over',
+      'Von vorn beginnen',
+      'Recommencer',
+      'Empezar de nuevo',
+      'Начать сначала',
+      '从头开始',
+      'البدء من البداية'
+    ],
+    'continueAction': [
+      'Devam et',
+      'Continue',
+      'Fortsetzen',
+      'Continuer',
+      'Continuar',
+      'Продолжить',
+      '继续',
+      'متابعة'
+    ],
+    'favoriteCollection': [
+      'Favori koleksiyonu',
+      'Favorite collection',
+      'Favoritensammlung',
+      'Collection de favoris',
+      'Colección de favoritos',
+      'Коллекция избранного',
+      '收藏集合',
+      'مجموعة المفضلة'
+    ],
+    'collectionHint': [
+      'Spor, Çocuk, Sonra İzle...',
+      'Sports, Kids, Watch Later...',
+      'Sport, Kinder, Später ansehen...',
+      'Sport, Enfants, À regarder...',
+      'Deportes, Niños, Ver después...',
+      'Спорт, Дети, Смотреть позже...',
+      '体育、儿童、稍后观看…',
+      'رياضة، أطفال، شاهد لاحقًا...'
+    ],
+    'addToCollection': [
+      'Koleksiyona ekle',
+      'Add to collection',
+      'Zur Sammlung hinzufügen',
+      'Ajouter à la collection',
+      'Añadir a la colección',
+      'Добавить в коллекцию',
+      '添加到集合',
+      'إضافة إلى المجموعة'
+    ],
+    'collectionAdded': [
+      '{name} koleksiyonuna eklendi',
+      'Added to {name}',
+      'Zu {name} hinzugefügt',
+      'Ajouté à {name}',
+      'Añadido a {name}',
+      'Добавлено в {name}',
+      '已添加到 {name}',
+      'تمت الإضافة إلى {name}'
+    ],
+    'enableParentalFirst': [
+      'Önce Ayarlar > Ebeveyn Kontrolü bölümünü etkinleştirin.',
+      'Enable Settings > Parental Controls first.',
+      'Aktivieren Sie zuerst Einstellungen > Kindersicherung.',
+      'Activez d’abord Réglages > Contrôle parental.',
+      'Activa primero Ajustes > Control parental.',
+      'Сначала включите Настройки > Родительский контроль.',
+      '请先启用“设置 > 家长控制”。',
+      'فعّل أولاً الإعدادات > الرقابة الأبوية.'
+    ],
+    'changeContentLock': [
+      'İçerik kilidini değiştir',
+      'Change content lock',
+      'Inhaltssperre ändern',
+      'Modifier le verrouillage du contenu',
+      'Cambiar bloqueo de contenido',
+      'Изменить блокировку контента',
+      '更改内容锁定',
+      'تغيير قفل المحتوى'
+    ],
+    'pinProtected': [
+      'Ebeveyn PIN koduyla korunur',
+      'Protected by parental PIN',
+      'Durch Eltern-PIN geschützt',
+      'Protégé par le PIN parental',
+      'Protegido con PIN parental',
+      'Защищено родительским PIN-кодом',
+      '受家长 PIN 保护',
+      'محمي برمز PIN الأبوي'
+    ],
+    'changeDecoder': [
+      'Kanal kod çözücüsünü değiştir',
+      'Change channel decoder',
+      'Kanaldecoder ändern',
+      'Changer le décodeur de chaîne',
+      'Cambiar decodificador del canal',
+      'Изменить декодер канала',
+      '更改频道解码器',
+      'تغيير وحدة فك ترميز القناة'
+    ],
+    'changeQualityLimit': [
+      'Kanal kalite sınırını değiştir',
+      'Change channel quality limit',
+      'Qualitätslimit des Kanals ändern',
+      'Modifier la limite de qualité',
+      'Cambiar límite de calidad',
+      'Изменить ограничение качества',
+      '更改频道画质限制',
+      'تغيير حد جودة القناة'
+    ],
+    'hideCategory': [
+      'Kategoriyi gizle',
+      'Hide category',
+      'Kategorie ausblenden',
+      'Masquer la catégorie',
+      'Ocultar categoría',
+      'Скрыть категорию',
+      '隐藏分类',
+      'إخفاء الفئة'
+    ],
+    'toggleCategoryLock': [
+      'Kategoriyi kilitle / kilidi kaldır',
+      'Lock / unlock category',
+      'Kategorie sperren / entsperren',
+      'Verrouiller / déverrouiller la catégorie',
+      'Bloquear / desbloquear categoría',
+      'Заблокировать / разблокировать категорию',
+      '锁定/解锁分类',
+      'قفل / فتح الفئة'
+    ],
+    'hide': [
+      'Gizle',
+      'Hide',
+      'Ausblenden',
+      'Masquer',
+      'Ocultar',
+      'Скрыть',
+      '隐藏',
+      'إخفاء'
+    ],
+    'controlledStreamTest': [
+      '10 yayını kontrollü test et',
+      'Test 10 streams sequentially',
+      '10 Streams nacheinander testen',
+      'Tester 10 flux séquentiellement',
+      'Probar 10 emisiones secuencialmente',
+      'Последовательно проверить 10 потоков',
+      '依次测试 10 个视频流',
+      'اختبار 10 بثوث بالتتابع'
+    ],
+    'connectionUsage': [
+      'Bağlantı kullanımı',
+      'Connection usage',
+      'Verbindungsnutzung',
+      'Utilisation des connexions',
+      'Uso de conexiones',
+      'Использование подключений',
+      '连接使用情况',
+      'استخدام الاتصالات'
+    ],
+    'totalContent': [
+      'Toplam içerik',
+      'Total content',
+      'Inhalte insgesamt',
+      'Contenu total',
+      'Contenido total',
+      'Всего контента',
+      '内容总数',
+      'إجمالي المحتوى'
+    ],
+    'emptyStreamUrl': [
+      'Boş/geçersiz yayın adresi',
+      'Empty/invalid stream URL',
+      'Leere/ungültige Stream-URL',
+      'URL de flux vide/invalide',
+      'URL vacía/no válida',
+      'Пустой/неверный адрес потока',
+      '空白/无效的视频流地址',
+      'رابط بث فارغ/غير صالح'
+    ],
+    'duplicateStreamUrl': [
+      'Tekrarlanan yayın adresi',
+      'Duplicate stream URL',
+      'Doppelte Stream-URL',
+      'URL de flux en double',
+      'URL de emisión duplicada',
+      'Повторяющийся адрес потока',
+      '重复的视频流地址',
+      'رابط بث مكرر'
+    ],
+    'missingArtwork': [
+      'Eksik afiş/logo',
+      'Missing poster/logo',
+      'Fehlendes Poster/Logo',
+      'Affiche/logo manquant',
+      'Póster/logotipo ausente',
+      'Нет постера/логотипа',
+      '缺少海报/台标',
+      'ملصق/شعار مفقود'
+    ],
+    'missingEpgId': [
+      'Eksik EPG kimliği',
+      'Missing EPG ID',
+      'Fehlende EPG-ID',
+      'Identifiant EPG manquant',
+      'ID de EPG ausente',
+      'Нет идентификатора EPG',
+      '缺少 EPG ID',
+      'معرّف EPG مفقود'
+    ],
+    'healthNote': [
+      'Yayınların çevrimiçi durumu oynatma sırasında doğrulanır; toplu ağ testi sağlayıcıyı gereksiz yere yüklemez.',
+      'Stream availability is verified during playback; bulk network tests do not unnecessarily load the provider.',
+      'Die Stream-Verfügbarkeit wird bei der Wiedergabe geprüft; Massentests belasten den Anbieter nicht unnötig.',
+      'La disponibilité est vérifiée pendant la lecture afin d’éviter de surcharger le fournisseur.',
+      'La disponibilidad se comprueba durante la reproducción para no sobrecargar al proveedor.',
+      'Доступность проверяется при воспроизведении, чтобы не создавать лишнюю нагрузку на провайдера.',
+      '播放时验证视频流可用性，避免批量测试给服务商增加负担。',
+      'يتم التحقق من توفر البث أثناء التشغيل لتجنب تحميل المزود دون داعٍ.'
+    ],
+    'catchupDays': [
+      '{days} Günlük Arşiv',
+      '{days}-day catch-up',
+      '{days}-Tage-Archiv',
+      'Archive de {days} jours',
+      'Archivo de {days} días',
+      'Архив за {days} дн.',
+      '{days} 天回看',
+      'أرشيف لمدة {days} يوم'
+    ],
+    'catchupInstruction': [
+      'Bir program seçerek geçmiş yayını izlemeye başlayın.',
+      'Select a programme to start watching catch-up.',
+      'Wählen Sie eine Sendung aus dem Archiv.',
+      'Sélectionnez un programme à revoir.',
+      'Selecciona un programa del archivo.',
+      'Выберите программу из архива.',
+      '选择一个节目开始回看。',
+      'اختر برنامجًا لبدء المشاهدة من الأرشيف.'
+    ],
+    'noCatchup': [
+      'Arşiv kaydı bulunamadı.',
+      'No catch-up programmes found.',
+      'Keine Archivsendungen gefunden.',
+      'Aucun programme de rattrapage trouvé.',
+      'No se encontraron programas archivados.',
+      'Архивные программы не найдены.',
+      '未找到回看节目。',
+      'لم يتم العثور على برامج في الأرشيف.'
+    ],
+    'minutes': [
+      '{value} dakika',
+      '{value} minutes',
+      '{value} Minuten',
+      '{value} minutes',
+      '{value} minutos',
+      '{value} минут',
+      '{value} 分钟',
+      '{value} دقيقة'
+    ],
+    'lockNowSub': [
+      'Açık olan PIN oturumunu hemen sonlandırır.',
+      'Ends the active PIN session immediately.',
+      'Beendet die aktive PIN-Sitzung sofort.',
+      'Met fin immédiatement à la session PIN.',
+      'Finaliza inmediatamente la sesión PIN.',
+      'Немедленно завершает активный сеанс PIN.',
+      '立即结束当前 PIN 会话。',
+      'ينهي جلسة PIN النشطة فورًا.'
+    ],
+    'pinInput': [
+      '4-6 rakamlı PIN',
+      '4-6 digit PIN',
+      '4- bis 6-stellige PIN',
+      'PIN de 4 à 6 chiffres',
+      'PIN de 4 a 6 dígitos',
+      'PIN из 4–6 цифр',
+      '4-6 位数字 PIN',
+      'رمز PIN من 4 إلى 6 أرقام'
+    ],
+    'confirm': [
+      'Onayla',
+      'Confirm',
+      'Bestätigen',
+      'Confirmer',
+      'Confirmar',
+      'Подтвердить',
+      '确认',
+      'تأكيد'
+    ],
+    'parentalPin': [
+      'Ebeveyn PIN kodu',
+      'Parental PIN',
+      'Eltern-PIN',
+      'PIN parental',
+      'PIN parental',
+      'Родительский PIN-код',
+      '家长 PIN',
+      'رمز PIN الأبوي'
+    ],
+    'newParentalPin': [
+      'Yeni ebeveyn PIN kodu',
+      'New parental PIN',
+      'Neue Eltern-PIN',
+      'Nouveau PIN parental',
+      'Nuevo PIN parental',
+      'Новый родительский PIN-код',
+      '新家长 PIN',
+      'رمز PIN أبوي جديد'
+    ],
+    'verifyPin': [
+      'PIN kodunu doğrulayın',
+      'Confirm PIN',
+      'PIN bestätigen',
+      'Confirmer le PIN',
+      'Confirma el PIN',
+      'Подтвердите PIN-код',
+      '确认 PIN',
+      'تأكيد رمز PIN'
+    ],
+    'invalidPin': [
+      'PIN yanlış veya geçici olarak engellendi.',
+      'The PIN is incorrect or temporarily blocked.',
+      'Die PIN ist falsch oder vorübergehend gesperrt.',
+      'Le PIN est incorrect ou temporairement bloqué.',
+      'El PIN es incorrecto o está bloqueado temporalmente.',
+      'PIN-код неверен или временно заблокирован.',
+      'PIN 错误或暂时被锁定。',
+      'رمز PIN غير صحيح أو محظور مؤقتًا.'
+    ],
+    'pinLengthError': [
+      'PIN 4-6 rakam olmalıdır.',
+      'The PIN must contain 4-6 digits.',
+      'Die PIN muss 4 bis 6 Ziffern enthalten.',
+      'Le PIN doit contenir 4 à 6 chiffres.',
+      'El PIN debe tener entre 4 y 6 dígitos.',
+      'PIN-код должен содержать 4–6 цифр.',
+      'PIN 必须包含 4-6 位数字。',
+      'يجب أن يتكون رمز PIN من 4 إلى 6 أرقام.'
+    ],
+    'pinMismatch': [
+      'PIN kodları eşleşmiyor.',
+      'The PINs do not match.',
+      'Die PINs stimmen nicht überein.',
+      'Les PIN ne correspondent pas.',
+      'Los PIN no coinciden.',
+      'PIN-коды не совпадают.',
+      '两次输入的 PIN 不一致。',
+      'رمزا PIN غير متطابقين.'
+    ],
+    'pinSaved': [
+      'Ebeveyn PIN kodu güvenli biçimde kaydedildi.',
+      'The parental PIN was saved securely.',
+      'Die Eltern-PIN wurde sicher gespeichert.',
+      'Le PIN parental a été enregistré en toute sécurité.',
+      'El PIN parental se guardó de forma segura.',
+      'Родительский PIN-код надежно сохранен.',
+      '家长 PIN 已安全保存。',
+      'تم حفظ رمز PIN الأبوي بأمان.'
+    ],
+    'pinProtectionSub': [
+      'Yetişkin ve elle kilitlenen içerikleri korur.',
+      'Protects adult and manually locked content.',
+      'Schützt nicht jugendfreie und manuell gesperrte Inhalte.',
+      'Protège le contenu adulte et verrouillé manuellement.',
+      'Protege el contenido adulto y bloqueado manualmente.',
+      'Защищает контент для взрослых и заблокированный вручную.',
+      '保护成人内容和手动锁定的内容。',
+      'يحمي محتوى البالغين والمحتوى المقفل يدويًا.'
+    ],
+    'hideLockedSub': [
+      'Afiş, başlık ve sonuçları listelerden kaldırır.',
+      'Removes posters, titles and results from lists.',
+      'Entfernt Poster, Titel und Ergebnisse aus Listen.',
+      'Retire les affiches, titres et résultats des listes.',
+      'Elimina carteles, títulos y resultados de las listas.',
+      'Удаляет постеры, названия и результаты из списков.',
+      '从列表中移除海报、标题和结果。',
+      'يزيل الملصقات والعناوين والنتائج من القوائم.'
+    ],
+    'manualLockedCount': [
+      '{count} elle kilitlenmiş öğe',
+      '{count} manually locked items',
+      '{count} manuell gesperrte Inhalte',
+      '{count} éléments verrouillés manuellement',
+      '{count} elementos bloqueados manualmente',
+      '{count} элементов заблокировано вручную',
+      '{count} 个手动锁定项目',
+      '{count} عنصر مقفل يدويًا'
+    ],
+    'hiddenCount': [
+      '{count} gizli öğe',
+      '{count} hidden items',
+      '{count} ausgeblendete Inhalte',
+      '{count} éléments masqués',
+      '{count} elementos ocultos',
+      '{count} скрытых элементов',
+      '{count} 个隐藏项目',
+      '{count} عنصر مخفي'
+    ],
+    'testingStreams': [
+      'En fazla 10 yayın sırayla test ediliyor...',
+      'Testing up to 10 streams sequentially...',
+      'Bis zu 10 Streams werden nacheinander getestet...',
+      'Test séquentiel de 10 flux au maximum...',
+      'Probando hasta 10 emisiones secuencialmente...',
+      'Последовательно проверяется до 10 потоков...',
+      '正在依次测试最多 10 个视频流…',
+      'جارٍ اختبار ما يصل إلى 10 بثوث بالتتابع...'
+    ],
+    'currentProgram': [
+      'Şu an',
+      'Now',
+      'Jetzt',
+      'Maintenant',
+      'Ahora',
+      'Сейчас',
+      '当前',
+      'الآن'
+    ],
+    'nextProgram': [
+      'Sonraki',
+      'Next',
+      'Als Nächstes',
+      'Ensuite',
+      'Siguiente',
+      'Далее',
+      '接下来',
+      'التالي'
+    ],
+  };
+
   static const Map<String, List<String>> _v51 = {
     'categories': [
       'Kategoriler',
@@ -1409,6 +2210,15 @@ class AppStrings {
     'removeFavoriteQ': '"{name}" aus Favoriten entfernen?',
     'removeListQ': '"{name}" aus Liste entfernen?',
     'privacyPolicy': 'Datenschutzerklärung',
+    'navHome': 'Startseite',
+    'recentlyAdded': 'Kürzlich hinzugefügt',
+    'discover': 'Entdecken',
+    'epgFirstSyncPrompt': 'Programmdaten wurden noch nicht synchronisiert.',
+    'epgUpdateRecommended':
+        'Eine Aktualisierung der Programmdaten wird empfohlen.',
+    'streamErrorMsg': 'Der Stream konnte nicht wiedergegeben werden.',
+    'about': 'Über die App',
+    'developer': 'Entwickler',
     'sleepTimer': 'Sleep-Timer',
   };
 
@@ -1609,6 +2419,16 @@ class AppStrings {
     'removeFavoriteQ': 'Retirer "{name}" des favoris ?',
     'removeListQ': 'Supprimer "{name}" de la liste ?',
     'privacyPolicy': 'Politique de confidentialité',
+    'navHome': 'Accueil',
+    'recentlyAdded': 'Ajoutés récemment',
+    'discover': 'Découvrir',
+    'epgFirstSyncPrompt':
+        'Les données du programme n’ont pas encore été synchronisées.',
+    'epgUpdateRecommended':
+        'Une mise à jour des données du programme est recommandée.',
+    'streamErrorMsg': 'Impossible de lire ce flux.',
+    'about': 'À propos',
+    'developer': 'Développeur',
     'sleepTimer': 'Minuterie de mise en veille',
   };
 
@@ -1806,6 +2626,16 @@ class AppStrings {
     'removeFavoriteQ': '¿Quitar "{name}" de favoritos?',
     'removeListQ': '¿Eliminar "{name}" de la lista?',
     'privacyPolicy': 'Política de privacidad',
+    'navHome': 'Inicio',
+    'recentlyAdded': 'Añadidos recientemente',
+    'discover': 'Descubrir',
+    'epgFirstSyncPrompt':
+        'Los datos de programación aún no se han sincronizado.',
+    'epgUpdateRecommended':
+        'Se recomienda actualizar los datos de programación.',
+    'streamErrorMsg': 'No se pudo reproducir la emisión.',
+    'about': 'Acerca de',
+    'developer': 'Desarrollador',
     'sleepTimer': 'Temporizador de apagado',
   };
 
@@ -2004,6 +2834,14 @@ class AppStrings {
     'removeFavoriteQ': 'Удалить "{name}" из избранного?',
     'removeListQ': 'Удалить "{name}" из списка?',
     'privacyPolicy': 'Политика конфиденциальности',
+    'navHome': 'Главная',
+    'recentlyAdded': 'Недавно добавленные',
+    'discover': 'Обзор',
+    'epgFirstSyncPrompt': 'Данные телепрограммы ещё не синхронизированы.',
+    'epgUpdateRecommended': 'Рекомендуется обновить данные телепрограммы.',
+    'streamErrorMsg': 'Не удалось воспроизвести поток.',
+    'about': 'О приложении',
+    'developer': 'Разработчик',
     'sleepTimer': 'Таймер сна',
   };
 
@@ -2198,6 +3036,14 @@ class AppStrings {
     'removeFavoriteQ': '将 "{name}" 从收藏夹中移除？',
     'removeListQ': '将 "{name}" 从列表中移除？',
     'privacyPolicy': '隐私政策',
+    'navHome': '首页',
+    'recentlyAdded': '最近添加',
+    'discover': '发现',
+    'epgFirstSyncPrompt': '节目数据尚未同步。',
+    'epgUpdateRecommended': '建议更新节目数据。',
+    'streamErrorMsg': '无法播放此视频流。',
+    'about': '关于',
+    'developer': '开发者',
     'sleepTimer': '睡眠定时器',
   };
 
@@ -2394,6 +3240,14 @@ class AppStrings {
     'removeFavoriteQ': 'هل تريد إزالة "{name}" من المفضلة؟',
     'removeListQ': 'هل تريد إزالة "{name}" من القائمة؟',
     'privacyPolicy': 'سياسة الخصوصية',
+    'navHome': 'الرئيسية',
+    'recentlyAdded': 'أضيفت حديثًا',
+    'discover': 'اكتشف',
+    'epgFirstSyncPrompt': 'لم تتم مزامنة بيانات دليل البرامج بعد.',
+    'epgUpdateRecommended': 'يوصى بتحديث بيانات دليل البرامج.',
+    'streamErrorMsg': 'تعذر تشغيل البث.',
+    'about': 'حول التطبيق',
+    'developer': 'المطور',
     'sleepTimer': 'مؤقت النوم',
   };
 }

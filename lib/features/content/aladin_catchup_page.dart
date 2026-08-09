@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_epg_model.dart';
 import '../../core/services/aladin_epg_service.dart';
+import '../../core/state/aladin_app_state.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../player/aladin_player_page.dart';
 
@@ -85,6 +87,7 @@ class _AladinCatchupPageState extends State<AladinCatchupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.watch<AppState>().s;
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: Row(
@@ -107,12 +110,14 @@ class _AladinCatchupPageState extends State<AladinCatchupPage> {
                 const SizedBox(height: 24),
                 Text(widget.channel.name, style: AppTheme.headingLarge),
                 const SizedBox(height: 8),
-                Text('${widget.channel.catchupDays} Günlük Arşiv',
+                Text(
+                    s
+                        .v52('catchupDays')
+                        .replaceAll('{days}', '${widget.channel.catchupDays}'),
                     style: const TextStyle(color: AppTheme.accent)),
                 const Spacer(),
-                const Text(
-                    'Bir program seçerek geçmiş yayını izlemeye başlayın.',
-                    style: TextStyle(color: Colors.white54)),
+                Text(s.v52('catchupInstruction'),
+                    style: const TextStyle(color: Colors.white54)),
               ],
             ),
           ),
@@ -121,7 +126,7 @@ class _AladinCatchupPageState extends State<AladinCatchupPage> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _programs.isEmpty
-                    ? const Center(child: Text('Arşiv kaydı bulunamadı.'))
+                    ? Center(child: Text(s.v52('noCatchup')))
                     : ListView.builder(
                         padding: const EdgeInsets.all(24),
                         itemCount: _programs.length,

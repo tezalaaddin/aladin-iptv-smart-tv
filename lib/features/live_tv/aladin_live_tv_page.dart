@@ -131,8 +131,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
         title: Text(ch.name, style: const TextStyle(color: Colors.white)),
-        content: Text(
-            'Bu kanal için geçmiş yayın arşivi mevcut. Ne yapmak istersiniz?',
+        content: Text(s.v52('catchupPrompt'),
             style: const TextStyle(color: AppTheme.textSecondary)),
         actions: [
           TextButton(
@@ -146,7 +145,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
                           playlist: list.isNotEmpty ? list : [ch])));
               if (mounted && _loadedId != null) _loadFavorites(_loadedId!);
             },
-            child: const Text('CANLI İZLE'),
+            child: Text(s.v52('watchLive')),
           ),
           ElevatedButton(
             autofocus: true,
@@ -157,7 +156,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
                   MaterialPageRoute(
                       builder: (_) => AladinCatchupPage(channel: ch)));
             },
-            child: const Text('ARŞİVE GÖZ AT'),
+            child: Text(s.v52('browseCatchup')),
           ),
         ],
       ),
@@ -335,18 +334,18 @@ class _HorizStrip extends StatelessWidget {
             child: Text(title, style: AppTheme.headingMedium),
           ),
           SizedBox(
-            height: 158,
+            height: 96,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               itemCount: channels.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               clipBehavior: Clip.none,
               itemBuilder: (_, i) => ChannelCard(
                 channel: channels[i],
                 tvMode: true,
-                width: 212,
-                height: 119,
+                width: 127.2,
+                height: 71.4,
                 onTap: () => onTap(channels[i]),
                 onLongPress: onLongPress != null
                     ? () => onLongPress!(channels[i])

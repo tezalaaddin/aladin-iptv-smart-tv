@@ -49,22 +49,22 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
         title: Text(s.v49('epgGuide')),
         actions: [
           IconButton(
-            tooltip: 'Program ara',
+            tooltip: s.v52('programSearch'),
             icon: const Icon(Icons.search),
             onPressed: () async {
               final controller = TextEditingController(text: _query);
               final value = await showDialog<String>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('EPG içinde ara'),
+                  title: Text(s.v52('searchInEpg')),
                   content: TextField(controller: controller, autofocus: true),
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(ctx, ''),
-                        child: const Text('Temizle')),
+                        child: Text(s.v52('clear'))),
                     FilledButton(
                         onPressed: () => Navigator.pop(ctx, controller.text),
-                        child: const Text('Ara')),
+                        child: Text(s.v52('search'))),
                   ],
                 ),
               );
@@ -158,6 +158,7 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
 
   Future<void> _scheduleReminder(
       String channelName, EpgProgramModel program) async {
+    final s = context.read<AppState>().s;
     final trigger = program.startTime
         .subtract(const Duration(minutes: 5))
         .millisecondsSinceEpoch;
@@ -169,8 +170,8 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
       'id': Object.hash(channelName, program.startTime).abs() & 0x7fffffff,
     });
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Program başlamadan 5 dakika önce hatırlatılacak.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.v52('reminderSet'))));
     }
   }
 

@@ -116,16 +116,17 @@ class _FavoritesPageState extends State<FavoritesPage>
   }
 
   Future<void> _showCollections() async {
+    final s = context.read<AppState>().s;
     final collections = FavoriteCollectionService.instance.collections;
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.card,
-        title: const Text('Favori koleksiyonları'),
+        title: Text(s.v52('favoriteCollections')),
         content: SizedBox(
           width: 520,
           child: collections.isEmpty
-              ? const Text('Henüz özel koleksiyon oluşturulmadı.')
+              ? Text(s.v52('noCollections'))
               : ListView(
                   shrinkWrap: true,
                   children: collections.entries.map((entry) {
@@ -135,7 +136,9 @@ class _FavoritesPageState extends State<FavoritesPage>
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
                       title: Text(entry.key),
-                      subtitle: Text('${channels.length} içerik'),
+                      subtitle: Text(s
+                          .v52('itemsCount')
+                          .replaceAll('{count}', '${channels.length}')),
                       onTap: () {
                         Navigator.pop(ctx);
                         if (channels.isNotEmpty)
@@ -169,7 +172,7 @@ class _FavoritesPageState extends State<FavoritesPage>
         title: s.navFavorites,
         extraActions: [
           IconButton(
-              tooltip: 'Koleksiyonlar',
+              tooltip: s.v52('collections'),
               onPressed: _showCollections,
               icon: const Icon(Icons.folder_special_outlined)),
         ],

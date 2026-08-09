@@ -189,17 +189,18 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _showPlaybackPreferences() async {
+    final s = context.read<AppState>().s;
     final current = AladinPrefs.instance.getString('buffer_profile') ?? 'auto';
     final selected = await showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
         backgroundColor: AppTheme.card,
-        title: const Text('Oynatma ve buffer'),
-        children: const {
-          'auto': 'Otomatik (cihaza göre)',
-          'low_latency': 'Düşük gecikme',
-          'balanced': 'Dengeli',
-          'stable': 'Kararlı',
+        title: Text(s.v52('playbackBuffer')),
+        children: {
+          'auto': s.v52('bufferAuto'),
+          'low_latency': s.v52('bufferLowLatency'),
+          'balanced': s.v52('bufferBalanced'),
+          'stable': s.v52('bufferStable'),
         }
             .entries
             .map((entry) => RadioListTile<String>(
@@ -215,6 +216,16 @@ class _SettingsPageState extends State<SettingsPage> {
       await AladinPrefs.instance.setString('buffer_profile', selected);
     }
     if (mounted) setState(() {});
+  }
+
+  String _bufferProfileLabel(AppStrings s) {
+    final profile = AladinPrefs.instance.getString('buffer_profile') ?? 'auto';
+    return switch (profile) {
+      'low_latency' => s.v52('bufferLowLatency'),
+      'balanced' => s.v52('bufferBalanced'),
+      'stable' => s.v52('bufferStable'),
+      _ => s.v52('bufferAuto'),
+    };
   }
 
   String _pt(ImportProgress p, int c) {
@@ -595,8 +606,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           icon: Icons.lock_person,
                           title: s.v49('parental'),
                           subtitle: ParentalService.instance.isEnabled
-                              ? 'Etkin · PIN ile korunuyor'
-                              : 'Kapalı · Kanal ve kategori kilidi',
+                              ? '${s.v52('enabled')} · ${s.v52('parentalEnabledSub')}'
+                              : '${s.v52('disabled')} · ${s.v52('parentalDisabledSub')}',
                           onTap: _showParentalDialog,
                           onFocus: (v) {
                             if (v)
@@ -613,8 +624,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.v49('largeText'),
                           subtitle: AladinPrefs.instance
                                   .getBool('accessibility_large_text')
-                              ? 'Etkin · uygulama yeniden açılınca uygulanır'
-                              : 'Standart metin boyutu',
+                              ? '${s.v52('enabled')} · ${s.v52('largeTextEnabledSub')}'
+                              : s.v52('standardText'),
                           onTap: () async {
                             final value = AladinPrefs.instance
                                 .getBool('accessibility_large_text');
@@ -637,8 +648,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.v49('highContrast'),
                           subtitle: AladinPrefs.instance
                                   .getBool('accessibility_high_contrast')
-                              ? 'Etkin · renk dışı odak işaretleri güçlendirilir'
-                              : 'Standart kontrast',
+                              ? '${s.v52('enabled')} · ${s.v52('highContrastEnabledSub')}'
+                              : s.v52('standardContrast'),
                           onTap: () async {
                             final value = AladinPrefs.instance
                                 .getBool('accessibility_high_contrast');
@@ -661,8 +672,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: s.v49('frameRate'),
                           subtitle: AladinPrefs.instance
                                   .getBool('match_content_frame_rate')
-                              ? 'Etkin · desteklenen Android TV cihazlarında'
-                              : 'Kapalı',
+                              ? '${s.v52('enabled')} · ${s.v52('frameRateEnabledSub')}'
+                              : s.v52('disabled'),
                           onTap: () async {
                             final value = AladinPrefs.instance
                                 .getBool('match_content_frame_rate');
@@ -682,10 +693,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SetupTile(
                           focusNode: _leftNodes[11],
                           icon: Icons.network_check,
-                          title: 'Buffer profili',
-                          subtitle: AladinPrefs.instance
-                                  .getString('buffer_profile') ??
-                              'auto',
+                          title: s.v52('bufferProfile'),
+                          subtitle: _bufferProfileLabel(s),
                           onTap: _showPlaybackPreferences,
                           onFocus: (v) {
                             if (v) setState(() => _leftFocusedIndex = 11);
@@ -695,11 +704,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         _SetupTile(
                           focusNode: _leftNodes[12],
                           icon: Icons.skip_next,
-                          title: 'Sonraki bölümü otomatik oynat',
+                          title: s.v52('autoPlayNext'),
                           subtitle: AladinPrefs.instance
                                   .getBool('auto_play_next_episode', def: true)
-                              ? 'Etkin'
-                              : 'Kapalı',
+                              ? s.v52('enabled')
+                              : s.v52('disabled'),
                           onTap: () async {
                             final value = AladinPrefs.instance
                                 .getBool('auto_play_next_episode', def: true);
@@ -850,17 +859,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   icon: Icons.lock_person,
                   title: s.v49('parental'),
                   subtitle: ParentalService.instance.isEnabled
-                      ? 'Etkin · PIN ile korunuyor'
-                      : 'Kapalı · Kanal ve kategori kilidi',
+                      ? '${s.v52('enabled')} · ${s.v52('parentalEnabledSub')}'
+                      : '${s.v52('disabled')} · ${s.v52('parentalDisabledSub')}',
                   onTap: _showParentalDialog,
                 ),
                 _SetupTile(
                   icon: Icons.format_size,
                   title: s.v49('largeText'),
-                  subtitle:
-                      AladinPrefs.instance.getBool('accessibility_large_text')
-                          ? 'Etkin · yeniden açılışta uygulanır'
-                          : 'Standart metin boyutu',
+                  subtitle: AladinPrefs.instance
+                          .getBool('accessibility_large_text')
+                      ? '${s.v52('enabled')} · ${s.v52('largeTextEnabledSub')}'
+                      : s.v52('standardText'),
                   onTap: () async {
                     final value = AladinPrefs.instance
                         .getBool('accessibility_large_text');
@@ -874,8 +883,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: s.v49('highContrast'),
                   subtitle: AladinPrefs.instance
                           .getBool('accessibility_high_contrast')
-                      ? 'Etkin'
-                      : 'Standart kontrast',
+                      ? '${s.v52('enabled')} · ${s.v52('highContrastEnabledSub')}'
+                      : s.v52('standardContrast'),
                   onTap: () async {
                     final value = AladinPrefs.instance
                         .getBool('accessibility_high_contrast');
@@ -887,10 +896,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 _SetupTile(
                   icon: Icons.speed,
                   title: s.v49('frameRate'),
-                  subtitle:
-                      AladinPrefs.instance.getBool('match_content_frame_rate')
-                          ? 'Etkin'
-                          : 'Kapalı',
+                  subtitle: AladinPrefs.instance
+                          .getBool('match_content_frame_rate')
+                      ? '${s.v52('enabled')} · ${s.v52('frameRateEnabledSub')}'
+                      : s.v52('disabled'),
                   onTap: () async {
                     final value = AladinPrefs.instance
                         .getBool('match_content_frame_rate');
@@ -901,18 +910,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 _SetupTile(
                   icon: Icons.network_check,
-                  title: 'Buffer profili',
-                  subtitle: AladinPrefs.instance.getString('buffer_profile') ??
-                      'auto',
+                  title: s.v52('bufferProfile'),
+                  subtitle: _bufferProfileLabel(s),
                   onTap: _showPlaybackPreferences,
                 ),
                 _SetupTile(
                   icon: Icons.skip_next,
-                  title: 'Sonraki bölümü otomatik oynat',
+                  title: s.v52('autoPlayNext'),
                   subtitle: AladinPrefs.instance
                           .getBool('auto_play_next_episode', def: true)
-                      ? 'Etkin'
-                      : 'Kapalı',
+                      ? s.v52('enabled')
+                      : s.v52('disabled'),
                   onTap: () async {
                     final value = AladinPrefs.instance
                         .getBool('auto_play_next_episode', def: true);
@@ -1326,26 +1334,27 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(context);
               _showPlaylistHealth(p);
             },
-            child: const Row(children: [
-              Icon(Icons.monitor_heart_outlined, color: Colors.lightBlueAccent),
-              SizedBox(width: 12),
-              Text('Playlist sağlık raporu')
+            child: Row(children: [
+              const Icon(Icons.monitor_heart_outlined,
+                  color: Colors.lightBlueAccent),
+              const SizedBox(width: 12),
+              Text(s.v49('healthReport'))
             ]),
           ),
           SimpleDialogOption(
             onPressed: () async {
               Navigator.pop(context);
-              _snack('En fazla 10 yayın sırayla test ediliyor...');
+              _snack(s.v52('testingStreams'));
               final result =
                   await PlaylistService.instance.testSampleStreams(p.id);
               _snack(
                   'Test: ${result['tested']} · Sağlıklı: ${result['healthy']} · Hatalı: ${result['failed']}',
                   error: (result['failed'] ?? 0) > 0);
             },
-            child: const Row(children: [
-              Icon(Icons.speed_outlined, color: Colors.orangeAccent),
-              SizedBox(width: 12),
-              Text('10 yayını kontrollü test et')
+            child: Row(children: [
+              const Icon(Icons.speed_outlined, color: Colors.orangeAccent),
+              const SizedBox(width: 12),
+              Text(s.v52('controlledStreamTest'))
             ]),
           ),
           SimpleDialogOption(
@@ -1355,10 +1364,10 @@ class _SettingsPageState extends State<SettingsPage> {
               await Clipboard.setData(ClipboardData(text: backup));
               _snack('Güvenli yedek panoya kopyalandı (Xtream şifresi hariç).');
             },
-            child: const Row(children: [
-              Icon(Icons.backup_outlined, color: Colors.white70),
-              SizedBox(width: 12),
-              Text('Güvenli yedeği panoya kopyala')
+            child: Row(children: [
+              const Icon(Icons.backup_outlined, color: Colors.white70),
+              const SizedBox(width: 12),
+              Text(s.v49('secureBackup'))
             ]),
           ),
           SimpleDialogOption(
@@ -1401,10 +1410,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 _snack('Yedek geri yüklenemedi: $e', error: true);
               }
             },
-            child: const Row(children: [
-              Icon(Icons.restore, color: Colors.white70),
-              SizedBox(width: 12),
-              Text('Panodaki yedeği geri yükle')
+            child: Row(children: [
+              const Icon(Icons.restore, color: Colors.white70),
+              const SizedBox(width: 12),
+              Text(s.v49('restoreBackup'))
             ]),
           ),
           SimpleDialogOption(
@@ -1466,17 +1475,19 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.card,
-        title: Text('${playlist.name} · Sağlık Raporu'),
+        title: Text('${playlist.name} · ${strings.v49('healthReport')}'),
         content: SizedBox(
           width: 500,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _healthRow('Toplam içerik', report['total']!),
-              _healthRow('Boş/geçersiz yayın adresi', report['emptyUrl']!),
-              _healthRow('Tekrarlanan yayın adresi', report['duplicates']!),
-              _healthRow('Eksik afiş/logo', report['missingArtwork']!),
-              _healthRow('Eksik EPG kimliği', report['missingEpgId']!),
+              _healthRow(strings.v52('totalContent'), report['total']!),
+              _healthRow(strings.v52('emptyStreamUrl'), report['emptyUrl']!),
+              _healthRow(
+                  strings.v52('duplicateStreamUrl'), report['duplicates']!),
+              _healthRow(
+                  strings.v52('missingArtwork'), report['missingArtwork']!),
+              _healthRow(strings.v52('missingEpgId'), report['missingEpgId']!),
               if (xtream != null) ...[
                 const Divider(),
                 ListTile(
@@ -1489,7 +1500,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     trailing: Text('${xtream['status']}')),
                 ListTile(
                     dense: true,
-                    title: const Text('Bağlantı kullanımı'),
+                    title: Text(strings.v52('connectionUsage')),
                     trailing: Text(
                         '${xtream['activeConnections']} / ${xtream['maxConnections']}')),
                 ListTile(
@@ -1498,10 +1509,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     trailing: Text('${xtream['expiry']}')),
               ],
               const SizedBox(height: 12),
-              const Text(
-                'Yayınların çevrimiçi olup olmadığı oynatma sırasında doğrulanır; '
-                'toplu ağ testi sağlayıcıyı gereksiz yere yüklemez.',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+              Text(
+                strings.v52('healthNote'),
+                style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
               ),
             ],
           ),
@@ -1510,7 +1520,7 @@ class _SettingsPageState extends State<SettingsPage> {
           FilledButton(
             autofocus: true,
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
+            child: Text(strings.done),
           ),
         ],
       ),
@@ -1686,8 +1696,8 @@ class _SettingsPageState extends State<SettingsPage> {
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
-            decoration: const InputDecoration(
-              labelText: '4-6 rakamlı PIN',
+            decoration: InputDecoration(
+              labelText: context.read<AppState>().s.v52('pinInput'),
               border: OutlineInputBorder(),
             ),
             onSubmitted: (value) => Navigator.pop(dialogContext, value),
@@ -1696,12 +1706,12 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('İptal'),
+            child: Text(context.read<AppState>().s.cancel),
           ),
           FilledButton(
             autofocus: true,
             onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: const Text('Onayla'),
+            child: Text(context.read<AppState>().s.v52('confirm')),
           ),
         ],
       ),
@@ -1713,28 +1723,29 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<bool> _authenticateParental() async {
     final service = ParentalService.instance;
     if (!await service.hasPin()) return true;
-    final pin = await _requestPin('Ebeveyn PIN kodu');
+    final strings = context.read<AppState>().s;
+    final pin = await _requestPin(strings.v52('parentalPin'));
     if (pin == null) return false;
     final valid = await service.verifyPin(pin);
-    if (!valid)
-      _snack('PIN yanlış veya geçici olarak engellendi.', error: true);
+    if (!valid) _snack(strings.v52('invalidPin'), error: true);
     return valid;
   }
 
   Future<void> _setNewParentalPin() async {
-    final first = await _requestPin('Yeni ebeveyn PIN kodu');
+    final strings = context.read<AppState>().s;
+    final first = await _requestPin(strings.v52('newParentalPin'));
     if (first == null) return;
     if (!RegExp(r'^\d{4,6}$').hasMatch(first)) {
-      _snack('PIN 4-6 rakam olmalıdır.', error: true);
+      _snack(strings.v52('pinLengthError'), error: true);
       return;
     }
-    final second = await _requestPin('PIN kodunu doğrulayın');
+    final second = await _requestPin(strings.v52('verifyPin'));
     if (first != second) {
-      _snack('PIN kodları eşleşmiyor.', error: true);
+      _snack(strings.v52('pinMismatch'), error: true);
       return;
     }
     await ParentalService.instance.setPin(first);
-    _snack('Ebeveyn PIN kodu güvenli biçimde kaydedildi.');
+    _snack(strings.v52('pinSaved'));
   }
 
   Future<void> _showParentalDialog() async {
@@ -1757,8 +1768,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 SwitchListTile(
                   autofocus: true,
                   title: Text(strings.v49('pinProtection')),
-                  subtitle: const Text(
-                      'Yetişkin ve elle kilitlenen içerikleri korur.'),
+                  subtitle: Text(strings.v52('pinProtectionSub')),
                   value: service.isEnabled,
                   onChanged: (value) async {
                     await service.setEnabled(value);
@@ -1768,8 +1778,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 SwitchListTile(
                   title: Text(strings.v49('hideLocked')),
-                  subtitle: const Text(
-                      'Afiş, başlık ve sonuçları listelerden kaldırır.'),
+                  subtitle: Text(strings.v52('hideLockedSub')),
                   value: service.hideLockedContent,
                   onChanged: (value) async {
                     await service.setHideLockedContent(value);
@@ -1778,12 +1787,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 ListTile(
                   title: Text(strings.v49('unlockDuration')),
-                  subtitle: Text('${service.sessionMinutes} dakika'),
+                  subtitle: Text(strings
+                      .v52('minutes')
+                      .replaceAll('{value}', '${service.sessionMinutes}')),
                   trailing: DropdownButton<int>(
                     value: service.sessionMinutes,
                     items: const [15, 30, 60]
-                        .map((v) =>
-                            DropdownMenuItem(value: v, child: Text('$v dk')))
+                        .map((v) => DropdownMenuItem(
+                            value: v,
+                            child: Text(strings
+                                .v52('minutes')
+                                .replaceAll('{value}', '$v'))))
                         .toList(),
                     onChanged: (value) async {
                       if (value == null) return;
@@ -1794,8 +1808,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 ListTile(
                   title: Text(strings.v49('manageLocked')),
-                  subtitle: Text(
-                      '${service.lockedContent.length} elle kilitlenmiş öğe'),
+                  subtitle: Text(strings.v52('manualLockedCount').replaceAll(
+                      '{count}', '${service.lockedContent.length}')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.pop(dialogContext);
@@ -1804,8 +1818,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 ListTile(
                   title: Text(strings.v49('showHidden')),
-                  subtitle: Text(
-                      '${ContentVisibilityService.instance.hiddenCount} gizli öğe'),
+                  subtitle: Text(strings.v52('hiddenCount').replaceAll(
+                      '{count}',
+                      '${ContentVisibilityService.instance.hiddenCount}')),
                   trailing: const Icon(Icons.visibility),
                   onTap: () async {
                     Navigator.pop(dialogContext);
@@ -1822,8 +1837,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 ListTile(
                   title: Text(strings.v49('lockNow')),
-                  subtitle:
-                      const Text('Açık olan PIN oturumunu hemen sonlandırır.'),
+                  subtitle: Text(strings.v52('lockNowSub')),
                   trailing: const Icon(Icons.lock),
                   onTap: () {
                     service.lockSession();
@@ -1837,7 +1851,7 @@ class _SettingsPageState extends State<SettingsPage> {
             FilledButton(
               autofocus: true,
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Tamam'),
+              child: Text(strings.done),
             ),
           ],
         ),
@@ -1872,7 +1886,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               : Icons.lock_outline),
                           title: Text(entry.name,
                               maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(entry.subtitle),
+                          subtitle: Text(entry.isCategory
+                              ? strings.category
+                              : entry.subtitle),
                           trailing: const Icon(Icons.lock_open),
                           onTap: () async {
                             await service.unlockEntry(entry);
@@ -1886,7 +1902,7 @@ class _SettingsPageState extends State<SettingsPage> {
               FilledButton(
                 autofocus: entries.isEmpty,
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Tamam'),
+                child: Text(strings.done),
               ),
             ],
           );
@@ -2161,7 +2177,6 @@ class _SetupTileState extends State<_SetupTile> {
   bool _focused = false;
   @override
   Widget build(BuildContext context) {
-    final s = context.read<AppState>().s;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Focus(
@@ -2230,14 +2245,14 @@ class _SetupTileState extends State<_SetupTile> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              _snack('En fazla 10 yayın sırayla test ediliyor...');
+              _snack(s.v52('testingStreams'));
               final result =
                   await PlaylistService.instance.testSampleStreams(playlist.id);
               _snack(
                   'Test: ${result['tested']} · Sağlıklı: ${result['healthy']} · Hatalı: ${result['failed']}',
                   error: (result['failed'] ?? 0) > 0);
             },
-            child: const Text('10 yayını kontrollü test et'),
+            child: Text(context.read<AppState>().s.v52('controlledStreamTest')),
           ),
           TextButton(
               onPressed: () => Navigator.pop(context),

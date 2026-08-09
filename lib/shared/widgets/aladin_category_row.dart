@@ -91,9 +91,9 @@ class _CategoryRowState extends State<CategoryRow> {
   Widget build(BuildContext context) {
     // Compact 16:9 live-TV cards show more channels per 1080p row while
     // preserving enough room for the two-line EPG overlay and D-pad focus.
-    final cardWidth = widget.tvMode ? 212.0 : AppTheme.cardWidth;
-    final cardHeight = widget.tvMode ? 119.0 : AppTheme.cardHeight;
-    final rowHeight = widget.tvMode ? 158.0 : AppTheme.listHeight;
+    final cardWidth = widget.tvMode ? 127.2 : AppTheme.cardWidth;
+    final cardHeight = widget.tvMode ? 71.4 : AppTheme.cardHeight;
+    final rowHeight = widget.tvMode ? 96.0 : AppTheme.listHeight;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Kategori Başlığı ve Kanal Sayısı Alanı
       Padding(

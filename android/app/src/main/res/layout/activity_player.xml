@@ -422,6 +422,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/tv_diag_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="STREAM DIAGNOSTICS"

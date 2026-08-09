@@ -75,20 +75,21 @@ class _PlayerPageState extends State<PlayerPage> {
     if (widget.channel.contentType != 'tv' &&
         widget.channel.watchedSeconds > 0 &&
         widget.channel.totalDurationSeconds > 0) {
+      final s = context.read<AppState>().s;
       final resume = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Oynatmaya devam et'),
-          content: Text(
-              '${widget.channel.watchedSeconds ~/ 60}. dakikadan devam edilsin mi?'),
+          title: Text(s.v52('resumePlayback')),
+          content: Text(s.v52('resumeFromMinute').replaceAll(
+              '{minute}', '${widget.channel.watchedSeconds ~/ 60}')),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Baştan başlat')),
+                child: Text(s.v52('restart'))),
             FilledButton(
                 autofocus: true,
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Devam et')),
+                child: Text(s.v52('continueAction'))),
           ],
         ),
       );
@@ -204,6 +205,12 @@ class _PlayerPageState extends State<PlayerPage> {
           'decoder_suggestion': s.decoderSuggestion,
           'software_low_memory': s.softwareLowMemory,
           'go_to_settings': s.goToSettings,
+          'diag_title': s.v52('diagnostics'),
+          'diag_bandwidth': s.v52('estimatedBandwidth'),
+          'diag_latency': s.v52('serverLatency'),
+          'diag_video_bitrate': s.v52('videoBitrate'),
+          'diag_connection': s.v52('connection'),
+          'diag_unavailable': s.v52('unavailable'),
         }
       });
 

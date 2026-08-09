@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.ConnectivityManager
 import android.net.Network
@@ -18,6 +19,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.util.Rational
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -59,6 +61,10 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import java.util.ArrayList
 import java.util.Locale
+import java.util.UUID
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.Executors
 
 import kotlin.math.abs
 import kotlin.math.max
@@ -179,9 +185,15 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // Diagnostics UI (NEW)
     private lateinit var diagnosticsLayout: LinearLayout
+    private lateinit var tvDiagTitle: TextView
     private lateinit var tvDiagInternet: TextView
     private lateinit var tvDiagServer: TextView
     private lateinit var tvDiagResolution: TextView
+    private val diagnosticsExecutor = Executors.newSingleThreadExecutor()
+    @Volatile private var latencyProbeRunning = false
+    @Volatile private var serverLatencyMs: Long? = null
+    private var latencyHost = ""
+    private var lastLatencyProbeAt = 0L
 
     // NEW: Auto-play Next Episode Overlay
     private lateinit var autoPlayOverlay: LinearLayout
@@ -442,6 +454,8 @@ class NativePlayerActivity : AppCompatActivity(),
     override fun onPause() {
         super.onPause()
         mainHandler.removeCallbacks(updateProgressAction)
+        // Do not allow delayed preparation to recreate a session in background.
+        mainHandler.removeCallbacks(prepareRunnable)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
             // In PiP — keep playing
         } else {
@@ -454,9 +468,15 @@ class NativePlayerActivity : AppCompatActivity(),
     override fun onDestroy() {
         mainHandler.removeCallbacksAndMessages(null)
         releasePlayer()
+        diagnosticsExecutor.shutdownNow()
         releaseWifiLock()
         unregisterNetworkCallback()
         super.onDestroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyResponsivePlayerLayout()
     }
 
     // ── PiP ──────────────────────────────────────────────────────────────────
@@ -575,7 +595,9 @@ class NativePlayerActivity : AppCompatActivity(),
             .build()
 
         // NEW: MediaSession — Makes the app "Pro" by integrating with Android OS
-        mediaSession = MediaSession.Builder(this, player!!).build()
+        mediaSession = MediaSession.Builder(this, player!!)
+            .setId("aladin-player-${UUID.randomUUID()}")
+            .build()
 
         player?.setVideoScalingMode(C.VIDEO_SCALING_MODE_SCALE_TO_FIT) // FIT not CROPPING
         playerView.player = player
@@ -761,10 +783,11 @@ class NativePlayerActivity : AppCompatActivity(),
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            if (!isPlaying && player?.playbackState != Player.STATE_BUFFERING) {
+            if (!isPlaying) {
                 updatePauseInfo()
                 // Pause panelini gösterirken alt kanal bilgisini gizle
-                channelInfoLayout.visibility = View.GONE
+                channelInfoLayout.visibility =
+                    if (player?.playbackState == Player.STATE_BUFFERING) View.VISIBLE else View.GONE
             } else {
                 pauseInfoLayout.visibility = View.GONE
                 // Video oynamaya başladığında OSD açıksa alt bilgiyi geri getir
@@ -795,8 +818,11 @@ class NativePlayerActivity : AppCompatActivity(),
         autoPlayHandler.removeCallbacks(autoPlayRunnable)
         autoPlayOverlay.visibility = View.GONE
         releasePlayer()
-        showStatus(t("loading", "Yükleniyor..."))
-        pauseInfoLayout.visibility = View.GONE
+        tvChannelName.text = channelNames?.getOrNull(currentIndex) ?: "Kanal"
+        updateFavoriteIcon()
+        channelInfoLayout.visibility = View.VISIBLE
+        updatePauseInfo()
+        showStatus(t("loading", "Yükleniyor..."), true)
         mainHandler.postDelayed(prepareRunnable, ZAPPING_DEBOUNCE_MS)
     }
 
@@ -1193,10 +1219,11 @@ class NativePlayerActivity : AppCompatActivity(),
     // ── OSD / UI ──────────────────────────────────────────────────────────────
     private fun showOSD() {
         val isPlaying = player?.isPlaying ?: false
+        val isBuffering = player?.playbackState == Player.STATE_BUFFERING
         val isVod = player?.duration != C.TIME_UNSET && (player?.duration ?: 0) > 0
         
         // Eğer video duraklatılmışsa (PAUSE), alt kanal bilgisini gizle
-        channelInfoLayout.visibility = if (isPlaying) View.VISIBLE else View.GONE
+        channelInfoLayout.visibility = if (isPlaying || isBuffering) View.VISIBLE else View.GONE
         
         // Seekbar sadece VOD içeriklerde ve OSD açıkken görünür
         seekbarContainer.visibility = if (isVod) View.VISIBLE else View.GONE
@@ -1309,28 +1336,83 @@ class NativePlayerActivity : AppCompatActivity(),
 
     private fun updateDiagnostics(isLoading: Boolean) {
         player?.let { p ->
-            val bitrate = bandwidthMeter.bitrateEstimate
-            val bitrateMb = bitrate / 1_000_000.0
-            
-            // Server speed (media throughput)
-            val serverSpeed = String.format(Locale.getDefault(), "Server: %.2f Mbps", bitrateMb)
-            tvDiagServer.text = serverSpeed
-            
-            // Estimated available bandwidth (not a real speed test)
-            val netInfo = String.format(Locale.getDefault(), "Throughput: %.1f Mbps", bitrateMb * 1.1)
-            tvDiagInternet.text = netInfo
+            val estimatedMbps = bandwidthMeter.bitrateEstimate / 1_000_000.0
+            val connection = currentConnectionLabel()
+            tvDiagTitle.text = t("diag_title", "STREAM DIAGNOSTICS")
+            tvDiagInternet.text = String.format(
+                Locale.getDefault(), "%s: %s • %s: %.1f Mbps",
+                t("diag_connection", "Connection"), connection,
+                t("diag_bandwidth", "Estimated bandwidth"), estimatedMbps
+            )
+
+            probeServerLatency()
+            val latency = serverLatencyMs
+            val latencyValue = if (latency != null) "${latency} ms" else t("diag_unavailable", "Unavailable")
+            tvDiagServer.text = "${t("diag_latency", "Server latency")}: $latencyValue" +
+                if (latencyHost.isNotEmpty()) " • $latencyHost" else ""
 
             val fmt = p.videoFormat
             if (fmt != null) {
                 val fps = if (fmt.frameRate > 0) "${fmt.frameRate.toInt()} FPS" else ""
                 val codec = fmt.sampleMimeType?.substringAfterLast("/")?.uppercase() ?: ""
-                // FIXED: %p replaced with %d to prevent crash, added FPS and Codec info
-                tvDiagResolution.text = String.format(Locale.getDefault(), "Video: %dx%d | %s | %s", fmt.width, fmt.height, fps, codec)
+                val mediaBitrate = if (fmt.bitrate > 0) String.format(
+                    Locale.getDefault(), "%.1f Mbps", fmt.bitrate / 1_000_000.0
+                ) else t("diag_unavailable", "Unavailable")
+                tvDiagResolution.text = String.format(
+                    Locale.getDefault(), "Video: %dx%d • %s: %s • %s %s",
+                    fmt.width, fmt.height, t("diag_video_bitrate", "Video bitrate"),
+                    mediaBitrate, codec, fps
+                ).trim()
             }
 
             // If loading, show diagnostics in the status overlay too for visibility
             if (isLoading) {
                 diagnosticsLayout.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun currentConnectionLabel(): String {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return "—"
+        return when {
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "Ethernet"
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "Mobile"
+            else -> "—"
+        }
+    }
+
+    private fun probeServerLatency() {
+        val now = SystemClock.elapsedRealtime()
+        if (latencyProbeRunning || now - lastLatencyProbeAt < 15_000L) return
+        val streamUrl = channelUrls?.getOrNull(currentIndex) ?: return
+        if (!streamUrl.startsWith("http://") && !streamUrl.startsWith("https://")) return
+        latencyProbeRunning = true
+        lastLatencyProbeAt = now
+        diagnosticsExecutor.execute {
+            var connection: HttpURLConnection? = null
+            try {
+                val url = URL(streamUrl)
+                latencyHost = url.host
+                connection = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "HEAD"
+                    connectTimeout = 3_000
+                    readTimeout = 3_000
+                    instanceFollowRedirects = true
+                    parseHeaders(channelHeaders?.getOrNull(currentIndex)).forEach { (key, value) ->
+                        setRequestProperty(key, value)
+                    }
+                }
+                val started = SystemClock.elapsedRealtime()
+                connection.responseCode
+                serverLatencyMs = SystemClock.elapsedRealtime() - started
+            } catch (_: Throwable) {
+                serverLatencyMs = null
+            } finally {
+                connection?.disconnect()
+                latencyProbeRunning = false
+                if (!isFinishing && !isDestroyed) mainHandler.post { updateDiagnostics(false) }
             }
         }
     }
@@ -1540,13 +1622,7 @@ class NativePlayerActivity : AppCompatActivity(),
     }
 
     private fun setupLabels() {
-        btnSubtitles.text = "1 ● ${t("subtitles", "Altyazı")}"
-        btnAudio.text     = "2 ● ${t("audio", "Ses")}"
-        btnQuality.text   = "3 ● ${t("quality", "Kalite")}"
-        btnAspect.text    = "4 ● ${t("aspect", "Oran")}"
-        btnFavorite.text  = "0 [★] ${t("favorites_short", "Favori")}"
-        tvGuideNav.text   = t("guide_channel", "↕ Kanal Değiştir")
-        tvGuideSeek.text  = t("guide_seek", "↔ İleri/Geri Sar")
+        applyResponsivePlayerLayout()
 
         listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite).forEach {
             it.isFocusable = false; it.isFocusableInTouchMode = false
@@ -1557,6 +1633,41 @@ class NativePlayerActivity : AppCompatActivity(),
         btnAspect.setOnClickListener    { cycleAspectRatio() }
         btnFavorite.setOnClickListener  { toggleFavorite() }
     }
+
+    private fun applyResponsivePlayerLayout() {
+        val portrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        if (portrait) {
+            // Compact symbolic labels prevent long translations from being
+            // squeezed into vertical letter columns on narrow phone screens.
+            btnSubtitles.text = "1 CC"
+            btnAudio.text = "2 ♪"
+            btnQuality.text = "3 HD"
+            btnAspect.text = "4 ↔"
+            btnFavorite.text = "0 ★"
+            tvGuideNav.visibility = View.GONE
+            tvGuideSeek.visibility = View.GONE
+        } else {
+            btnSubtitles.text = "1 ● ${t("subtitles", "Altyazı")}"
+            btnAudio.text = "2 ● ${t("audio", "Ses")}"
+            btnQuality.text = "3 ● ${t("quality", "Kalite")}"
+            btnAspect.text = "4 ● ${t("aspect", "Oran")}"
+            btnFavorite.text = "0 [★] ${t("favorites_short", "Favori")}"
+            tvGuideNav.text = t("guide_channel", "↕ Kanal Değiştir")
+            tvGuideSeek.text = t("guide_seek", "↔ İleri/Geri Sar")
+            tvGuideNav.visibility = View.VISIBLE
+            tvGuideSeek.visibility = View.VISIBLE
+        }
+        val textSize = if (portrait) 10f else 13f
+        listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite).forEach {
+            it.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
+            (it.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let { params ->
+                params.marginEnd = if (portrait) 6.dp else 16.dp
+                it.layoutParams = params
+            }
+        }
+    }
+
+    private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
 
     private fun bindViews() {
         playerView         = findViewById(R.id.native_player_view)
@@ -1594,6 +1705,7 @@ class NativePlayerActivity : AppCompatActivity(),
         btnBackToList      = findViewById(R.id.btn_back_to_list)
 
         diagnosticsLayout  = findViewById(R.id.diagnostics_layout)
+        tvDiagTitle        = findViewById(R.id.tv_diag_title)
         tvDiagInternet     = findViewById(R.id.tv_diag_internet)
         tvDiagServer       = findViewById(R.id.tv_diag_server)
         tvDiagResolution   = findViewById(R.id.tv_diag_resolution)

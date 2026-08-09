@@ -48,15 +48,15 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
   bool _hideWatched = false;
 
   Future<bool> _authorizeLockChange() async {
+    final s = context.read<AppState>().s;
     final parental = ParentalService.instance;
     if (!parental.isEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content:
-              Text('Önce Ayarlar > Ebeveyn Kontrolü bölümünü etkinleştirin.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.v52('enableParentalFirst'))));
       return false;
     }
     return requestParentalUnlock(context,
-        protectedContent: true, title: 'Kilit ayarını değiştir');
+        protectedContent: true, title: s.v52('changeContentLock'));
   }
 
   Future<void> _toggleCategoryLock() async {
@@ -64,9 +64,9 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
     final locked = await ParentalService.instance
         .toggleCategoryLock(widget.playlistId, widget.category.name);
     if (!mounted) return;
+    final s = context.read<AppState>().s;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-            locked ? 'Kategori kilitlendi.' : 'Kategori kilidi kaldırıldı.')));
+        content: Text(locked ? s.v49('lockedContent') : s.v49('unlock'))));
     setState(() {});
   }
 
@@ -74,13 +74,14 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
     if (!await _authorizeLockChange()) return;
     final locked = await ParentalService.instance.toggleChannelLock(channel);
     if (!mounted) return;
+    final s = context.read<AppState>().s;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text(locked ? 'İçerik kilitlendi.' : 'İçerik kilidi kaldırıldı.')));
+        content: Text(locked ? s.v49('lockedContent') : s.v49('unlock'))));
     setState(() {});
   }
 
   Future<void> _showChannelOptions(ChannelModel channel) async {
+    final s = context.read<AppState>().s;
     final scope = '${channel.playlistId}_${channel.id}';
     await showDialog<void>(
       context: context,
@@ -93,10 +94,10 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               Navigator.pop(dialogContext);
               await _toggleChannelLock(channel);
             },
-            child: const ListTile(
-              leading: Icon(Icons.lock_outline),
-              title: Text('İçerik kilidini değiştir'),
-              subtitle: Text('Ebeveyn PIN koduyla korunur'),
+            child: ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: Text(s.v52('changeContentLock')),
+              subtitle: Text(s.v52('pinProtected')),
             ),
           ),
           SimpleDialogOption(
@@ -112,13 +113,12 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               if (dialogContext.mounted) Navigator.pop(dialogContext);
               if (mounted)
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content:
-                        Text('Kanal kod çözücüsü: ${next.toUpperCase()}')));
+                    content: Text('${s.decoderMode}: ${next.toUpperCase()}')));
             },
-            child: const ListTile(
-              leading: Icon(Icons.memory),
-              title: Text('Kanal kod çözücüsünü değiştir'),
-              subtitle: Text('Otomatik → Donanım → Yazılım'),
+            child: ListTile(
+              leading: const Icon(Icons.memory),
+              title: Text(s.v52('changeDecoder')),
+              subtitle: const Text('Auto → HW → SW'),
             ),
           ),
           SimpleDialogOption(
@@ -134,13 +134,12 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               if (dialogContext.mounted) Navigator.pop(dialogContext);
               if (mounted)
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content:
-                        Text('Kanal kalite sınırı: ${next.toUpperCase()}')));
+                    content: Text('${s.quality}: ${next.toUpperCase()}')));
             },
-            child: const ListTile(
-              leading: Icon(Icons.high_quality),
-              title: Text('Kanal kalite sınırını değiştir'),
-              subtitle: Text('Otomatik → 4K → FHD → HD → SD'),
+            child: ListTile(
+              leading: const Icon(Icons.high_quality),
+              title: Text(s.v52('changeQualityLimit')),
+              subtitle: const Text('Auto → 4K → FHD → HD → SD'),
             ),
           ),
         ],
@@ -313,7 +312,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                 ),
               ),
               IconButton(
-                tooltip: 'Kategoriyi gizle',
+                tooltip: s.v52('hideCategory'),
                 onPressed: () async {
                   await ContentVisibilityService.instance
                       .hideCategory(widget.category);
@@ -324,7 +323,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
               ),
               if (widget.category.contentType == 'tv')
                 IconButton(
-                  tooltip: 'Tam program rehberi',
+                  tooltip: s.v49('fullGuide'),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -339,7 +338,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                       color: AppTheme.accent),
                 ),
               IconButton(
-                tooltip: 'Kategoriyi kilitle / kilidi kaldır',
+                tooltip: s.v52('toggleCategoryLock'),
                 onPressed: _toggleCategoryLock,
                 icon: Icon(
                   ParentalService.instance.isCategoryLocked(
@@ -404,7 +403,7 @@ class _AladinCategoryPageState extends State<AladinCategoryPage> {
                 },
               ),
               _SortButton(
-                label: 'Gizle', // s.hideWatched if exists
+                label: s.v52('hide'),
                 icon: _hideWatched ? Icons.visibility_off : Icons.visibility,
                 isSelected: _hideWatched,
                 isAscending: false,

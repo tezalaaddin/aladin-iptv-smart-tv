@@ -153,6 +153,7 @@ class _ChannelCardState extends State<ChannelCard> {
     final cleanName = _cleanName;
 
     final bool isTv = widget.channel.contentType == 'tv';
+    final bool compactTv = isTv && widget.width <= 140;
 
     final double progress = widget.seriesProgress ??
         (widget.channel.totalDurationSeconds > 0
@@ -306,9 +307,9 @@ class _ChannelCardState extends State<ChannelCard> {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    height: isTv ? 72 : 85,
+                    height: compactTv ? 38 : (isTv ? 72 : 85),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(compactTv ? 4 : 8),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,6 +319,7 @@ class _ChannelCardState extends State<ChannelCard> {
                             channel: widget.channel,
                             nowPlaying: _epgLoaded ? _nowPlaying : null,
                             nextPlaying: _epgLoaded ? _nextPlaying : null,
+                            compact: compactTv,
                           ),
                         ],
                       ),
@@ -413,10 +415,13 @@ class _ChannelCardState extends State<ChannelCard> {
 
     if (imageWidget != null) {
       if (isTv) {
+        final compact = widget.width <= 140;
         return Container(
             color: AppTheme.card,
-            padding: const EdgeInsets.fromLTRB(25, 10, 25, 25),
-            child: Center(child: imageWidget)); // TV LOGO BUYUKLUGU
+            padding: compact
+                ? const EdgeInsets.fromLTRB(10, 4, 10, 18)
+                : const EdgeInsets.fromLTRB(25, 10, 25, 25),
+            child: Center(child: imageWidget));
       }
       return imageWidget;
     }
@@ -491,14 +496,17 @@ class _NameBar extends StatelessWidget {
   final ChannelModel channel;
   final EpgProgramModel? nowPlaying;
   final EpgProgramModel? nextPlaying;
+  final bool compact;
   const _NameBar(
       {required this.displayName,
       required this.channel,
       this.nowPlaying,
-      this.nextPlaying});
+      this.nextPlaying,
+      this.compact = false});
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.read<AppState>().s;
     final hasEpg = nowPlaying != null;
     final seriesInfo =
         (channel.contentType == 'series' && channel.season != null)
@@ -513,9 +521,9 @@ class _NameBar extends StatelessWidget {
           channel.contentType == 'tv'
               ? '#${channel.sortOrder + 1}  $displayName'
               : displayName,
-          style: const TextStyle(
+          style: TextStyle(
               color: Colors.white,
-              fontSize: 13,
+              fontSize: compact ? 9 : 13,
               fontWeight: FontWeight.bold,
               height: 1.1),
           maxLines: hasEpg ? 1 : 4,
@@ -530,20 +538,20 @@ class _NameBar extends StatelessWidget {
                   fontWeight: FontWeight.w900)),
         ],
         if (hasEpg) ...[
-          const SizedBox(height: 2),
+          SizedBox(height: compact ? 1 : 2),
           Text(
-            'Şu an: ${nowPlaying!.title}',
-            style: const TextStyle(
+            '${strings.v52('currentProgram')}: ${nowPlaying!.title}',
+            style: TextStyle(
                 color: AppTheme.accent,
-                fontSize: 11,
+                fontSize: compact ? 8 : 11,
                 fontWeight: FontWeight.bold),
-            maxLines: 2,
+            maxLines: compact ? 1 : 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],
-        if (nextPlaying != null)
+        if (nextPlaying != null && !compact)
           Text(
-            'Sonraki: ${nextPlaying!.title}',
+            '${strings.v52('nextProgram')}: ${nextPlaying!.title}',
             style: const TextStyle(color: Colors.white70, fontSize: 10),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
