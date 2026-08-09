@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/models/aladin_epg_model.dart';
@@ -20,12 +21,14 @@ class AladinEpgGridPage extends StatefulWidget {
 }
 
 class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
+  static const _platform = MethodChannel('aladin/exoplayer');
   static const double _channelWidth = 250;
   static const double _rowHeight = 92;
   static const double _headerHeight = 44;
   static const double _pixelsPerMinute = 2;
   static const double _timelineWidth = 1440 * _pixelsPerMinute;
   int _dayOffset = 0;
+  String _query = '';
   final ScrollController _horizontal = ScrollController();
   DateTime get _day => DateTime.now().add(Duration(days: _dayOffset));
 
@@ -45,6 +48,30 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
         backgroundColor: AppTheme.surface,
         title: Text(s.v49('epgGuide')),
         actions: [
+          IconButton(
+            tooltip: 'Program ara',
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final controller = TextEditingController(text: _query);
+              final value = await showDialog<String>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('EPG içinde ara'),
+                  content: TextField(controller: controller, autofocus: true),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, ''),
+                        child: const Text('Temizle')),
+                    FilledButton(
+                        onPressed: () => Navigator.pop(ctx, controller.text),
+                        child: const Text('Ara')),
+                  ],
+                ),
+              );
+              if (value != null && mounted)
+                setState(() => _query = value.trim());
+            },
+          ),
           IconButton(
               tooltip: s.v49('previousDay'),
               onPressed:
@@ -105,9 +132,18 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
                       _TimeHeader(day: _day),
                       for (final channel in channels)
                         _TimelineRow(
+                          channelName: channel.name,
                           day: _day,
-                          programs: _programsFor(channel, grid),
+                          programs: _programsFor(channel, grid)
+                              .where((p) =>
+                                  _query.isEmpty ||
+                                  p.title
+                                      .toLowerCase()
+                                      .contains(_query.toLowerCase()))
+                              .take(100)
+                              .toList(growable: false),
                           noProgramText: s.v49('noProgram'),
+                          onReminder: _scheduleReminder,
                         ),
                     ]),
                   ),
@@ -118,6 +154,24 @@ class _AladinEpgGridPageState extends State<AladinEpgGridPage> {
         },
       ),
     );
+  }
+
+  Future<void> _scheduleReminder(
+      String channelName, EpgProgramModel program) async {
+    final trigger = program.startTime
+        .subtract(const Duration(minutes: 5))
+        .millisecondsSinceEpoch;
+    if (trigger <= DateTime.now().millisecondsSinceEpoch) return;
+    await _platform.invokeMethod('scheduleProgramReminder', {
+      'title': program.title,
+      'channel': channelName,
+      'triggerAt': trigger,
+      'id': Object.hash(channelName, program.startTime).abs() & 0x7fffffff,
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Program başlamadan 5 dakika önce hatırlatılacak.')));
+    }
   }
 
   List<EpgProgramModel> _programsFor(
@@ -157,11 +211,17 @@ class _TimeHeader extends StatelessWidget {
 }
 
 class _TimelineRow extends StatelessWidget {
+  final String channelName;
   final DateTime day;
   final List<EpgProgramModel> programs;
   final String noProgramText;
+  final void Function(String, EpgProgramModel) onReminder;
   const _TimelineRow(
-      {required this.day, required this.programs, required this.noProgramText});
+      {required this.channelName,
+      required this.day,
+      required this.programs,
+      required this.noProgramText,
+      required this.onReminder});
 
   @override
   Widget build(BuildContext context) {
@@ -207,26 +267,29 @@ class _TimelineRow extends StatelessWidget {
       height: _AladinEpgGridPageState._rowHeight - 16,
       child: Semantics(
         label: '${p.title}, ${DateFormat('HH:mm').format(p.startTime)}',
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: p.isNow
-                ? AppTheme.accent.withValues(alpha: 0.28)
-                : AppTheme.card,
-            borderRadius: BorderRadius.circular(6),
-            border:
-                Border.all(color: p.isNow ? AppTheme.accent : Colors.white12),
+        child: InkWell(
+          onTap: () => onReminder(channelName, p),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: p.isNow
+                  ? AppTheme.accent.withValues(alpha: 0.28)
+                  : AppTheme.card,
+              borderRadius: BorderRadius.circular(6),
+              border:
+                  Border.all(color: p.isNow ? AppTheme.accent : Colors.white12),
+            ),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(DateFormat('HH:mm').format(p.startTime),
+                  style:
+                      const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+              Text(p.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ]),
           ),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(DateFormat('HH:mm').format(p.startTime),
-                style:
-                    const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
-            Text(p.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-          ]),
         ),
       ),
     );

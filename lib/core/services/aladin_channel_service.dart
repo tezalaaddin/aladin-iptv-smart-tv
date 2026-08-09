@@ -35,7 +35,43 @@ class ChannelService {
     counts[key] = ((counts[key] as num?)?.toInt() ?? 0) + 1;
     await AladinPrefs.instance
         .setString('channel_play_counts_v49', jsonEncode(counts));
+    final history = <int>[];
+    try {
+      history.addAll((jsonDecode(
+                  AladinPrefs.instance.getString('channel_history_v1') ?? '[]')
+              as List)
+          .map((id) => (id as num).toInt()));
+    } catch (_) {}
+    history.remove(channel.id);
+    history.insert(0, channel.id);
+    await AladinPrefs.instance
+        .setString('channel_history_v1', jsonEncode(history.take(20).toList()));
   }
+
+  Future<List<ChannelModel>> getChannelHistory(int playlistId) async {
+    List<int> ids;
+    try {
+      ids = (jsonDecode(
+                  AladinPrefs.instance.getString('channel_history_v1') ?? '[]')
+              as List)
+          .map((id) => (id as num).toInt())
+          .take(20)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+    final result = <ChannelModel>[];
+    for (final id in ids) {
+      final channel = await _db.channelModels.get(id);
+      if (channel != null &&
+          channel.playlistId == playlistId &&
+          ParentalService.instance.canExpose(channel)) result.add(channel);
+    }
+    return result;
+  }
+
+  Future<void> clearChannelHistory() =>
+      AladinPrefs.instance.setString('channel_history_v1', '[]');
 
   Future<List<ChannelModel>> getMostWatched(int playlistId,
       {int limit = 15}) async {
@@ -479,6 +515,25 @@ class ChannelService {
     }
 
     return results;
+  }
+
+  Future<List<ChannelModel>> getCompleted(int playlistId,
+      {int limit = 20}) async {
+    final recent = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .and()
+        .lastWatchedIsNotNull()
+        .and()
+        .totalDurationSecondsGreaterThan(0)
+        .sortByLastWatchedDesc()
+        .limit(limit * 3)
+        .findAll();
+    return recent
+        .where((ch) => ch.watchedSeconds / ch.totalDurationSeconds > 0.90)
+        .where(ParentalService.instance.canExpose)
+        .take(limit)
+        .toList(growable: false);
   }
 
   // ── Search ─────────────────────────────────────────────────────────────────

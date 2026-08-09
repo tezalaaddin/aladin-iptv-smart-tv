@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Focus Management
   late final FocusNode _pageFocusNode = FocusNode(debugLabel: 'settings_page');
   late final List<FocusNode> _leftNodes =
-      List.generate(12, (i) => FocusNode(debugLabel: 'left_$i'));
+      List.generate(14, (i) => FocusNode(debugLabel: 'left_$i'));
   final List<FocusNode> _playlistNodes = [];
 
   final ScrollController _leftScroll = ScrollController();
@@ -186,6 +186,35 @@ class _SettingsPageState extends State<SettingsPage> {
         content: Text(msg),
         backgroundColor: error ? Colors.red.shade700 : AppTheme.accent,
         duration: const Duration(seconds: 3)));
+  }
+
+  Future<void> _showPlaybackPreferences() async {
+    final current = AladinPrefs.instance.getString('buffer_profile') ?? 'auto';
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        backgroundColor: AppTheme.card,
+        title: const Text('Oynatma ve buffer'),
+        children: const {
+          'auto': 'Otomatik (cihaza göre)',
+          'low_latency': 'Düşük gecikme',
+          'balanced': 'Dengeli',
+          'stable': 'Kararlı',
+        }
+            .entries
+            .map((entry) => RadioListTile<String>(
+                  value: entry.key,
+                  groupValue: current,
+                  title: Text(entry.value),
+                  onChanged: (value) => Navigator.pop(ctx, value),
+                ))
+            .toList(),
+      ),
+    );
+    if (selected != null) {
+      await AladinPrefs.instance.setString('buffer_profile', selected);
+    }
+    if (mounted) setState(() {});
   }
 
   String _pt(ImportProgress p, int c) {
@@ -652,6 +681,39 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         _SetupTile(
                           focusNode: _leftNodes[11],
+                          icon: Icons.network_check,
+                          title: 'Buffer profili',
+                          subtitle: AladinPrefs.instance
+                                  .getString('buffer_profile') ??
+                              'auto',
+                          onTap: _showPlaybackPreferences,
+                          onFocus: (v) {
+                            if (v) setState(() => _leftFocusedIndex = 11);
+                            _ensureVisible(_leftNodes[11]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[12],
+                          icon: Icons.skip_next,
+                          title: 'Sonraki bölümü otomatik oynat',
+                          subtitle: AladinPrefs.instance
+                                  .getBool('auto_play_next_episode', def: true)
+                              ? 'Etkin'
+                              : 'Kapalı',
+                          onTap: () async {
+                            final value = AladinPrefs.instance
+                                .getBool('auto_play_next_episode', def: true);
+                            await AladinPrefs.instance
+                                .setBool('auto_play_next_episode', !value);
+                            setState(() {});
+                          },
+                          onFocus: (v) {
+                            if (v) setState(() => _leftFocusedIndex = 12);
+                            _ensureVisible(_leftNodes[12]);
+                          },
+                        ),
+                        _SetupTile(
+                          focusNode: _leftNodes[13],
                           icon: Icons.info_outline,
                           title: s.about,
                           subtitle:
@@ -661,9 +723,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             if (v)
                               setState(() {
                                 _inLeftPanel = true;
-                                _leftFocusedIndex = 11;
+                                _leftFocusedIndex = 13;
                               });
-                            _ensureVisible(_leftNodes[11]);
+                            _ensureVisible(_leftNodes[13]);
                           },
                         ),
                       ]),
@@ -834,6 +896,28 @@ class _SettingsPageState extends State<SettingsPage> {
                         .getBool('match_content_frame_rate');
                     await AladinPrefs.instance
                         .setBool('match_content_frame_rate', !value);
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _SetupTile(
+                  icon: Icons.network_check,
+                  title: 'Buffer profili',
+                  subtitle: AladinPrefs.instance.getString('buffer_profile') ??
+                      'auto',
+                  onTap: _showPlaybackPreferences,
+                ),
+                _SetupTile(
+                  icon: Icons.skip_next,
+                  title: 'Sonraki bölümü otomatik oynat',
+                  subtitle: AladinPrefs.instance
+                          .getBool('auto_play_next_episode', def: true)
+                      ? 'Etkin'
+                      : 'Kapalı',
+                  onTap: () async {
+                    final value = AladinPrefs.instance
+                        .getBool('auto_play_next_episode', def: true);
+                    await AladinPrefs.instance
+                        .setBool('auto_play_next_episode', !value);
                     if (mounted) setState(() {});
                   },
                 ),
@@ -1246,6 +1330,22 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(Icons.monitor_heart_outlined, color: Colors.lightBlueAccent),
               SizedBox(width: 12),
               Text('Playlist sağlık raporu')
+            ]),
+          ),
+          SimpleDialogOption(
+            onPressed: () async {
+              Navigator.pop(context);
+              _snack('En fazla 10 yayın sırayla test ediliyor...');
+              final result =
+                  await PlaylistService.instance.testSampleStreams(p.id);
+              _snack(
+                  'Test: ${result['tested']} · Sağlıklı: ${result['healthy']} · Hatalı: ${result['failed']}',
+                  error: (result['failed'] ?? 0) > 0);
+            },
+            child: const Row(children: [
+              Icon(Icons.speed_outlined, color: Colors.orangeAccent),
+              SizedBox(width: 12),
+              Text('10 yayını kontrollü test et')
             ]),
           ),
           SimpleDialogOption(
@@ -2125,6 +2225,24 @@ class _SetupTileState extends State<_SetupTile> {
             ),
           ),
         ),
+        /*
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _snack('En fazla 10 yayın sırayla test ediliyor...');
+              final result =
+                  await PlaylistService.instance.testSampleStreams(playlist.id);
+              _snack(
+                  'Test: ${result['tested']} · Sağlıklı: ${result['healthy']} · Hatalı: ${result['failed']}',
+                  error: (result['failed'] ?? 0) > 0);
+            },
+            child: const Text('10 yayını kontrollü test et'),
+          ),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(strings.close)),
+        ], */
       ),
     );
   }

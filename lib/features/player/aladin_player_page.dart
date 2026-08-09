@@ -31,6 +31,7 @@ class PlayerPage extends StatefulWidget {
 
 class _PlayerPageState extends State<PlayerPage> {
   static const MethodChannel _exoChannel = MethodChannel('aladin/exoplayer');
+  int? _resumeOverride;
 
   @override
   void initState() {
@@ -71,6 +72,29 @@ class _PlayerPageState extends State<PlayerPage> {
       });
       return;
     }
+    if (widget.channel.contentType != 'tv' &&
+        widget.channel.watchedSeconds > 0 &&
+        widget.channel.totalDurationSeconds > 0) {
+      final resume = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Oynatmaya devam et'),
+          content: Text(
+              '${widget.channel.watchedSeconds ~/ 60}. dakikadan devam edilsin mi?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Baştan başlat')),
+            FilledButton(
+                autofocus: true,
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Devam et')),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      _resumeOverride = resume == false ? 0 : null;
+    }
     await _launchNativePlayer();
   }
 
@@ -103,7 +127,11 @@ class _PlayerPageState extends State<PlayerPage> {
       final years = playable.map((e) => e.tmdbYear ?? '').toList();
       final types = playable.map((e) => e.contentType).toList();
       final favs = playable.map((e) => e.isFavorite).toList();
-      final positions = playable.map((e) => e.watchedSeconds).toList();
+      final positions = playable
+          .map((e) => e.id == widget.channel.id && _resumeOverride != null
+              ? _resumeOverride!
+              : e.watchedSeconds)
+          .toList();
       final headers = playable.map((e) => e.streamHeaders ?? '').toList();
 
       final channelScope = '${widget.channel.playlistId}_${widget.channel.id}';
@@ -144,6 +172,10 @@ class _PlayerPageState extends State<PlayerPage> {
         'videoLimit': videoLimit,
         'matchFrameRate':
             AladinPrefs.instance.getBool('match_content_frame_rate'),
+        'bufferProfile':
+            AladinPrefs.instance.getString('buffer_profile') ?? 'auto',
+        'autoPlayNextEpisode':
+            AladinPrefs.instance.getBool('auto_play_next_episode', def: true),
         // Localization
         'i18n': {
           'subtitles': s.subtitles,

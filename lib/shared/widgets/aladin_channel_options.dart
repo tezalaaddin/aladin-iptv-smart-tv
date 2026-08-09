@@ -5,6 +5,7 @@ import '../../core/models/aladin_channel_model.dart';
 import '../../core/services/aladin_channel_service.dart';
 import '../../core/services/aladin_parental_service.dart';
 import '../../core/services/aladin_content_visibility_service.dart';
+import '../../core/services/aladin_favorite_collection_service.dart';
 import '../../core/state/aladin_app_prefs.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../theme/aladin_app_theme.dart';
@@ -20,6 +21,48 @@ Future<bool> showAladinChannelOptions(
       backgroundColor: AppTheme.card,
       title: Text(channel.name, maxLines: 2, overflow: TextOverflow.ellipsis),
       children: [
+        SimpleDialogOption(
+          onPressed: () async {
+            Navigator.pop(dialogContext);
+            final controller = TextEditingController();
+            final name = await showDialog<String>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: AppTheme.card,
+                title: const Text('Favori koleksiyonu'),
+                content: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                      hintText: 'Spor, Çocuk, Sonra İzle...'),
+                ),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(s.cancel)),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(ctx, controller.text),
+                      child: Text(s.save)),
+                ],
+              ),
+            );
+            if (name != null && name.trim().isNotEmpty) {
+              if (!channel.isFavorite) {
+                await ChannelService.instance.toggleFavorite(channel.id);
+                channel.isFavorite = true;
+              }
+              await FavoriteCollectionService.instance.add(name, channel);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$name koleksiyonuna eklendi')));
+              }
+            }
+          },
+          child: const ListTile(
+            leading: Icon(Icons.create_new_folder_outlined),
+            title: Text('Koleksiyona ekle'),
+          ),
+        ),
         SimpleDialogOption(
           onPressed: () async {
             await ContentVisibilityService.instance.hideChannel(channel);

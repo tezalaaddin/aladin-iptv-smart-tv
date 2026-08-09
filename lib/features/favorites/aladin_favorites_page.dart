@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/aladin_channel_model.dart';
 import '../../core/services/aladin_channel_service.dart';
+import '../../core/services/aladin_favorite_collection_service.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_app_bar.dart';
@@ -114,6 +115,49 @@ class _FavoritesPageState extends State<FavoritesPage>
     );
   }
 
+  Future<void> _showCollections() async {
+    final collections = FavoriteCollectionService.instance.collections;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        title: const Text('Favori koleksiyonları'),
+        content: SizedBox(
+          width: 520,
+          child: collections.isEmpty
+              ? const Text('Henüz özel koleksiyon oluşturulmadı.')
+              : ListView(
+                  shrinkWrap: true,
+                  children: collections.entries.map((entry) {
+                    final channels = _allFavs
+                        .where((ch) => entry.value.contains(ch.id))
+                        .toList();
+                    return ListTile(
+                      leading: const Icon(Icons.folder_outlined),
+                      title: Text(entry.key),
+                      subtitle: Text('${channels.length} içerik'),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        if (channels.isNotEmpty)
+                          _play(channels.first, channels);
+                      },
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () async {
+                          await FavoriteCollectionService.instance
+                              .delete(entry.key);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (mounted) setState(() {});
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
@@ -123,6 +167,12 @@ class _FavoritesPageState extends State<FavoritesPage>
       backgroundColor: AppTheme.background,
       appBar: AladinAppBar(
         title: s.navFavorites,
+        extraActions: [
+          IconButton(
+              tooltip: 'Koleksiyonlar',
+              onPressed: _showCollections,
+              icon: const Icon(Icons.folder_special_outlined)),
+        ],
         onRefresh: state.active != null ? () => _load(state.active!.id) : null,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),

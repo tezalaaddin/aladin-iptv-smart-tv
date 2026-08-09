@@ -82,8 +82,22 @@ Future<void> main() async {
   ));
 
   // 🎬 TV PERFORMANS: Image cache'i TV için optimize et
-  PaintingBinding.instance.imageCache.maximumSize = 40;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 24 << 20;
+  var memoryMb = 2048;
+  try {
+    memoryMb = (await const MethodChannel('aladin/exoplayer')
+            .invokeMethod<int>('getDeviceMemoryMb')) ??
+        memoryMb;
+  } catch (_) {}
+  PaintingBinding.instance.imageCache.maximumSize = memoryMb < 1800
+      ? 20
+      : memoryMb >= 3500
+          ? 60
+          : 40;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = memoryMb < 1800
+      ? 12 << 20
+      : memoryMb >= 3500
+          ? 32 << 20
+          : 24 << 20;
 
   runApp(const AladinApp());
 }

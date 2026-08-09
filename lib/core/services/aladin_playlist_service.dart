@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar_community/isar.dart';
+import 'package:http/http.dart' as http;
 import '../di/aladin_di.dart';
 import '../database/aladin_isar_service.dart';
 import '../models/aladin_category_model.dart';
@@ -338,6 +339,46 @@ class PlaylistService {
               .split(' ')
               .first,
     };
+  }
+
+  /// Tests a deliberately small sequential sample. Never runs parallel stream
+  /// probes, which protects low-memory TVs and IPTV provider connection limits.
+  Future<Map<String, int>> testSampleStreams(int playlistId,
+      {int limit = 10}) async {
+    final sample = await _db.channelModels
+        .filter()
+        .playlistIdEqualTo(playlistId)
+        .and()
+        .urlIsNotEmpty()
+        .limit(limit.clamp(1, 10))
+        .findAll();
+    var healthy = 0;
+    var failed = 0;
+    final client = http.Client();
+    try {
+      for (final channel in sample) {
+        try {
+          final request = http.Request('GET', Uri.parse(channel.url))
+            ..headers.addAll({
+              'Range': 'bytes=0-1023',
+              'User-Agent': 'aladin-IPTV-HealthCheck/1.0',
+            });
+          final response =
+              await client.send(request).timeout(const Duration(seconds: 5));
+          if (response.statusCode >= 200 && response.statusCode < 400) {
+            await response.stream.first.timeout(const Duration(seconds: 5));
+            healthy++;
+          } else {
+            failed++;
+          }
+        } catch (_) {
+          failed++;
+        }
+      }
+    } finally {
+      client.close();
+    }
+    return {'tested': sample.length, 'healthy': healthy, 'failed': failed};
   }
 
   // ── Import M3U ────────────────────────────────────────────────────────────

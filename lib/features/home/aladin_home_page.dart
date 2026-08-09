@@ -31,6 +31,8 @@ class _HomePageState extends State<HomePage> {
   List<ChannelModel> _movieShelf = [];
   List<ChannelModel> _seriesShelf = [];
   List<ChannelModel> _mostWatched = [];
+  List<ChannelModel> _completed = [];
+  List<ChannelModel> _history = [];
   Map<String, double> _seriesProgress = {};
   bool _loading = true;
   static const _defaultShelves = [
@@ -38,6 +40,8 @@ class _HomePageState extends State<HomePage> {
     'favorites',
     'recent',
     'most',
+    'completed',
+    'history',
     'movies',
     'series',
     'discover'
@@ -90,6 +94,8 @@ class _HomePageState extends State<HomePage> {
               'favorites' => s.favorites,
               'recent' => s.recentlyAdded,
               'most' => s.v50('mostWatched'),
+              'completed' => 'Tamamlananlar',
+              'history' => 'Son izlenen kanallar',
               'movies' => s.navMovies,
               'series' => s.navSeries,
               _ => s.discover,
@@ -166,6 +172,8 @@ class _HomePageState extends State<HomePage> {
     final prog = await ChannelService.instance.getSeriesProgressMap(id);
     final mostWatched =
         await ChannelService.instance.getMostWatched(id, limit: 15);
+    final completed = await ChannelService.instance.getCompleted(id, limit: 15);
+    final history = await ChannelService.instance.getChannelHistory(id);
 
     favs.sort((a, b) => b.id.compareTo(a.id));
     final recentFavs = favs.take(15).toList();
@@ -180,6 +188,8 @@ class _HomePageState extends State<HomePage> {
         _seriesShelf = series;
         _seriesProgress = prog;
         _mostWatched = mostWatched;
+        _completed = completed;
+        _history = history;
         _loading = false;
       });
     }
@@ -292,6 +302,8 @@ class _HomePageState extends State<HomePage> {
       'favorites' => (s.favorites, _favorites),
       'recent' => (s.recentlyAdded, _recentlyAdded),
       'most' => (s.v50('mostWatched'), _mostWatched),
+      'completed' => ('Tamamlananlar', _completed),
+      'history' => ('Son izlenen kanallar', _history),
       'movies' => (s.navMovies, _movieShelf),
       'series' => (s.navSeries, _seriesShelf),
       _ => (s.discover, _discovery),

@@ -17,6 +17,9 @@ import android.media.tv.TvContract
 import android.content.ContentValues
 import android.net.Uri
 import android.content.ContentUris
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.app.ActivityManager
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "aladin/exoplayer"
@@ -103,6 +106,8 @@ class MainActivity : FlutterFragmentActivity() {
                 val channelScope = call.argument<String>("channelScope") ?: ""
                 val videoLimit = call.argument<Int>("videoLimit") ?: 0
                 val matchFrameRate = call.argument<Boolean>("matchFrameRate") ?: false
+                val bufferProfile = call.argument<String>("bufferProfile") ?: "auto"
+                val autoPlayNextEpisode = call.argument<Boolean>("autoPlayNextEpisode") ?: true
                 
                 val intent = Intent(this, NativePlayerActivity::class.java).apply {
                     putStringArrayListExtra("URL_LIST", if (urls != null) ArrayList(urls) else ArrayList())
@@ -120,6 +125,8 @@ class MainActivity : FlutterFragmentActivity() {
                     putExtra("CHANNEL_SCOPE", channelScope)
                     putExtra("VIDEO_LIMIT", videoLimit)
                     putExtra("MATCH_FRAME_RATE", matchFrameRate)
+                    putExtra("BUFFER_PROFILE", bufferProfile)
+                    putExtra("AUTO_PLAY_NEXT_EPISODE", autoPlayNextEpisode)
                     if (i18n != null) {
                         for ((key, value) in i18n) {
                             putExtra("i18n_$key", value)
@@ -127,6 +134,28 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 }
                 startActivity(intent)
+                result.success(true)
+            } else if (call.method == "getDeviceMemoryMb") {
+                val info = ActivityManager.MemoryInfo()
+                (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).getMemoryInfo(info)
+                result.success(info.totalMem / (1024L * 1024L))
+            } else if (call.method == "scheduleProgramReminder") {
+                if (Build.VERSION.SDK_INT >= 33 &&
+                    checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) !=
+                    android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7301)
+                }
+                val title = call.argument<String>("title") ?: "Program başlıyor"
+                val channelName = call.argument<String>("channel") ?: "aladin IPTV"
+                val triggerAt = call.argument<Number>("triggerAt")?.toLong() ?: 0L
+                val id = call.argument<Int>("id") ?: title.hashCode()
+                val reminder = Intent(this, ProgramReminderReceiver::class.java).apply {
+                    putExtra("title", title); putExtra("channel", channelName); putExtra("id", id)
+                }
+                val pending = PendingIntent.getBroadcast(this, id, reminder,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                val alarm = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarm.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
                 result.success(true)
             } else if (call.method == "getTvIntegrationStatus") {
                 val tvPrefs = getSharedPreferences("AladinTvIntegration", Context.MODE_PRIVATE)

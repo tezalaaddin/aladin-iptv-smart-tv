@@ -12,6 +12,23 @@ class TmdbService {
 
   // API key'i build zamanında --dart-define=TMDB_API_KEY=xxxx olarak geçin.
   static const _apiKey = String.fromEnvironment('TMDB_API_KEY');
+  static const _proxyUrl = String.fromEnvironment('TMDB_PROXY_URL');
+
+  Uri? _searchUri(String type, String query, String lang) {
+    if (_proxyUrl.isNotEmpty) {
+      return Uri.parse(_proxyUrl).replace(queryParameters: {
+        'type': type,
+        'query': query,
+        'language': '$lang-${lang.toUpperCase()}',
+      });
+    }
+    if (_apiKey.isEmpty) return null;
+    return Uri.parse('$_base/search/$type').replace(queryParameters: {
+      'api_key': _apiKey,
+      'query': query,
+      'language': '$lang-${lang.toUpperCase()}',
+    });
+  }
 
   // Hafıza içi LRU cache (maks 200 giriş)
   final LinkedHashMap<String, Map<String, dynamic>> _seriesCache =
@@ -95,21 +112,15 @@ class TmdbService {
   Future<Map<String, dynamic>?> searchMovie(String title,
       {String? year, String lang = 'tr'}) async {
     // ⚡ GUARD: API Key build zamanında tanımlanmamışsa özelliği kapat
-    if (_apiKey.isEmpty) {
-      return null;
-    }
-
     final clean = cleanTitle(title);
     final cached = _getFromCache(_movieCache, clean);
     if (cached != null) return cached;
 
     try {
-      final q = Uri.encodeQueryComponent(clean);
-      final url =
-          '$_base/search/movie?api_key=$_apiKey&query=$q&language=$lang-${lang.toUpperCase()}';
+      final url = _searchUri('movie', clean, lang);
+      if (url == null) return null;
 
-      final res =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      final res = await http.get(url).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) return null;
 
       final json = jsonDecode(res.body) as Map<String, dynamic>;
@@ -154,10 +165,6 @@ class TmdbService {
   Future<Map<String, dynamic>?> searchSeries(String title,
       {String? year, String lang = 'tr'}) async {
     // ⚡ GUARD: API Key build zamanında tanımlanmamışsa özelliği kapat
-    if (_apiKey.isEmpty) {
-      return null;
-    }
-
     final clean = cleanTitle(title);
 
     // Cache check
@@ -165,12 +172,10 @@ class TmdbService {
     if (cached != null) return cached;
 
     try {
-      final q = Uri.encodeQueryComponent(clean);
-      final url =
-          '$_base/search/tv?api_key=$_apiKey&query=$q&language=$lang-${lang.toUpperCase()}';
+      final url = _searchUri('tv', clean, lang);
+      if (url == null) return null;
 
-      final res =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      final res = await http.get(url).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) return null;
 
       final json = jsonDecode(res.body) as Map<String, dynamic>;

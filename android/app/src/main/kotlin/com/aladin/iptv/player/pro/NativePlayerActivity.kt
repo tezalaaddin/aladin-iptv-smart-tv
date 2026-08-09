@@ -216,6 +216,7 @@ class NativePlayerActivity : AppCompatActivity(),
     private var channelFavs: ArrayList<Boolean> = ArrayList()
     private var channelPositions: ArrayList<Int> = ArrayList()
     private var currentIndex: Int = 0
+    private var previousIndex: Int = -1
 
     // ── State ─────────────────────────────────────────────────────────────────
     private var retryCount = 0
@@ -233,6 +234,8 @@ class NativePlayerActivity : AppCompatActivity(),
     private var isHighMem = false
     private var preferSoftwareDecoder = false
     private var decoderFallbackAttempted = false
+    private var bufferProfile = "auto"
+    private var autoPlayNextEpisode = true
 
     // ── WiFi Lock (NEW) ───────────────────────────────────────────────────────
     // Prevents WiFi chipset from entering doze during playback on cheap TV boxes.
@@ -412,6 +415,8 @@ class NativePlayerActivity : AppCompatActivity(),
         channelFavs = readSerializableList("FAV_LIST") ?: ArrayList()
         channelPositions = readSerializableList("POS_LIST") ?: ArrayList()
         currentIndex = intent.getIntExtra("CURRENT_INDEX", 0)
+        bufferProfile = intent.getStringExtra("BUFFER_PROFILE") ?: "auto"
+        autoPlayNextEpisode = intent.getBooleanExtra("AUTO_PLAY_NEXT_EPISODE", true)
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         gestureDetector = GestureDetector(this, this)
@@ -593,6 +598,21 @@ class NativePlayerActivity : AppCompatActivity(),
         val bufBytes: Int
 
         when {
+            bufferProfile == "low_latency" -> {
+                minMs = if (isLive) 2_000 else 8_000
+                maxMs = if (isLive) 6_000 else 20_000
+                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else NORMAL_BUFFER_BYTES
+            }
+            bufferProfile == "balanced" -> {
+                minMs = if (isLive) 5_000 else 15_000
+                maxMs = if (isLive) 15_000 else 45_000
+                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else NORMAL_BUFFER_BYTES
+            }
+            bufferProfile == "stable" -> {
+                minMs = if (isLive) 10_000 else 30_000
+                maxMs = if (isLive) 30_000 else 90_000
+                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else HIGH_MEM_BUFFER_BYTES
+            }
             isLive && isLowMem -> {
                 minMs = LIVE_MIN_BUFFER_MS
                 maxMs = 8_000          // 8 s max for live + low-mem
@@ -732,7 +752,7 @@ class NativePlayerActivity : AppCompatActivity(),
                     mainHandler.removeCallbacks(bufferingTimeoutRunnable)
                     val size = channelUrls?.size ?: 0
                     val type = channelTypes?.getOrNull(currentIndex) ?: ""
-                    if (type == "series" && currentIndex < size - 1) {
+                    if (autoPlayNextEpisode && type == "series" && currentIndex < size - 1) {
                         showAutoPlayOverlay()
                     }
                 }
@@ -924,11 +944,11 @@ class NativePlayerActivity : AppCompatActivity(),
         val size = channelUrls?.size ?: 1
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                if (currentIndex > 0) { currentIndex--; prepareAndPlay() }
+                if (currentIndex > 0) { previousIndex = currentIndex; currentIndex--; prepareAndPlay() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (currentIndex < size - 1) { currentIndex++; prepareAndPlay() }
+                if (currentIndex < size - 1) { previousIndex = currentIndex; currentIndex++; prepareAndPlay() }
                 return true
             }
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
@@ -969,6 +989,15 @@ class NativePlayerActivity : AppCompatActivity(),
                 player?.let { if (it.duration != C.TIME_UNSET) accumulateSeek(600_000L) }; return true
             }
             KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> { toggleFavorite(); return true }
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_LAST_CHANNEL -> {
+                if (previousIndex in 0 until size) {
+                    val target = previousIndex
+                    previousIndex = currentIndex
+                    currentIndex = target
+                    prepareAndPlay()
+                }
+                return true
+            }
             KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
                 if (autoPlayOverlay.visibility == View.VISIBLE) {
                     cancelAutoPlay(); return true
@@ -1261,7 +1290,7 @@ class NativePlayerActivity : AppCompatActivity(),
         lvQuickList.adapter = adapter
         lvQuickList.setSelection(currentIndex)
         lvQuickList.setOnItemClickListener { _, _, pos, _ ->
-            currentIndex = pos; quickListLayout.visibility = View.GONE; prepareAndPlay()
+            previousIndex = currentIndex; currentIndex = pos; quickListLayout.visibility = View.GONE; prepareAndPlay()
         }
         quickListLayout.visibility = View.VISIBLE
         lvQuickList.requestFocus()
