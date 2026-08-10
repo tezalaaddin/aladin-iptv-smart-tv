@@ -597,15 +597,22 @@ class ChannelService {
   }
 
   Future<List<ChannelModel>> search(
-      {required int playlistId, required String query, int limit = 50}) async {
+      {required int playlistId,
+      required String query,
+      String? contentType,
+      int limit = 50}) async {
     final trimmed = query.trim();
     if (trimmed.length < 2) return [];
 
-    final items = await _db.channelModels
+    var queryBuilder = _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
-        .nameContains(trimmed, caseSensitive: false)
+        .nameContains(trimmed, caseSensitive: false);
+    if (contentType != null) {
+      queryBuilder = queryBuilder.and().contentTypeEqualTo(contentType);
+    }
+    final items = await queryBuilder
         .limit(limit)
         .findAll();
     return items.where(ParentalService.instance.canExpose).toList();
@@ -613,7 +620,10 @@ class ChannelService {
 
   /// ⚡ PRO FEATURE: Fuzzy search for "Similar results"
   Future<List<ChannelModel>> searchSimilar(
-      {required int playlistId, required String query, int limit = 10}) async {
+      {required int playlistId,
+      required String query,
+      String? contentType,
+      int limit = 10}) async {
     final trimmed = query.trim();
     if (trimmed.length < 3) return [];
 
@@ -622,11 +632,15 @@ class ChannelService {
     // 2. Perform fuzzy match on this smaller subset (more likely to contain matches)
     final firstWord = trimmed.split(' ').first;
 
-    final subset = await _db.channelModels
+    var queryBuilder = _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
-        .group((q) => q.nameContains(firstWord, caseSensitive: false))
+        .group((q) => q.nameContains(firstWord, caseSensitive: false));
+    if (contentType != null) {
+      queryBuilder = queryBuilder.and().contentTypeEqualTo(contentType);
+    }
+    final subset = await queryBuilder
         .limit(1000)
         .findAll();
 

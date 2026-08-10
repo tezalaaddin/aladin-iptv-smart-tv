@@ -32,8 +32,8 @@ android {
         applicationId = "com.aladin.iptv.player.pro"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        // Version 1063 adds adaptive TV layouts and playback diagnostics.
-        versionCode = 1063
+        // Keep Android packages aligned with the build number in pubspec.yaml.
+        versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 

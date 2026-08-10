@@ -11,10 +11,18 @@ import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_input_dialog.dart';
 import '../../shared/widgets/aladin_channel_options.dart';
 import '../player/aladin_player_page.dart';
+import '../series/aladin_series_page.dart';
 
 class SearchPage extends StatefulWidget {
   final bool isActive;
-  const SearchPage({super.key, this.isActive = false});
+  final String? contentType;
+  final String? sectionTitle;
+  const SearchPage({
+    super.key,
+    this.isActive = false,
+    this.contentType,
+    this.sectionTitle,
+  });
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
@@ -90,21 +98,22 @@ class _SearchPageState extends State<SearchPage> {
     final active = context.read<AppState>().active;
     if (active == null) return;
 
-    final r = await ChannelService.instance
-        .search(playlistId: active.id, query: query);
+    final r = await ChannelService.instance.search(
+        playlistId: active.id, query: query, contentType: widget.contentType);
 
     List<ChannelModel> similar = [];
     if (r.isEmpty) {
-      similar = await ChannelService.instance
-          .searchSimilar(playlistId: active.id, query: query);
+      similar = await ChannelService.instance.searchSimilar(
+          playlistId: active.id, query: query, contentType: widget.contentType);
     }
 
-    if (mounted && generation == _searchGeneration)
+    if (mounted && generation == _searchGeneration) {
       setState(() {
         _results = r;
         _similarResults = similar;
         _searching = false;
       });
+    }
   }
 
   @override
@@ -114,7 +123,7 @@ class _SearchPageState extends State<SearchPage> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: const AladinAppBar(),
+      appBar: AladinAppBar(title: widget.sectionTitle),
       body: Column(
         children: [
           // ⚡ ELITE SEARCH UX: Direct TextField for TV
@@ -132,7 +141,9 @@ class _SearchPageState extends State<SearchPage> {
                         fontSize: 20,
                         fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
-                      hintText: s.searchHint,
+                      hintText: widget.sectionTitle == null
+                          ? s.searchHint
+                          : '${widget.sectionTitle} · ${s.navSearch}',
                       prefixIcon:
                           const Icon(Icons.search, color: AppTheme.accent),
                       suffixIcon: _query.isNotEmpty
@@ -190,7 +201,7 @@ class _SearchPageState extends State<SearchPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
               child: Text(
-                'Benzer Seçenekler', // I should use s.similarOptions if exists
+                s.v52('similarOptions'),
                 style: const TextStyle(
                     color: AppTheme.accent,
                     fontWeight: FontWeight.bold,
@@ -229,6 +240,23 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _openResult(ChannelModel channel) async {
     final activePlaylist = context.read<AppState>().active;
+    if (channel.contentType == 'series' && activePlaylist != null) {
+      final name = channel.seriesName?.trim().isNotEmpty == true
+          ? channel.seriesName!
+          : channel.name;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AladinSeriesDetailPage(
+            seriesName: name,
+            playlistId: activePlaylist.id,
+            seriesId: channel.parentSeriesId ?? channel.tvgId,
+            playlistModel: activePlaylist,
+          ),
+        ),
+      );
+      return;
+    }
     final playbackQueue =
         await ChannelService.instance.getPlaybackQueue(channel);
     if (!mounted) return;
@@ -274,7 +302,6 @@ class _VoiceBtnState extends State<_VoiceBtn> {
   bool _focused = false;
   @override
   Widget build(BuildContext context) {
-    final s = context.read<AppState>().s;
     return Focus(
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (node, event) {

@@ -5,6 +5,17 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
 
 ## Tamamlananlar
 
+- **Tamamlandı:** Telefon, tablet ve yön tuşlu Android TV için merkezi cihaz profili.
+- **Tamamlandı:** Yatay telefonların yanlışlıkla TV yan menüsüne geçmesini engelleyen navigasyon ayrımı.
+- **Tamamlandı:** Mobil alt navigasyonun beş ana öğeye sadeleştirilmesi ve ek hedeflerin erişilebilir alt menüye taşınması.
+- **Tamamlandı:** Native oynatıcıdaki görünür sabit metinlerin sekiz dilde çalışma zamanı lokalizasyonuna bağlanması.
+- **Tamamlandı:** Native oynatıcı için ayrı portre kaynak düzeni ve döndürmede oynatma konumunun korunması.
+- **Tamamlandı:** Sekme odak kapsamlarının hatırlanması ve D-pad otomatik odak testi.
+- **Tamamlandı:** Kart EPG sorgularında TTL önbelleği, eşzamanlı sorgu sınırı ve yinelenen istek birleştirme.
+- **Tamamlandı:** TMDB isteklerinde eşzamanlılık sınırı, dile özgü LRU ve negatif sonuç önbelleği.
+- **Tamamlandı:** Ayarlar bileşenlerinin ayrı part dosyasına, native lokalizasyon ve buffer politikasının ayrı Kotlin dosyalarına çıkarılması.
+- **Tamamlandı:** Telefon/TV profil, RTL golden, D-pad ve deterministik soak test paketi.
+
 - **Tamamlandı:** Canlı TV kartları için Kompakt / Standart / Büyük görünüm seçimi.
 - **Tamamlandı:** Kart boyutu değişikliklerinin açık ekranlara yeniden başlatmadan uygulanması.
 - **Tamamlandı:** Oynatıcıda gerçek yayın sunucusu HTTP yanıt süresi.

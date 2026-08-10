@@ -4,6 +4,12 @@ import 'package:aladin_iptv_pro/features/help/aladin_help_page.dart';
 import 'package:aladin_iptv_pro/shared/widgets/aladin_category_row.dart';
 
 void main() {
+  test('regional locale codes use the correct compact translation matrix', () {
+    expect(AppStrings.of('tr-TR').v52('more'), 'Diğer');
+    expect(AppStrings.of('de-DE').v52('more'), 'Mehr');
+    expect(AppStrings.of('zh-CN').v52('more'), '更多');
+  });
+
   test('all base language maps have the same keys as English', () {
     final englishKeys = AppStrings.of('en').allTranslations.keys.toSet();
     for (final language in AppStrings.getLanguageNames().keys) {
@@ -142,6 +148,19 @@ void main() {
       'lastPlaybackError',
       'none',
       'droppedFrames',
+      'similarOptions',
+      'play',
+      'pause',
+      'channelList',
+      'playerTitle',
+      'backToList',
+      'cancel',
+      'nextEpisodeStarting',
+      'quickList',
+      'channelFallback',
+      'retry',
+      'shutdownWarning',
+      'more',
     ];
     for (final language in languages) {
       final strings = AppStrings.of(language);
@@ -149,6 +168,14 @@ void main() {
         expect(strings.v52(key), isNot(key), reason: '$language:$key');
         expect(strings.v52(key).trim(), isNotEmpty, reason: '$language:$key');
       }
+    }
+  });
+
+  test('native player seek controls are localized in every language', () {
+    for (final language in AppStrings.getLanguageNames().keys) {
+      final strings = AppStrings.of(language);
+      expect(strings.v52('rewind10'), isNot(anyOf('rewind10', isEmpty)));
+      expect(strings.v52('forward30'), isNot(anyOf('forward30', isEmpty)));
     }
   });
 

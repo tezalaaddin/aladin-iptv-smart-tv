@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.ConnectivityManager
@@ -126,7 +127,9 @@ class NativePlayerActivity : AppCompatActivity(),
         private const val OSD_HIDE_DELAY_MS    = 5_000L
         private const val STATUS_HIDE_DELAY_MS = 5_000L
         private const val BUFFERING_WARN_MS    = 15_000L
-        private const val BUFFERING_TIMEOUT_MS = 30_000L
+        // Initial attempt + two retries = at most about 45 seconds.
+        private const val BUFFERING_TIMEOUT_MS = 15_000L
+        private const val MAX_BUFFERING_RETRIES = 2
         private const val ZAPPING_DEBOUNCE_MS  = 500L
         private const val SEEK_COMMIT_MS       = 800L
 
@@ -147,6 +150,7 @@ class NativePlayerActivity : AppCompatActivity(),
     private lateinit var audioManager: AudioManager
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var prefs: SharedPreferences
+    private lateinit var localizer: NativePlayerLocalizer
     private lateinit var gestureDetector: GestureDetector
     private var lastWatchReportRealtime = 0L
 
@@ -160,6 +164,7 @@ class NativePlayerActivity : AppCompatActivity(),
     private lateinit var keyGuideLayout: LinearLayout
     private lateinit var volumeLayout: LinearLayout
     private lateinit var tvStatusOverlay: TextView
+    private lateinit var btnLoadingBack: TextView
     private lateinit var tvVolumeLevel: TextView
     private lateinit var pbLoading: android.widget.ProgressBar
     private lateinit var quickListLayout: LinearLayout
@@ -258,6 +263,13 @@ class NativePlayerActivity : AppCompatActivity(),
     private var decoderFallbackAttempted = false
     private var bufferProfile = "auto"
     private var autoPlayNextEpisode = true
+    private val isTvDevice: Boolean by lazy {
+        packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
+            packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
+    }
+
+    private val primaryControls: List<TextView>
+        get() = listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite)
 
     private val diagnosticsAnalyticsListener = object : AnalyticsListener {
         override fun onDroppedVideoFrames(
@@ -308,6 +320,7 @@ class NativePlayerActivity : AppCompatActivity(),
     private val seekHandler = Handler(Looper.getMainLooper())
 
     private val hideRunnable = Runnable {
+        keyGuideLayout.clearFocus()
         channelInfoLayout.visibility = View.GONE
         seekbarContainer.visibility  = View.GONE
         volumeLayout.visibility = View.GONE
@@ -329,6 +342,7 @@ class NativePlayerActivity : AppCompatActivity(),
                 val msg = t("checking_connection", "Bağlantı kontrol ediliyor...")
                 val attempt = if (bufferingRetryCount > 0) " (${t("attempt", "Deneme")} $bufferingRetryCount)" else ""
                 showStatus("$msg (${elapsed}s)$attempt", true)
+                btnLoadingBack.visibility = View.VISIBLE
                 pbLoading.visibility = View.VISIBLE
                 updateDiagnostics(true)
                 mainHandler.postDelayed(this, 1000)
@@ -337,12 +351,13 @@ class NativePlayerActivity : AppCompatActivity(),
     }
 
     private val bufferingTimeoutRunnable = Runnable {
-        if (bufferingRetryCount < MAX_RETRIES) {
+        if (bufferingRetryCount < MAX_BUFFERING_RETRIES) {
             bufferingRetryCount++
             Log.d(TAG, "Buffering timeout. Auto-retry #$bufferingRetryCount")
             prepareAndPlay()
         } else {
             isPersistentError = true
+            btnLoadingBack.visibility = View.GONE
             pbLoading.visibility = View.GONE
             mainHandler.removeCallbacks(hideRunnable)
             channelInfoLayout.visibility = View.VISIBLE
@@ -432,6 +447,7 @@ class NativePlayerActivity : AppCompatActivity(),
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         prefs = getSharedPreferences("AladinPlayerPrefs", Context.MODE_PRIVATE)
+        localizer = NativePlayerLocalizer(intent)
 
         // Compute device profile once
         isLowMem = isLowMemoryDevice()
@@ -638,68 +654,13 @@ class NativePlayerActivity : AppCompatActivity(),
      * VOD:      Larger buffer (15–50 s). Allows smooth playback over variable networks.
      * Low-mem:  Halves the max buffer and enforces an 8 MB byte cap to avoid OOM.
      */
-    private fun buildLoadControl(isLive: Boolean): DefaultLoadControl {
-        val minMs: Int
-        val maxMs: Int
-        val bufBytes: Int
-
-        when {
-            bufferProfile == "low_latency" -> {
-                minMs = if (isLive) 2_000 else 8_000
-                maxMs = if (isLive) 6_000 else 20_000
-                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else NORMAL_BUFFER_BYTES
-            }
-            bufferProfile == "balanced" -> {
-                minMs = if (isLive) 5_000 else 15_000
-                maxMs = if (isLive) 15_000 else 45_000
-                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else NORMAL_BUFFER_BYTES
-            }
-            bufferProfile == "stable" -> {
-                minMs = if (isLive) 10_000 else 30_000
-                maxMs = if (isLive) 30_000 else 90_000
-                bufBytes = if (isLowMem) LOW_MEM_BUFFER_BYTES else HIGH_MEM_BUFFER_BYTES
-            }
-            isLive && isLowMem -> {
-                minMs = LIVE_MIN_BUFFER_MS
-                maxMs = 8_000          // 8 s max for live + low-mem
-                bufBytes = LOW_MEM_BUFFER_BYTES
-            }
-            isLive && isHighMem -> {
-                minMs = HIGH_MEM_LIVE_MIN_MS
-                maxMs = HIGH_MEM_LIVE_MAX_MS
-                bufBytes = HIGH_MEM_BUFFER_BYTES
-            }
-            isLive -> {
-                minMs = LIVE_MIN_BUFFER_MS
-                maxMs = LIVE_MAX_BUFFER_MS
-                bufBytes = NORMAL_BUFFER_BYTES
-            }
-            isLowMem -> {
-                minMs = LOW_MEM_MIN_MS
-                maxMs = LOW_MEM_MAX_MS
-                bufBytes = LOW_MEM_BUFFER_BYTES
-            }
-            isHighMem -> {
-                minMs = HIGH_MEM_VOD_MIN_MS
-                maxMs = HIGH_MEM_VOD_MAX_MS
-                bufBytes = HIGH_MEM_BUFFER_BYTES
-            }
-            else -> {
-                minMs = VOD_MIN_BUFFER_MS
-                maxMs = VOD_MAX_BUFFER_MS
-                bufBytes = NORMAL_BUFFER_BYTES
-            }
-        }
-
-        return DefaultLoadControl.Builder()
-            .setBufferDurationsMs(minMs, maxMs, PLAYBACK_START_MS, REBUFFER_START_MS)
-            .setTargetBufferBytes(bufBytes)
-            // 🎬 STABILITY FIX: Always prioritize time over size.
-            // This ensures we reach our "seconds" target even if we exceed the byte estimate,
-            // which is critical for preventing buffering on 2Mbps connections.
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()
-    }
+    private fun buildLoadControl(isLive: Boolean): DefaultLoadControl =
+        NativePlayerBufferPolicy.create(
+            isLive = isLive,
+            isLowMemory = isLowMem,
+            isHighMemory = isHighMem,
+            profile = bufferProfile,
+        )
 
     // ── Player Listener ───────────────────────────────────────────────────────
     private val playerListener = object : Player.Listener {
@@ -798,6 +759,7 @@ class NativePlayerActivity : AppCompatActivity(),
                     mainHandler.removeCallbacks(bufferingStatusRunnable)
                     mainHandler.removeCallbacks(bufferingTimeoutRunnable)
                     tvStatusOverlay.visibility = View.GONE
+                    btnLoadingBack.visibility = View.GONE
                     pbLoading.visibility = View.GONE
                     player?.let { p ->
                         if (p.duration != C.TIME_UNSET) {
@@ -820,6 +782,7 @@ class NativePlayerActivity : AppCompatActivity(),
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
+            configurePrimaryControls()
             if (!isPlaying) {
                 updatePauseInfo()
                 // Pause panelini gösterirken alt kanal bilgisini gizle
@@ -867,7 +830,7 @@ class NativePlayerActivity : AppCompatActivity(),
         autoPlayHandler.removeCallbacks(autoPlayRunnable)
         autoPlayOverlay.visibility = View.GONE
         releasePlayer()
-        tvChannelName.text = channelNames?.getOrNull(currentIndex) ?: "Kanal"
+        tvChannelName.text = channelNames?.getOrNull(currentIndex) ?: t("channel_fallback", "Kanal")
         updateFavoriteIcon()
         channelInfoLayout.visibility = View.VISIBLE
         updatePauseInfo()
@@ -877,7 +840,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
     private fun playCurrentChannel() {
         val url = channelUrls?.getOrNull(currentIndex) ?: return
-        val name = channelNames?.getOrNull(currentIndex) ?: "Kanal"
+        val name = channelNames?.getOrNull(currentIndex) ?: t("channel_fallback", "Kanal")
         val poster = channelPosters?.getOrNull(currentIndex) ?: ""
         val type = channelTypes?.getOrNull(currentIndex) ?: "tv"
         playerView.resizeMode = prefs.getInt(
@@ -947,8 +910,10 @@ class NativePlayerActivity : AppCompatActivity(),
         player?.setMediaSource(mediaSource, true)
         player?.prepare()
 
-        val savedPos = channelPositions.getOrNull(currentIndex)?.toLong() ?: 0L
-        if (savedPos > 0) player?.seekTo(savedPos * 1_000)
+        val persistedMs = prefs.getLong("pos_$url", -1L)
+        val savedMs = if (persistedMs >= 0L) persistedMs
+            else (channelPositions.getOrNull(currentIndex)?.toLong() ?: 0L) * 1_000L
+        if (savedMs > 0) player?.seekTo(savedMs)
 
         userPaused = false
         player?.play()
@@ -978,44 +943,115 @@ class NativePlayerActivity : AppCompatActivity(),
                 p.play()
             }
             showOSD()
+            configurePrimaryControls()
         }
     }
 
-    /** Remote-first menu: every essential action is reachable with D-pad + OK. */
+    /** Opens the visible control dock and restores deterministic D-pad focus. */
     private fun showControlMenu() {
+        showOSD()
+        configurePrimaryControls()
+        val preferred = if (isCurrentLive()) btnSubtitles else btnAudio
+        preferred.requestFocus()
+        mainHandler.removeCallbacks(hideRunnable)
+    }
+
+    // Media3 reports TIME_UNSET while every stream is still preparing. Using duration
+    // here made movies and episodes temporarily look like live TV and exposed the
+    // wrong primary controls. Playlist metadata is stable before player creation.
+    private fun isCurrentLive(): Boolean =
+        channelTypes?.getOrNull(currentIndex)?.lowercase(Locale.ROOT) == "tv"
+
+    private fun configurePrimaryControls() {
+        if (!::btnSubtitles.isInitialized) return
+        val live = isCurrentLive()
+        if (live) {
+            btnSubtitles.text = "☰\n${t("channel_list", "Kanal listesi")}"
+            btnAudio.text = "CC\n${t("subtitles", "Altyazı")}"
+            btnQuality.text = "♫\n${t("audio", "Ses")}"
+            btnAspect.text = "HD\n${t("quality", "Kalite")}"
+            btnFavorite.text = "•••\n${t("more", "Diğer")}"
+            btnSubtitles.setOnClickListener { showQuickList() }
+            btnAudio.setOnClickListener { cycleTracks(C.TRACK_TYPE_TEXT) }
+            btnQuality.setOnClickListener { cycleTracks(C.TRACK_TYPE_AUDIO) }
+            btnAspect.setOnClickListener { cycleTracks(C.TRACK_TYPE_VIDEO) }
+            btnFavorite.setOnClickListener { showMoreControls() }
+        } else {
+            btnSubtitles.text = "−10\n${t("rewind", "10 sn geri")}"
+            btnAudio.text = if (player?.isPlaying == true) {
+                "Ⅱ\n${t("pause", "Duraklat")}"
+            } else {
+                "▶\n${t("play", "Oynat")}"
+            }
+            btnQuality.text = "+30\n${t("forward", "30 sn ileri")}"
+            btnAspect.text = "▤\n${t("episodes", "Bölümler")}"
+            btnFavorite.text = "•••\n${t("more", "Diğer")}"
+            btnSubtitles.setOnClickListener { accumulateSeek(-10_000L) }
+            btnAudio.setOnClickListener { togglePlayPause() }
+            btnQuality.setOnClickListener { accumulateSeek(30_000L) }
+            btnAspect.setOnClickListener { showQuickList() }
+            btnFavorite.setOnClickListener { showMoreControls() }
+        }
+    }
+
+    /** Secondary actions stay reachable without crowding the main dock. */
+    private fun showMoreControls() {
         val labels = arrayOf(
-            if (player?.isPlaying == true) "Duraklat" else "Oynat",
-            "Kanal listesi",
+            if (player?.isPlaying == true) t("pause", "Duraklat") else t("play", "Oynat"),
             t("subtitles", "Altyazı"),
             t("audio", "Ses"),
             t("quality", "Kalite"),
             t("aspect", "Ekran oranı"),
             t("favorites_short", "Favori"),
             t("sleep_timer", "Uyku zamanlayıcısı"),
-            "Tanılama"
+            t("diag_title", "Tanılama")
         )
         AlertDialog.Builder(this)
-            .setTitle(channelNames?.getOrNull(currentIndex) ?: "Oynatıcı")
+            .setTitle(channelNames?.getOrNull(currentIndex) ?: t("player_title", "Oynatıcı"))
             .setItems(labels) { dialog, which ->
                 dialog.dismiss()
                 when (which) {
                     0 -> togglePlayPause()
-                    1 -> showQuickList()
-                    2 -> cycleTracks(C.TRACK_TYPE_TEXT)
-                    3 -> cycleTracks(C.TRACK_TYPE_AUDIO)
-                    4 -> cycleTracks(C.TRACK_TYPE_VIDEO)
-                    5 -> cycleAspectRatio()
-                    6 -> toggleFavorite()
-                    7 -> cycleSleepTimer()
-                    8 -> toggleDiagnostics()
+                    1 -> cycleTracks(C.TRACK_TYPE_TEXT)
+                    2 -> cycleTracks(C.TRACK_TYPE_AUDIO)
+                    3 -> cycleTracks(C.TRACK_TYPE_VIDEO)
+                    4 -> cycleAspectRatio()
+                    5 -> toggleFavorite()
+                    6 -> cycleSleepTimer()
+                    7 -> toggleDiagnostics()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
+            .setOnDismissListener {
+                if (isTvDevice && keyGuideLayout.visibility == View.VISIBLE) {
+                    btnFavorite.requestFocus()
+                }
+            }
             .show()
     }
 
     // ── Key Handling ──────────────────────────────────────────────────────────
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyGuideLayout.visibility == View.VISIBLE && keyGuideLayout.hasFocus()) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
+                    keyGuideLayout.clearFocus()
+                    keyGuideLayout.visibility = View.GONE
+                    resetHideTimer()
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_UP -> {
+                    keyGuideLayout.clearFocus()
+                    resetHideTimer()
+                    return true
+                }
+                KeyEvent.KEYCODE_DPAD_DOWN -> return true
+                KeyEvent.KEYCODE_DPAD_LEFT,
+                KeyEvent.KEYCODE_DPAD_RIGHT,
+                KeyEvent.KEYCODE_DPAD_CENTER,
+                KeyEvent.KEYCODE_ENTER -> return super.onKeyDown(keyCode, event)
+            }
+        }
         val size = channelUrls?.size ?: 1
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
@@ -1282,6 +1318,7 @@ class NativePlayerActivity : AppCompatActivity(),
         }
 
         keyGuideLayout.visibility    = View.VISIBLE
+        configurePrimaryControls()
         player?.let { p ->
             ivCenterPlayPause.setImageResource(
                 if (p.isPlaying) android.R.drawable.ic_media_pause
@@ -1294,7 +1331,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
     private fun resetHideTimer() {
         mainHandler.removeCallbacks(hideRunnable)
-        if (player?.isPlaying == true) {
+        if (player?.isPlaying == true && !keyGuideLayout.hasFocus()) {
             mainHandler.postDelayed(hideRunnable, OSD_HIDE_DELAY_MS)
         }
     }
@@ -1333,6 +1370,9 @@ class NativePlayerActivity : AppCompatActivity(),
 
     private fun showQuickList() {
         if (channelNames == null) return
+        findViewById<TextView>(R.id.tv_quick_list_title).text =
+            if (isCurrentLive()) t("channel_list", "Kanal listesi")
+            else t("episodes", "Bölümler")
         
         val adapter: android.widget.BaseAdapter = object : android.widget.BaseAdapter() {
             override fun getCount(): Int = channelNames?.size ?: 0
@@ -1383,7 +1423,7 @@ class NativePlayerActivity : AppCompatActivity(),
         }
     }
 
-    private fun updateDiagnostics(isLoading: Boolean) {
+    private fun updateDiagnostics(@Suppress("UNUSED_PARAMETER") isLoading: Boolean) {
         player?.let { p ->
             val estimatedMbps = bandwidthMeter.bitrateEstimate / 1_000_000.0
             val connection = currentConnectionLabel()
@@ -1420,7 +1460,7 @@ class NativePlayerActivity : AppCompatActivity(),
             val totalBufferSeconds = (totalRebufferDurationMs + activeBufferMs) / 1_000.0
             val bufferedAheadSeconds = p.totalBufferedDuration / 1_000.0
             tvDiagBuffer.text = String.format(
-                Locale.getDefault(), "%s: %d â€¢ %s: %.1f s â€¢ %s: %.1f s â€¢ %s: %d",
+                Locale.getDefault(), "%s: %d • %s: %.1f s • %s: %.1f s • %s: %d",
                 t("diag_buffer_events", "Buffer events"), rebufferEventCount,
                 t("diag_buffer_duration", "Total buffer time"), totalBufferSeconds,
                 t("diag_buffered_ahead", "Buffered ahead"), bufferedAheadSeconds,
@@ -1429,10 +1469,8 @@ class NativePlayerActivity : AppCompatActivity(),
             tvDiagError.text = "${t("diag_last_error", "Last playback error")}: " +
                 if (lastPlaybackError.isBlank()) t("diag_none", "None") else lastPlaybackError
 
-            // If loading, show diagnostics in the status overlay too for visibility
-            if (isLoading) {
-                diagnosticsLayout.visibility = View.VISIBLE
-            }
+            // Loading uses the compact status row. Detailed diagnostics are
+            // shown only when the user explicitly opens them.
         }
     }
 
@@ -1656,7 +1694,7 @@ class NativePlayerActivity : AppCompatActivity(),
         }
     }
 
-    private fun t(key: String, default: String) = intent.getStringExtra("i18n_$key") ?: default
+    private fun t(key: String, default: String) = localizer.text(key, default)
 
     @Suppress("DEPRECATION", "UNCHECKED_CAST")
     private fun <T : java.io.Serializable> readSerializableList(key: String): ArrayList<T>? {
@@ -1688,46 +1726,34 @@ class NativePlayerActivity : AppCompatActivity(),
     private fun setupLabels() {
         applyResponsivePlayerLayout()
 
-        listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite).forEach {
-            it.isFocusable = false; it.isFocusableInTouchMode = false
+        findViewById<TextView>(R.id.tv_quick_list_title).text = t("quick_list", "Hızlı liste")
+        findViewById<TextView>(R.id.tv_autoplay_heading).text =
+            t("next_episode_starting", "Sonraki bölüm başlıyor")
+        (btnGoToSettings as? TextView)?.text = t("go_to_settings", "Ayarlara git")
+        (btnBackToList as? TextView)?.text = t("back_to_list", "Listeye dön")
+        (btnCancelAutoPlay as? TextView)?.text = t("cancel", "İptal")
+        btnLoadingBack.contentDescription = t("back_to_list", "Listeye dön")
+        tvErrorMessage.text = t("playback_error", "Oynatma hatası")
+        tvErrorSuggestion.text = t("decoder_suggestion", "Yazılımsal kod çözücüyü deneyin.")
+
+        primaryControls.forEach {
+            it.isClickable = true
+            it.isFocusable = isTvDevice
+            it.isFocusableInTouchMode = false
+            it.setOnFocusChangeListener { _, focused ->
+                if (focused) mainHandler.removeCallbacks(hideRunnable)
+            }
         }
-        btnSubtitles.setOnClickListener { cycleTracks(C.TRACK_TYPE_TEXT) }
-        btnAudio.setOnClickListener     { cycleTracks(C.TRACK_TYPE_AUDIO) }
-        btnQuality.setOnClickListener   { cycleTracks(C.TRACK_TYPE_VIDEO) }
-        btnAspect.setOnClickListener    { cycleAspectRatio() }
-        btnFavorite.setOnClickListener  { toggleFavorite() }
+        configurePrimaryControls()
     }
 
     private fun applyResponsivePlayerLayout() {
         val portrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-        if (portrait) {
-            // Compact symbolic labels prevent long translations from being
-            // squeezed into vertical letter columns on narrow phone screens.
-            btnSubtitles.text = "1 CC"
-            btnAudio.text = "2 ♪"
-            btnQuality.text = "3 HD"
-            btnAspect.text = "4 ↔"
-            btnFavorite.text = "0 ★"
-            tvGuideNav.visibility = View.GONE
-            tvGuideSeek.visibility = View.GONE
-        } else {
-            btnSubtitles.text = "1 ● ${t("subtitles", "Altyazı")}"
-            btnAudio.text = "2 ● ${t("audio", "Ses")}"
-            btnQuality.text = "3 ● ${t("quality", "Kalite")}"
-            btnAspect.text = "4 ● ${t("aspect", "Oran")}"
-            btnFavorite.text = "0 [★] ${t("favorites_short", "Favori")}"
-            tvGuideNav.text = t("guide_channel", "↕ Kanal Değiştir")
-            tvGuideSeek.text = t("guide_seek", "↔ İleri/Geri Sar")
-            tvGuideNav.visibility = View.VISIBLE
-            tvGuideSeek.visibility = View.VISIBLE
-        }
+        tvGuideNav.visibility = View.GONE
+        tvGuideSeek.visibility = View.GONE
         val textSize = if (portrait) 10f else 13f
-        listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite).forEach {
+        primaryControls.forEach {
             it.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSize)
-            (it.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let { params ->
-                params.marginEnd = if (portrait) 6.dp else 16.dp
-                it.layoutParams = params
-            }
         }
     }
 
@@ -1745,6 +1771,7 @@ class NativePlayerActivity : AppCompatActivity(),
         volumeLayout       = findViewById(R.id.volume_layout)
         tvVolumeLevel      = findViewById(R.id.tv_volume_level)
         tvStatusOverlay    = findViewById(R.id.tv_status_overlay)
+        btnLoadingBack     = findViewById(R.id.btn_loading_back)
         pbLoading          = findViewById(R.id.pb_loading)
         quickListLayout    = findViewById(R.id.quick_list_layout)
         lvQuickList        = findViewById(R.id.lv_quick_list)
@@ -1783,6 +1810,8 @@ class NativePlayerActivity : AppCompatActivity(),
 
         playerView.setOnTouchListener { _, event -> gestureDetector.onTouchEvent(event); true }
         ivCenterPlayPause.setOnClickListener { togglePlayPause() }
+        ivFavorite.setOnClickListener { toggleFavorite() }
+        btnLoadingBack.setOnClickListener { saveCurrentPosition(); finish() }
         btnCancelAutoPlay.setOnClickListener { cancelAutoPlay() }
         btnBackToList.setOnClickListener { saveCurrentPosition(); finish() }
         btnGoToSettings.setOnClickListener {

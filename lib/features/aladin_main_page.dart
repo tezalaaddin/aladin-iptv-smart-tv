@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/platform/aladin_device_profile.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,6 +34,10 @@ class _MainPageState extends State<MainPage> {
   int _index = 0;
   final FocusScopeNode _mainFocusScope = FocusScopeNode();
   final List<FocusNode> _navNodes = List.generate(7, (index) => FocusNode());
+  final List<FocusScopeNode> _pageFocusScopes = List.generate(
+    7,
+    (index) => FocusScopeNode(debugLabel: 'main_page_$index'),
+  );
   final FocusNode _contentFocusNode = FocusNode();
   final FocusNode _categoryMenuFocusNode =
       FocusNode(debugLabel: 'category_menu_entry');
@@ -48,10 +53,50 @@ class _MainPageState extends State<MainPage> {
       _index = i;
       _selectedCategory = null;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final scope = _pageFocusScopes[i];
+      if (scope.focusedChild != null) {
+        scope.focusedChild!.requestFocus();
+      } else {
+        scope.requestFocus();
+      }
+    });
   }
 
   void _openCategory(CategoryModel cat) {
     setState(() => _selectedCategory = cat);
+  }
+
+  Future<void> _showMobileMore(dynamic s) async {
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: AppTheme.surface,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.search),
+              title: Text(s.navSearch),
+              onTap: () => Navigator.pop(sheetContext, 4),
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: Text(s.navFavorites),
+              onTap: () => Navigator.pop(sheetContext, 5),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: Text(s.navSettings),
+              onTap: () => Navigator.pop(sheetContext, 6),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selected != null && mounted) _goTo(selected);
   }
 
   @override
@@ -227,6 +272,9 @@ class _MainPageState extends State<MainPage> {
   void dispose() {
     _mainFocusScope.dispose();
     _contentFocusNode.dispose();
+    for (final scope in _pageFocusScopes) {
+      scope.dispose();
+    }
     _categoryMenuFocusNode.dispose();
     _homeHelpFocusNode.dispose();
     for (final n in _navNodes) {
@@ -356,8 +404,8 @@ class _MainPageState extends State<MainPage> {
     }
 
     final s = state.s;
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final deviceProfile = AladinDeviceProfile.of(context);
+    final useTvNavigation = deviceProfile.useTvNavigation;
 
     Widget content;
     if (_selectedCategory != null) {
@@ -426,7 +474,10 @@ class _MainPageState extends State<MainPage> {
           },
         ),
       ];
-      content = KeyedSubtree(key: ValueKey(_index), child: pages[_index]);
+      content = FocusScope(
+        node: _pageFocusScopes[_index],
+        child: KeyedSubtree(key: ValueKey(_index), child: pages[_index]),
+      );
     }
 
     return FocusScope(
@@ -478,7 +529,7 @@ class _MainPageState extends State<MainPage> {
                 // ── METADATA SYNC INDICATOR (ELITE UX) ──────────────────────
                 Row(
                   children: [
-                    if (isLandscape)
+                    if (useTvNavigation)
                       _SideNavBar(
                         currentIndex: _index,
                         onTap: _goTo,
@@ -512,11 +563,17 @@ class _MainPageState extends State<MainPage> {
                 ),
               ],
             ),
-            bottomNavigationBar: isLandscape
+            bottomNavigationBar: useTvNavigation
                 ? null
                 : BottomNavigationBar(
-                    currentIndex: _index,
-                    onTap: _goTo,
+                    currentIndex: _index <= 3 ? _index : 4,
+                    onTap: (index) {
+                      if (index <= 3) {
+                        _goTo(index);
+                      } else {
+                        _showMobileMore(s);
+                      }
+                    },
                     selectedItemColor: AppTheme.accent,
                     unselectedItemColor: AppTheme.textMuted,
                     backgroundColor: AppTheme.surface,
@@ -533,13 +590,8 @@ class _MainPageState extends State<MainPage> {
                           icon: const Icon(Icons.video_library),
                           label: s.navSeries),
                       BottomNavigationBarItem(
-                          icon: const Icon(Icons.search), label: s.navSearch),
-                      BottomNavigationBarItem(
-                          icon: const Icon(Icons.favorite),
-                          label: s.navFavorites),
-                      BottomNavigationBarItem(
-                          icon: const Icon(Icons.settings),
-                          label: s.navSettings),
+                          icon: const Icon(Icons.more_horiz),
+                          label: s.v52('more')),
                     ],
                   ),
           ),

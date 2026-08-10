@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../utils/aladin_async_limiter.dart';
 
 class TmdbService {
   TmdbService._();
@@ -35,6 +36,23 @@ class TmdbService {
       LinkedHashMap();
   final LinkedHashMap<String, Map<String, dynamic>> _movieCache =
       LinkedHashMap();
+  final AladinAsyncLimiter _networkLimiter = AladinAsyncLimiter(3);
+  final Map<String, DateTime> _negativeCache = {};
+
+  bool _isNegativeCached(String key) {
+    final until = _negativeCache[key];
+    if (until == null) return false;
+    if (DateTime.now().isBefore(until)) return true;
+    _negativeCache.remove(key);
+    return false;
+  }
+
+  void _rememberFailure(String key) {
+    _negativeCache[key] = DateTime.now().add(const Duration(minutes: 10));
+    if (_negativeCache.length > 300) {
+      _negativeCache.remove(_negativeCache.keys.first);
+    }
+  }
 
   void _putInCache(LinkedHashMap<String, Map<String, dynamic>> cache,
       String key, Map<String, dynamic> val) {
@@ -113,19 +131,29 @@ class TmdbService {
       {String? year, String lang = 'tr'}) async {
     // ⚡ GUARD: API Key build zamanında tanımlanmamışsa özelliği kapat
     final clean = cleanTitle(title);
-    final cached = _getFromCache(_movieCache, clean);
+    final cacheKey = 'movie|$lang|${year ?? ''}|${clean.toLowerCase()}';
+    final cached = _getFromCache(_movieCache, cacheKey);
     if (cached != null) return cached;
+    if (_isNegativeCached(cacheKey)) return null;
 
     try {
       final url = _searchUri('movie', clean, lang);
       if (url == null) return null;
 
-      final res = await http.get(url).timeout(const Duration(seconds: 8));
-      if (res.statusCode != 200) return null;
+      final res = await _networkLimiter.run(
+        () => http.get(url).timeout(const Duration(seconds: 8)),
+      );
+      if (res.statusCode != 200) {
+        _rememberFailure(cacheKey);
+        return null;
+      }
 
       final json = jsonDecode(res.body) as Map<String, dynamic>;
       final results = json['results'] as List<dynamic>;
-      if (results.isEmpty) return null;
+      if (results.isEmpty) {
+        _rememberFailure(cacheKey);
+        return null;
+      }
 
       Map<String, dynamic>? bestMatch;
 
@@ -154,10 +182,11 @@ class TmdbService {
         'year': (bestMatch['release_date'] as String?)?.split('-').firstOrNull,
       };
 
-      _putInCache(_movieCache, clean, data);
+      _putInCache(_movieCache, cacheKey, data);
       return data;
     } catch (e) {
       debugPrint('[TMDB] searchMovie error: $e');
+      _rememberFailure(cacheKey);
       return null;
     }
   }
@@ -168,19 +197,29 @@ class TmdbService {
     final clean = cleanTitle(title);
 
     // Cache check
-    final cached = _getFromCache(_seriesCache, clean);
+    final cacheKey = 'tv|$lang|${year ?? ''}|${clean.toLowerCase()}';
+    final cached = _getFromCache(_seriesCache, cacheKey);
     if (cached != null) return cached;
+    if (_isNegativeCached(cacheKey)) return null;
 
     try {
       final url = _searchUri('tv', clean, lang);
       if (url == null) return null;
 
-      final res = await http.get(url).timeout(const Duration(seconds: 8));
-      if (res.statusCode != 200) return null;
+      final res = await _networkLimiter.run(
+        () => http.get(url).timeout(const Duration(seconds: 8)),
+      );
+      if (res.statusCode != 200) {
+        _rememberFailure(cacheKey);
+        return null;
+      }
 
       final json = jsonDecode(res.body) as Map<String, dynamic>;
       final results = json['results'] as List<dynamic>;
-      if (results.isEmpty) return null;
+      if (results.isEmpty) {
+        _rememberFailure(cacheKey);
+        return null;
+      }
 
       Map<String, dynamic>? bestMatch;
 
@@ -211,10 +250,11 @@ class TmdbService {
       };
 
       // Save to cache
-      _putInCache(_seriesCache, clean, data);
+      _putInCache(_seriesCache, cacheKey, data);
       return data;
     } catch (e) {
       debugPrint('[TMDB] searchSeries error: $e');
+      _rememberFailure(cacheKey);
       return null;
     }
   }

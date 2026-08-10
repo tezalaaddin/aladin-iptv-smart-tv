@@ -15,7 +15,9 @@ import '../../shared/widgets/aladin_category_row.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_empty_state.dart';
 import '../../shared/widgets/aladin_category_menu.dart';
+import '../../shared/widgets/aladin_section_header.dart';
 import '../player/aladin_player_page.dart';
+import '../search/aladin_search_page.dart';
 
 class AladinSeriesDetailPage extends StatefulWidget {
   final String seriesName;
@@ -509,6 +511,20 @@ class _SeriesPageState extends State<SeriesPage> {
     );
   }
 
+  void _openSearch() {
+    final s = context.read<AppState>().s;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SearchPage(
+          isActive: true,
+          contentType: 'series',
+          sectionTitle: s.navSeries,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (_, state, __) {
@@ -528,6 +544,7 @@ class _SeriesPageState extends State<SeriesPage> {
       return Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AladinAppBar(
+            onSearch: _openSearch,
             onRefresh:
                 state.active != null ? () => _load(state.active!.id) : null),
         body: _loading && _categories.isEmpty
@@ -557,9 +574,12 @@ class _SeriesPageState extends State<SeriesPage> {
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(54, 18, 54, 4),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: AladinCategoryMenuButton(
+                            child: AladinSectionHeader(
+                              searchTooltip: state.s.navSearch,
+                              refreshTooltip: state.s.retry,
+                              onSearch: _openSearch,
+                              onRefresh: () => _load(state.active!.id),
+                              categoryButton: AladinCategoryMenuButton(
                                 categories: _categories,
                                 focusNode: widget.categoryFocusNode,
                                 onSelected: (category) =>

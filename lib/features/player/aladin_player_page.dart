@@ -217,6 +217,21 @@ class _PlayerPageState extends State<PlayerPage> {
           'diag_last_error': s.v52('lastPlaybackError'),
           'diag_none': s.v52('none'),
           'diag_dropped_frames': s.v52('droppedFrames'),
+          'play': s.v52('play'),
+          'pause': s.v52('pause'),
+          'rewind': s.v52('rewind10'),
+          'forward': s.v52('forward30'),
+          'channel_list': s.v52('channelList'),
+          'episodes': s.episodes,
+          'more': s.v52('more'),
+          'player_title': s.v52('playerTitle'),
+          'back_to_list': s.v52('backToList'),
+          'cancel': s.v52('cancel'),
+          'next_episode_starting': s.v52('nextEpisodeStarting'),
+          'quick_list': s.v52('quickList'),
+          'channel_fallback': s.v52('channelFallback'),
+          'retry': s.v52('retry'),
+          'shutdown_warning': s.v52('shutdownWarning'),
         }
       });
 

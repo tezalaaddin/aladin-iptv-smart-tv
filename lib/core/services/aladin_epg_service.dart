@@ -2,6 +2,19 @@ import 'package:isar_community/isar.dart';
 import '../database/aladin_isar_service.dart';
 import '../models/aladin_epg_model.dart';
 import 'aladin_epg_engine.dart';
+import '../utils/aladin_async_limiter.dart';
+
+class EpgNowNext {
+  const EpgNowNext(this.now, this.next);
+  final EpgProgramModel? now;
+  final EpgProgramModel? next;
+}
+
+class _TimedEpgValue {
+  const _TimedEpgValue(this.value, this.createdAt);
+  final EpgNowNext value;
+  final DateTime createdAt;
+}
 
 /// EpgService — query layer only. Sync is handled by [AladinEpgEngine].
 class EpgService {
@@ -11,9 +24,39 @@ class EpgService {
   Isar get _db => IsarService.instance.db;
 
   bool _isPaused = false;
+  final AladinAsyncLimiter _cardQueryLimiter = AladinAsyncLimiter(2);
+  final Map<String, _TimedEpgValue> _nowNextCache = {};
+  final Map<String, Future<EpgNowNext>> _pendingNowNext = {};
   bool get isPaused => _isPaused;
   void pauseQueries() => _isPaused = true;
   void resumeQueries() => _isPaused = false;
+
+  Future<EpgNowNext> getNowAndNext(String channelId, {String? cleanName}) {
+    final key =
+        '${AladinEpgEngine.normalizeId(channelId)}|${AladinEpgEngine.normalizeId(cleanName ?? '')}';
+    final cached = _nowNextCache[key];
+    if (cached != null &&
+        DateTime.now().difference(cached.createdAt) <
+            const Duration(minutes: 1)) {
+      return Future.value(cached.value);
+    }
+    final pending = _pendingNowNext[key];
+    if (pending != null) return pending;
+
+    final future = _cardQueryLimiter.run(() async {
+      final now = await getNowPlaying(channelId, cleanName: cleanName);
+      final upcoming =
+          await getUpcoming(channelId, cleanName: cleanName, limit: 1);
+      final value = EpgNowNext(now, upcoming.isEmpty ? null : upcoming.first);
+      _nowNextCache[key] = _TimedEpgValue(value, DateTime.now());
+      if (_nowNextCache.length > 300) {
+        _nowNextCache.remove(_nowNextCache.keys.first);
+      }
+      return value;
+    });
+    _pendingNowNext[key] = future;
+    return future.whenComplete(() => _pendingNowNext.remove(key));
+  }
 
   // ── Queries ───────────────────────────────────────────────────────────────
 

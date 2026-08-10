@@ -93,7 +93,7 @@
         <activity
             android:name=".NativePlayerActivity"
             android:exported="false"
-            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:configChanges="keyboardHidden|uiMode"
             android:screenOrientation="unspecified"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"

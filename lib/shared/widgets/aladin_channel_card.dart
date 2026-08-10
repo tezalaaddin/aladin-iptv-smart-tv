@@ -115,14 +115,12 @@ class _ChannelCardState extends State<ChannelCard> {
     final ch = widget.channel;
     final id = (ch.tvgId?.isNotEmpty == true) ? ch.tvgId! : ch.name;
     try {
-      final now =
-          await EpgService.instance.getNowPlaying(id, cleanName: ch.name);
-      final upcoming = await EpgService.instance
-          .getUpcoming(id, cleanName: ch.name, limit: 1);
+      final result =
+          await EpgService.instance.getNowAndNext(id, cleanName: ch.name);
       if (mounted)
         setState(() {
-          _nowPlaying = now;
-          _nextPlaying = upcoming.isEmpty ? null : upcoming.first;
+          _nowPlaying = result.now;
+          _nextPlaying = result.next;
           _epgLoaded = true;
         });
     } catch (_) {
@@ -163,211 +161,218 @@ class _ChannelCardState extends State<ChannelCard> {
             : 0.0);
 
     return RepaintBoundary(
-      child: Focus(
-        onFocusChange: (v) {
-          setState(() => _focused = v);
-          if (v) {
-            context.read<AppState>().setFocusedChannel(widget.channel);
-            // Kart odaklandığında ekranın ortasına veya görünür alana gelmesini sağlar
-            Scrollable.ensureVisible(
-              context,
-              alignment:
-                  0.5, // 0.5 değeri kartı ekranın dikey/yatay ortasına getirir
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
-        },
-        onKeyEvent: (node, event) {
-          final isSelect = event.logicalKey == LogicalKeyboardKey.select ||
-              event.logicalKey == LogicalKeyboardKey.enter ||
-              event.logicalKey == LogicalKeyboardKey.gameButtonA;
-          if (!isSelect) return KeyEventResult.ignored;
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: cleanName,
+        hint: _nowPlaying?.title,
+        child: Focus(
+          onFocusChange: (v) {
+            setState(() => _focused = v);
+            if (v) {
+              context.read<AppState>().setFocusedChannel(widget.channel);
+              // Kart odaklandığında ekranın ortasına veya görünür alana gelmesini sağlar
+              Scrollable.ensureVisible(
+                context,
+                alignment:
+                    0.5, // 0.5 değeri kartı ekranın dikey/yatay ortasına getirir
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          },
+          onKeyEvent: (node, event) {
+            final isSelect = event.logicalKey == LogicalKeyboardKey.select ||
+                event.logicalKey == LogicalKeyboardKey.enter ||
+                event.logicalKey == LogicalKeyboardKey.gameButtonA;
+            if (!isSelect) return KeyEventResult.ignored;
 
-          if (event is KeyDownEvent) {
-            _selectPressedAt ??= DateTime.now();
-            return KeyEventResult.handled;
-          }
-          if (event is KeyRepeatEvent) return KeyEventResult.handled;
-          if (event is KeyUpEvent) {
-            final pressedAt = _selectPressedAt;
-            _selectPressedAt = null;
-            final held = pressedAt == null
-                ? Duration.zero
-                : DateTime.now().difference(pressedAt);
-            if (held >= const Duration(milliseconds: 650) &&
-                widget.onLongPress != null) {
-              widget.onLongPress!();
-            } else {
-              widget.onTap();
+            if (event is KeyDownEvent) {
+              _selectPressedAt ??= DateTime.now();
+              return KeyEventResult.handled;
+            }
+            if (event is KeyRepeatEvent) return KeyEventResult.handled;
+            if (event is KeyUpEvent) {
+              final pressedAt = _selectPressedAt;
+              _selectPressedAt = null;
+              final held = pressedAt == null
+                  ? Duration.zero
+                  : DateTime.now().difference(pressedAt);
+              if (held >= const Duration(milliseconds: 650) &&
+                  widget.onLongPress != null) {
+                widget.onLongPress!();
+              } else {
+                widget.onTap();
+              }
+              return KeyEventResult.handled;
             }
             return KeyEventResult.handled;
-          }
-          return KeyEventResult.handled;
-        },
-        child: GestureDetector(
-          onTap: widget.onTap,
-          onLongPress: widget.onLongPress, // Uzun basma desteği eklendi
-          child: AnimatedContainer(
-            duration:
-                const Duration(milliseconds: 200), // Odaklanma animasyon süresi
-            curve: Curves.easeInOut,
-            width: widget.width, // AppTheme.cardWidth
-            height: widget.height, // AppTheme.cardHeight
-            margin: widget.margin ??
-                const EdgeInsets.only(right: 12), // Kartlar arası boşluk
-            transformAlignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..scaleByDouble(isSelected ? 1.08 : 1.0, isSelected ? 1.08 : 1.0,
-                  1.0, 1.0), // Odaklanınca %8 büyüme
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10), // Kart köşe yuvarlaması
-              border: Border.all(
-                color: isSelected
-                    ? AppTheme.accent
-                    : Colors.transparent, // Odak çerçevesi
-                width: 3.0,
+          },
+          child: GestureDetector(
+            onTap: widget.onTap,
+            onLongPress: widget.onLongPress, // Uzun basma desteği eklendi
+            child: AnimatedContainer(
+              duration: const Duration(
+                  milliseconds: 200), // Odaklanma animasyon süresi
+              curve: Curves.easeInOut,
+              width: widget.width, // AppTheme.cardWidth
+              height: widget.height, // AppTheme.cardHeight
+              margin: widget.margin ??
+                  const EdgeInsets.only(right: 12), // Kartlar arası boşluk
+              transformAlignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..scaleByDouble(isSelected ? 1.08 : 1.0,
+                    isSelected ? 1.08 : 1.0, 1.0, 1.0), // Odaklanınca %8 büyüme
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.circular(10), // Kart köşe yuvarlaması
+                border: Border.all(
+                  color: isSelected
+                      ? AppTheme.accent
+                      : Colors.transparent, // Odak çerçevesi
+                  width: 3.0,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.accent.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        )
+                      ]
+                    : [],
               ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppTheme.accent.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      )
-                    ]
-                  : [],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(isSelected ? 7 : 10),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  _buildContent(), // Afiş veya Logo
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(isSelected ? 7 : 10),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildContent(), // Afiş veya Logo
 
-                  // Alt karartma gradyanı
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.05),
-                            Colors.black.withValues(alpha: 0.7),
-                            Colors.black.withValues(alpha: 0.9),
+                    // Alt karartma gradyanı
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.05),
+                              Colors.black.withValues(alpha: 0.7),
+                              Colors.black.withValues(alpha: 0.9),
+                            ],
+                            stops: const [0.0, 0.4, 0.8, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // IMDb Rozeti
+                    if (rating.isNotEmpty)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: _Badge(
+                            text: rating,
+                            label: 'IMDb',
+                            color: const Color(0xFFF5C518),
+                            textColor: Colors.black),
+                      ),
+
+                    // Yıl Rozeti
+                    if (year != null && year.isNotEmpty)
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: _Badge(
+                            text: year,
+                            color: Colors.black54,
+                            textColor: Colors.white,
+                            isYear: true),
+                      ),
+
+                    // Catchup Rozeti
+                    if (_hasCatchup)
+                      Positioned(
+                        bottom: isTv ? 34 : 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                              color: Colors.blueAccent, shape: BoxShape.circle),
+                          child: const Icon(Icons.history,
+                              color: Colors.white, size: 12),
+                        ),
+                      ),
+
+                    // İsim ve EPG Bilgisi Alanı
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: compactTv ? 38 : (isTv ? 72 : 85),
+                      child: Container(
+                        padding: EdgeInsets.all(compactTv ? 4 : 8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _NameBar(
+                              displayName: cleanName,
+                              channel: widget.channel,
+                              nowPlaying: _epgLoaded ? _nowPlaying : null,
+                              nextPlaying: _epgLoaded ? _nextPlaying : null,
+                              compact: compactTv,
+                            ),
                           ],
-                          stops: const [0.0, 0.4, 0.8, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // IMDb Rozeti
-                  if (rating.isNotEmpty)
-                    Positioned(
-                      top: 6,
-                      left: 6,
-                      child: _Badge(
-                          text: rating,
-                          label: 'IMDb',
-                          color: const Color(0xFFF5C518),
-                          textColor: Colors.black),
-                    ),
-
-                  // Yıl Rozeti
-                  if (year != null && year.isNotEmpty)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: _Badge(
-                          text: year,
-                          color: Colors.black54,
-                          textColor: Colors.white,
-                          isYear: true),
-                    ),
-
-                  // Catchup Rozeti
-                  if (_hasCatchup)
-                    Positioned(
-                      bottom: isTv ? 34 : 6,
-                      right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                            color: Colors.blueAccent, shape: BoxShape.circle),
-                        child: const Icon(Icons.history,
-                            color: Colors.white, size: 12),
-                      ),
-                    ),
-
-                  // İsim ve EPG Bilgisi Alanı
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: compactTv ? 38 : (isTv ? 72 : 85),
-                    child: Container(
-                      padding: EdgeInsets.all(compactTv ? 4 : 8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _NameBar(
-                            displayName: cleanName,
-                            channel: widget.channel,
-                            nowPlaying: _epgLoaded ? _nowPlaying : null,
-                            nextPlaying: _epgLoaded ? _nextPlaying : null,
-                            compact: compactTv,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // İzleme İlerleme Çubuğu (VOD / Dizi)
-                  if (progress > 0 && widget.channel.contentType != 'tv')
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        height: 4,
-                        alignment: Alignment.centerLeft,
-                        color: Colors.white10,
-                        child: FractionallySizedBox(
-                          widthFactor: progress,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                                color: AppTheme.accent,
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: AppTheme.accent, blurRadius: 4)
-                                ]),
-                          ),
                         ),
                       ),
                     ),
 
-                  // EPG İlerleme Çubuğu (Sadece TV için)
-                  if (isTv && _nowPlaying != null)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: _EpgProgressBar(program: _nowPlaying!),
-                    ),
+                    // İzleme İlerleme Çubuğu (VOD / Dizi)
+                    if (progress > 0 && widget.channel.contentType != 'tv')
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          height: 4,
+                          alignment: Alignment.centerLeft,
+                          color: Colors.white10,
+                          child: FractionallySizedBox(
+                            widthFactor: progress,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                  color: AppTheme.accent,
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: AppTheme.accent, blurRadius: 4)
+                                  ]),
+                            ),
+                          ),
+                        ),
+                      ),
 
-                  // ⚡ OPTIMISTIC FAVORITE INDICATOR (MADDE 18)
-                  if (widget.channel.isFavorite)
-                    const Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Icon(Icons.favorite,
-                          color: AppTheme.accent, size: 16),
-                    ),
-                ],
+                    // EPG İlerleme Çubuğu (Sadece TV için)
+                    if (isTv && _nowPlaying != null)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _EpgProgressBar(program: _nowPlaying!),
+                      ),
+
+                    // ⚡ OPTIMISTIC FAVORITE INDICATOR (MADDE 18)
+                    if (widget.channel.isFavorite)
+                      const Positioned(
+                        top: 6,
+                        right: 6,
+                        child: Icon(Icons.favorite,
+                            color: AppTheme.accent, size: 16),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

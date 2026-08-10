@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/platform/aladin_device_profile.dart';
 import 'package:provider/provider.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../theme/aladin_app_theme.dart';
@@ -7,6 +8,7 @@ import '../theme/aladin_app_theme.dart';
 class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final VoidCallback? onRefresh;
+  final VoidCallback? onSearch;
   final List<Widget>? extraActions;
   final PreferredSizeWidget? bottom;
 
@@ -14,6 +16,7 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.title,
     this.onRefresh,
+    this.onSearch,
     this.extraActions,
     this.bottom,
   });
@@ -24,8 +27,7 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape = AladinDeviceProfile.of(context).isTelevision;
     if (isLandscape) return const SizedBox.shrink();
 
     final s = context.read<AppState>().s;
@@ -34,7 +36,7 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: AppTheme.background,
       elevation: 0,
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: Navigator.canPop(context),
       titleSpacing: 0,
       title: Padding(
         padding: EdgeInsets.symmetric(horizontal: safePadding),
@@ -60,9 +62,16 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
             const Spacer(),
             // Butonlar
             if (extraActions != null) ...extraActions!,
+            if (onSearch != null)
+              _AppBarButton(
+                icon: Icons.search,
+                tooltip: s.navSearch,
+                onPressed: onSearch!,
+              ),
             if (onRefresh != null)
               _AppBarButton(
                 icon: Icons.refresh,
+                tooltip: s.retry,
                 onPressed: onRefresh!,
               ),
           ],
@@ -80,7 +89,9 @@ class AladinAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _AppBarButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onPressed;
-  const _AppBarButton({required this.icon, required this.onPressed});
+  final String? tooltip;
+  const _AppBarButton(
+      {required this.icon, required this.onPressed, this.tooltip});
 
   @override
   State<_AppBarButton> createState() => _AppBarButtonState();
@@ -93,6 +104,7 @@ class _AppBarButtonState extends State<_AppBarButton> {
     return Focus(
       onFocusChange: (v) => setState(() => _focused = v),
       child: IconButton(
+        tooltip: widget.tooltip,
         icon: Icon(widget.icon,
             color: _focused ? AppTheme.accent : AppTheme.textSecondary,
             size: 22),

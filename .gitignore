@@ -61,3 +61,17 @@ app.*.map.json
 /build*.log
 /gradle_stop.cmd
 /tool_build_*.cmd
+
+# Isolated release-build caches and local release artifacts
+/.gradle-build-cache/
+/.gradle-user/
+/.pub-build-cache/
+/.android-build-user/
+/.codex-flutter-test-sdk/
+/.codex-tmp/
+/.codex-appdata/
+/.flutter-gradle-plugin/
+/flutter-gradle-plugin-local/
+/flutter-sdk-local/
+/outputs/
+/assets/legacy-tv-artwork/

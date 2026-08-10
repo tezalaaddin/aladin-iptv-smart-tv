@@ -10,8 +10,10 @@ import '../../shared/widgets/aladin_category_row.dart';
 import '../../shared/widgets/aladin_channel_card.dart';
 import '../../shared/widgets/aladin_empty_state.dart';
 import '../../shared/widgets/aladin_category_menu.dart';
+import '../../shared/widgets/aladin_section_header.dart';
 import '../player/aladin_player_page.dart';
 import '../content/aladin_catchup_page.dart';
+import '../search/aladin_search_page.dart';
 
 class LiveTvPage extends StatefulWidget {
   final VoidCallback? onGoToSettings;
@@ -171,6 +173,20 @@ class _LiveTvPageState extends State<LiveTvPage> {
     }
   }
 
+  void _openSearch() {
+    final s = context.read<AppState>().s;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SearchPage(
+          isActive: true,
+          contentType: 'tv',
+          sectionTitle: s.navLiveTV,
+        ),
+      ),
+    );
+  }
+
   Future<void> _confirmRemoveFavorite(ChannelModel ch) async {
     final s = context.read<AppState>().s;
     final ok = await showDialog<bool>(
@@ -211,6 +227,7 @@ class _LiveTvPageState extends State<LiveTvPage> {
       return Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AladinAppBar(
+          onSearch: _openSearch,
           onRefresh: () => _load(state.active!.id),
         ),
         body: RefreshIndicator(
@@ -248,9 +265,12 @@ class _LiveTvPageState extends State<LiveTvPage> {
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(54, 18, 54, 4),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: AladinCategoryMenuButton(
+                            child: AladinSectionHeader(
+                              searchTooltip: state.s.navSearch,
+                              refreshTooltip: state.s.retry,
+                              onSearch: _openSearch,
+                              onRefresh: () => _load(state.active!.id),
+                              categoryButton: AladinCategoryMenuButton(
                                 categories: _categories,
                                 focusNode: widget.categoryFocusNode,
                                 onSelected: (category) =>

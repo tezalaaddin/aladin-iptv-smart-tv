@@ -15,38 +15,37 @@ class AppStrings {
 
   String _t(String k) => _map[k] ?? k;
 
+  int _matrixLanguageIndex() {
+    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
+    final normalized = langCode.toLowerCase().split(RegExp('[-_]')).first;
+    final index = codes.indexOf(normalized);
+    return index < 0 ? 1 : index;
+  }
+
   /// +49 feature strings. Kept in a compact matrix to guarantee that every
   /// newly introduced TV surface has all eight supported languages.
   String v49(String key) {
-    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
     final values = _v49[key];
     if (values == null) return key;
-    final index = codes.indexOf(langCode);
-    return values[index < 0 ? 1 : index];
+    return values[_matrixLanguageIndex()];
   }
 
   String v50(String key) {
-    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
     final values = _v50[key];
     if (values == null) return key;
-    final index = codes.indexOf(langCode);
-    return values[index < 0 ? 1 : index];
+    return values[_matrixLanguageIndex()];
   }
 
   String v51(String key) {
-    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
     final values = _v51[key];
     if (values == null) return key;
-    final index = codes.indexOf(langCode);
-    return values[index < 0 ? 1 : index];
+    return values[_matrixLanguageIndex()];
   }
 
   String v52(String key) {
-    const codes = ['tr', 'en', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
     final values = _v52[key];
     if (values == null) return key;
-    final index = codes.indexOf(langCode);
-    return values[index < 0 ? 1 : index];
+    return values[_matrixLanguageIndex()];
   }
 
   static const Map<String, List<String>> _v52 = {
@@ -940,6 +939,147 @@ class AppStrings {
       '丢帧',
       'الإطارات المفقودة'
     ],
+    'similarOptions': [
+      'Benzer seçenekler',
+      'Similar options',
+      'Ähnliche Optionen',
+      'Options similaires',
+      'Opciones similares',
+      'Похожие варианты',
+      '相似选项',
+      'خيارات مشابهة'
+    ],
+    'play': [
+      'Oynat',
+      'Play',
+      'Abspielen',
+      'Lire',
+      'Reproducir',
+      'Воспроизвести',
+      '播放',
+      'تشغيل'
+    ],
+    'pause': [
+      'Duraklat',
+      'Pause',
+      'Pause',
+      'Pause',
+      'Pausa',
+      'Пауза',
+      '暂停',
+      'إيقاف مؤقت'
+    ],
+    'rewind10': [
+      '10 sn geri',
+      'Back 10 sec',
+      '10 Sek. zurück',
+      'Reculer de 10 s',
+      'Retroceder 10 s',
+      'Назад на 10 с',
+      '后退 10 秒',
+      'رجوع 10 ثوانٍ'
+    ],
+    'forward30': [
+      '30 sn ileri',
+      'Forward 30 sec',
+      '30 Sek. vor',
+      'Avancer de 30 s',
+      'Avanzar 30 s',
+      'Вперёд на 30 с',
+      '前进 30 秒',
+      'تقديم 30 ثانية'
+    ],
+    'channelList': [
+      'Kanal listesi',
+      'Channel list',
+      'Kanalliste',
+      'Liste des chaînes',
+      'Lista de canales',
+      'Список каналов',
+      '频道列表',
+      'قائمة القنوات'
+    ],
+    'playerTitle': [
+      'Oynatıcı',
+      'Player',
+      'Player',
+      'Lecteur',
+      'Reproductor',
+      'Плеер',
+      '播放器',
+      'المشغل'
+    ],
+    'backToList': [
+      'Listeye dön',
+      'Back to list',
+      'Zurück zur Liste',
+      'Retour à la liste',
+      'Volver a la lista',
+      'Вернуться к списку',
+      '返回列表',
+      'العودة إلى القائمة'
+    ],
+    'cancel': [
+      'İptal',
+      'Cancel',
+      'Abbrechen',
+      'Annuler',
+      'Cancelar',
+      'Отмена',
+      '取消',
+      'إلغاء'
+    ],
+    'nextEpisodeStarting': [
+      'Sonraki bölüm başlıyor',
+      'Next episode starting',
+      'Nächste Folge startet',
+      'Le prochain épisode commence',
+      'Comienza el siguiente episodio',
+      'Начинается следующая серия',
+      '下一集即将开始',
+      'ستبدأ الحلقة التالية'
+    ],
+    'quickList': [
+      'Hızlı liste',
+      'Quick list',
+      'Schnellliste',
+      'Liste rapide',
+      'Lista rápida',
+      'Быстрый список',
+      '快速列表',
+      'القائمة السريعة'
+    ],
+    'channelFallback': [
+      'Kanal',
+      'Channel',
+      'Kanal',
+      'Chaîne',
+      'Canal',
+      'Канал',
+      '频道',
+      'قناة'
+    ],
+    'retry': [
+      'Yeniden bağlanılıyor',
+      'Reconnecting',
+      'Verbindung wird wiederhergestellt',
+      'Reconnexion',
+      'Reconectando',
+      'Повторное подключение',
+      '正在重新连接',
+      'جارٍ إعادة الاتصال'
+    ],
+    'shutdownWarning': [
+      'Uygulama kapatılıyor…',
+      'The app is closing…',
+      'Die App wird geschlossen…',
+      'Fermeture de l’application…',
+      'La aplicación se está cerrando…',
+      'Приложение закрывается…',
+      '应用即将关闭…',
+      'جارٍ إغلاق التطبيق…'
+    ],
+    'more': ['Diğer', 'More', 'Mehr', 'Plus', 'Más', 'Ещё', '更多', 'المزيد'],
   };
 
   static const Map<String, List<String>> _v51 = {
