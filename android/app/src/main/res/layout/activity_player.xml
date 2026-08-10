@@ -67,17 +67,31 @@
         android:paddingLeft="48dp"
         android:paddingRight="48dp">
 
+        <TextView
+            android:id="@+id/tv_seek_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="2dp"
+            android:background="#D9000000"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <SeekBar
             android:id="@+id/player_seekbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="6dp"
-            android:maxHeight="6dp"
+            android:layout_height="48dp"
+            android:minHeight="48dp"
+            android:maxHeight="48dp"
             android:progressDrawable="@drawable/custom_seekbar_style"
-            android:thumb="@android:color/transparent"
+            android:thumb="@drawable/player_seek_thumb"
             android:splitTrack="false"
-            android:paddingLeft="0dp"
-            android:paddingRight="0dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
             android:visibility="gone" />
 
         <TextView
@@ -86,8 +100,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="4dp"
-            android:textColor="#BBBBBB"
-            android:textSize="13sp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -124,6 +139,16 @@
                 android:src="@android:drawable/btn_star_big_off"
                 android:visibility="visible" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/tv_media_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text=""
+            android:textColor="#CCFFFFFF"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <!-- İçerik türüne duyarlı, D-pad odaklı birincil kontrol şeridi. -->
@@ -481,6 +506,31 @@
             android:textSize="10sp"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tv_diag_summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text=""
+            android:textColor="#4CAF50"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btn_diag_details"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/player_control_selector"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:text=""
+            android:textColor="@color/player_control_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_diag_internet"

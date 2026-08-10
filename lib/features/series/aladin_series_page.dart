@@ -9,6 +9,7 @@ import '../../core/services/aladin_playlist_service.dart';
 import '../../core/services/aladin_tmdb_service.dart';
 import '../../core/state/aladin_app_state.dart';
 import '../../core/parsers/aladin_xtream_parser.dart';
+import '../../core/utils/aladin_episode_deduplicator.dart';
 import '../../shared/theme/aladin_app_theme.dart';
 import '../../shared/widgets/aladin_app_bar.dart';
 import '../../shared/widgets/aladin_category_row.dart';
@@ -90,7 +91,7 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
     if (!mounted) return;
     setState(() {
       // Sadece oynatılabilir (URL'si olan) bölümleri listeye al
-      _eps = eps.where((e) => e.url.isNotEmpty).toList();
+      _eps = deduplicateEpisodes(eps);
       // Bilgi paneli için (afiş vs) ilk kaydı (ana kayıt da olabilir) kullan
       _rep = eps.isNotEmpty ? eps.first : null;
       _loading = false;
@@ -162,7 +163,6 @@ class _AladinSeriesDetailPageState extends State<AladinSeriesDetailPage> {
     return Column(children: [
       if (_rep?.tmdbPoster != null || _rep?.tmdbOverview != null)
         _infoPanel(state, compact: true),
-      _seasonBar(seasons),
       Expanded(child: _episodeList(state)),
     ]);
   }

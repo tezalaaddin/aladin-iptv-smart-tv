@@ -8,6 +8,8 @@ import '../database/aladin_isar_service.dart';
 import '../models/aladin_channel_model.dart';
 import '../models/aladin_category_model.dart';
 import '../state/aladin_app_prefs.dart';
+import '../utils/aladin_content_identity.dart';
+import '../utils/aladin_episode_deduplicator.dart';
 import 'aladin_parental_service.dart';
 import 'aladin_content_visibility_service.dart';
 
@@ -67,7 +69,7 @@ class ChannelService {
           channel.playlistId == playlistId &&
           ParentalService.instance.canExpose(channel)) result.add(channel);
     }
-    return result;
+    return deduplicateContent(result);
   }
 
   Future<void> clearChannelHistory() =>
@@ -100,7 +102,7 @@ class ChannelService {
               0;
       return bCount.compareTo(aCount);
     });
-    return candidates
+    return deduplicateContent(candidates)
         .where((channel) =>
             ((counts[ParentalService.instance.channelKey(channel)] as num?)
                     ?.toInt() ??
@@ -336,27 +338,49 @@ class ChannelService {
         .and()
         .isFavoriteEqualTo(true)
         .findAll();
-    return items.where(ParentalService.instance.canExpose).toList();
+    return deduplicateContent(
+      items.where(ParentalService.instance.canExpose),
+    );
   }
 
   Future<void> toggleFavorite(int channelId) async {
-    await _db.writeTxn(() async {
-      final ch = await _db.channelModels.get(channelId);
-      if (ch != null) {
-        ch.isFavorite = !ch.isFavorite;
-        await _db.channelModels.put(ch);
-      }
-    });
+    final ch = await _db.channelModels.get(channelId);
+    if (ch == null) return;
+    await _setLogicalFavorite(ch, !ch.isFavorite);
   }
 
   Future<void> setFavoriteByUrl(String url, bool isFavorite) async {
+    final ch = await _db.channelModels.filter().urlEqualTo(url).findFirst();
+    if (ch != null) await _setLogicalFavorite(ch, isFavorite);
+  }
+
+  Future<void> _setLogicalFavorite(
+      ChannelModel selected, bool isFavorite) async {
+    final identity = contentIdentity(selected);
+    final matches = <ChannelModel>[];
+    // A bounded scan avoids loading a very large IPTV database into low-memory
+    // TVs while still finding legacy records with different URLs/provider IDs.
+    var offset = 0;
+    const batchSize = 1000;
+    while (true) {
+      final batch = await _db.channelModels
+          .filter()
+          .playlistIdEqualTo(selected.playlistId)
+          .and()
+          .contentTypeEqualTo(selected.contentType)
+          .offset(offset)
+          .limit(batchSize)
+          .findAll();
+      matches.addAll(batch.where((item) => contentIdentity(item) == identity));
+      if (batch.length < batchSize) break;
+      offset += batchSize;
+    }
+    if (matches.isEmpty) matches.add(selected);
     await _db.writeTxn(() async {
-      final matches =
-          await _db.channelModels.filter().urlEqualTo(url).findAll();
-      for (final ch in matches) {
-        ch.isFavorite = isFavorite;
-        await _db.channelModels.put(ch);
+      for (final item in matches) {
+        item.isFavorite = isFavorite;
       }
+      await _db.channelModels.putAll(matches);
     });
   }
 
@@ -368,9 +392,11 @@ class ChannelService {
         .playlistIdEqualTo(playlistId)
         .lastWatchedIsNotNull()
         .sortByLastWatchedDesc()
-        .limit(limit)
+        .limit(limit * 4)
         .findAll();
-    return items.where(ParentalService.instance.canExpose).toList();
+    return deduplicateContent(items.where(ParentalService.instance.canExpose))
+        .take(limit)
+        .toList(growable: false);
   }
 
   Future<ChannelModel?> getLastWatched(int playlistId) => _db.channelModels
@@ -493,7 +519,7 @@ class ChannelService {
         .findAll();
 
     final results = <ChannelModel>[];
-    final seenSeries = <String>{};
+    final seen = <String>{};
 
     for (final ch in allRecent) {
       if (results.length >= limit) break;
@@ -503,13 +529,7 @@ class ChannelService {
       if (percent < 3 || percent > 90) continue;
 
       // 2. Dizi Tekilleştirme (Sadece en son izlenen bölüm)
-      if (ch.contentType == 'series') {
-        final seriesKey =
-            ch.seriesName?.trim().toLowerCase() ?? ch.name.trim().toLowerCase();
-        if (seenSeries.contains(seriesKey))
-          continue; // Daha yenisi zaten eklendi
-        seenSeries.add(seriesKey);
-      }
+      if (!seen.add(contentIdentity(ch))) continue;
 
       if (ParentalService.instance.canExpose(ch)) results.add(ch);
     }
@@ -529,9 +549,9 @@ class ChannelService {
         .sortByLastWatchedDesc()
         .limit(limit * 3)
         .findAll();
-    return recent
-        .where((ch) => ch.watchedSeconds / ch.totalDurationSeconds > 0.90)
-        .where(ParentalService.instance.canExpose)
+    return deduplicateContent(recent
+            .where((ch) => ch.watchedSeconds / ch.totalDurationSeconds > 0.90)
+            .where(ParentalService.instance.canExpose))
         .take(limit)
         .toList(growable: false);
   }
@@ -555,11 +575,11 @@ class ChannelService {
       if (seriesName != null && seriesName.isNotEmpty) {
         final episodes =
             await getSeriesEpisodes(selected.playlistId, seriesName);
-        final playable = episodes
+        final playable = deduplicateEpisodes(episodes
             .where((item) => item.url.trim().isNotEmpty)
             .where(ParentalService.instance.canExpose)
             .where(ContentVisibilityService.instance.isChannelVisible)
-            .toList(growable: false);
+            .toList(growable: false));
         if (playable.any((item) => item.id == selected.id)) return playable;
       }
     }
@@ -589,11 +609,13 @@ class ChannelService {
         .limit(radius)
         .findAll();
 
-    return <ChannelModel>[...before.reversed, selected, ...after]
-        .where((item) => item.url.trim().isNotEmpty)
-        .where(ParentalService.instance.canExpose)
-        .where(ContentVisibilityService.instance.isChannelVisible)
-        .toList(growable: false);
+    return deduplicateContent(
+      <ChannelModel>[...before.reversed, selected, ...after]
+          .where((item) => item.url.trim().isNotEmpty)
+          .where(ParentalService.instance.canExpose)
+          .where(ContentVisibilityService.instance.isChannelVisible),
+      playable: true,
+    );
   }
 
   Future<List<ChannelModel>> search(
@@ -612,10 +634,10 @@ class ChannelService {
     if (contentType != null) {
       queryBuilder = queryBuilder.and().contentTypeEqualTo(contentType);
     }
-    final items = await queryBuilder
-        .limit(limit)
-        .findAll();
-    return items.where(ParentalService.instance.canExpose).toList();
+    final items = await queryBuilder.limit(limit * 4).findAll();
+    return deduplicateContent(items.where(ParentalService.instance.canExpose))
+        .take(limit)
+        .toList(growable: false);
   }
 
   /// ⚡ PRO FEATURE: Fuzzy search for "Similar results"
@@ -640,9 +662,7 @@ class ChannelService {
     if (contentType != null) {
       queryBuilder = queryBuilder.and().contentTypeEqualTo(contentType);
     }
-    final subset = await queryBuilder
-        .limit(1000)
-        .findAll();
+    final subset = await queryBuilder.limit(1000).findAll();
 
     if (subset.isEmpty) return [];
 
@@ -662,7 +682,9 @@ class ChannelService {
     );
 
     final results = fuse.search(trimmed);
-    return results.map((r) => r.item).take(limit).toList();
+    return deduplicateContent(results.map((r) => r.item))
+        .take(limit)
+        .toList(growable: false);
   }
 
   // ── Series helpers ─────────────────────────────────────────────────────────
@@ -703,7 +725,7 @@ class ChannelService {
   Future<List<ChannelModel>> getSeriesEpisodes(
       int playlistId, String sName) async {
     final trimmed = sName.trim();
-    return _db.channelModels
+    final episodes = await _db.channelModels
         .filter()
         .playlistIdEqualTo(playlistId)
         .and()
@@ -713,6 +735,7 @@ class ChannelService {
         .sortBySeason()
         .thenByEpisode()
         .findAll();
+    return deduplicateEpisodes(episodes);
   }
 
   Future<List<ChannelModel>> getEpisodes({
@@ -733,7 +756,8 @@ class ChannelService {
       query = query.and().seasonEqualTo(season);
     }
 
-    return query.sortBySeason().thenByEpisode().findAll();
+    return deduplicateEpisodes(
+        await query.sortBySeason().thenByEpisode().findAll());
   }
 
   Future<List<ChannelModel>> getRecentlyAdded(int playlistId,
@@ -776,10 +800,7 @@ class ChannelService {
     final seen = <String>{};
     final result = <ChannelModel>[];
     for (final ch in candidates) {
-      final seriesName = ch.seriesName?.trim();
-      final key = ch.contentType == 'series'
-          ? 'series:${(seriesName?.isNotEmpty == true ? seriesName! : ch.name).toLowerCase()}'
-          : 'id:${ch.id}';
+      final key = contentIdentity(ch);
       if (seen.add(key)) result.add(ch);
       if (result.length >= limit) break;
     }
@@ -804,23 +825,7 @@ class ChannelService {
         .limit(fetchLimit)
         .findAll();
 
-    final seenSeries = <String>{};
-    final filtered = <ChannelModel>[];
-    for (final ch in all) {
-      if (ch.contentType == 'series') {
-        final key = (ch.seriesName?.trim().isNotEmpty == true
-                ? ch.seriesName!
-                : ch.name)
-            .toLowerCase();
-        if (seenSeries.add(key)) {
-          filtered.add(ch);
-        }
-      } else {
-        filtered.add(ch);
-      }
-      if (filtered.length >= limit) break;
-    }
-    return filtered;
+    return deduplicateContent(all).take(limit).toList(growable: false);
   }
 
   Future<void> saveChannels(List<ChannelModel> channels) async {

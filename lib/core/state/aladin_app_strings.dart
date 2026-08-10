@@ -1080,6 +1080,46 @@ class AppStrings {
       'جارٍ إغلاق التطبيق…'
     ],
     'more': ['Diğer', 'More', 'Mehr', 'Plus', 'Más', 'Ещё', '更多', 'المزيد'],
+    'connectionGood': [
+      'Bağlantı iyi',
+      'Connection is good',
+      'Verbindung ist gut',
+      'La connexion est bonne',
+      'La conexión es buena',
+      'Соединение хорошее',
+      '连接良好',
+      'الاتصال جيد'
+    ],
+    'connectionWeak': [
+      'Bağlantı kararsız',
+      'Connection is unstable',
+      'Verbindung ist instabil',
+      'La connexion est instable',
+      'La conexión es inestable',
+      'Соединение нестабильно',
+      '连接不稳定',
+      'الاتصال غير مستقر'
+    ],
+    'streamProblemDetected': [
+      'Yayın sorunu algılandı',
+      'Stream problem detected',
+      'Stream-Problem erkannt',
+      'Problème de diffusion détecté',
+      'Se detectó un problema de emisión',
+      'Обнаружена проблема трансляции',
+      '检测到播放问题',
+      'تم اكتشاف مشكلة في البث'
+    ],
+    'technicalDetails': [
+      'Teknik ayrıntılar',
+      'Technical details',
+      'Technische Details',
+      'Détails techniques',
+      'Detalles técnicos',
+      'Технические сведения',
+      '技术详情',
+      'التفاصيل التقنية'
+    ],
   };
 
   static const Map<String, List<String>> _v51 = {

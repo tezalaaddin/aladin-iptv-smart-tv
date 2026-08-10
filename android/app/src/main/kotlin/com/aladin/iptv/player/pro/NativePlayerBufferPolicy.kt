@@ -4,7 +4,9 @@ import androidx.media3.exoplayer.DefaultLoadControl
 
 internal object NativePlayerBufferPolicy {
     fun create(isLive: Boolean, isLowMemory: Boolean, isHighMemory: Boolean, profile: String): DefaultLoadControl {
-        val lowBytes = 24 * 1024 * 1024
+        // Keep enough compressed media for stable playback without allowing a
+        // single player to pressure 1-2 GB TV boxes into GC thrashing.
+        val lowBytes = 16 * 1024 * 1024
         val highBytes = 64 * 1024 * 1024
         val normalBytes = DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES
         val values = when {
@@ -21,7 +23,7 @@ internal object NativePlayerBufferPolicy {
         return DefaultLoadControl.Builder()
             .setBufferDurationsMs(values.first, values.second, 2_500, 5_000)
             .setTargetBufferBytes(values.third)
-            .setPrioritizeTimeOverSizeThresholds(true)
+            .setPrioritizeTimeOverSizeThresholds(!isLowMemory)
             .build()
     }
 }

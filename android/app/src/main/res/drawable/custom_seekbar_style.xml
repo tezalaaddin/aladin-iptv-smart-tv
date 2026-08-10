@@ -22,7 +22,7 @@
         <clip>
             <shape>
                 <corners android:radius="3dp" />
-                <solid android:color="#FFFFFF" /> <!-- Tam Beyaz -->
+                <solid android:color="#FFFF6D00" />
             </shape>
         </clip>
     </item>

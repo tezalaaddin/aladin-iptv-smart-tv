@@ -179,6 +179,22 @@ void main() {
     }
   });
 
+  test('player connection summaries are localized in every language', () {
+    const keys = [
+      'connectionGood',
+      'connectionWeak',
+      'streamProblemDetected',
+      'technicalDetails',
+    ];
+    for (final language in AppStrings.getLanguageNames().keys) {
+      final strings = AppStrings.of(language);
+      for (final key in keys) {
+        expect(strings.v52(key), isNot(equals(key)), reason: '$language/$key');
+        expect(strings.v52(key).trim(), isNotEmpty, reason: '$language/$key');
+      }
+    }
+  });
+
   test('TV card density presets stay 16:9 and ordered by size', () {
     final compact = TvCardMetrics.fromPreference(null);
     final standard = TvCardMetrics.fromPreference('standard');

@@ -5,6 +5,12 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
 
 ## Tamamlananlar
 
+- **Tamamlandı:** TV kumandası için sağdan açılan, büyük hedefli ve odağı geri yükleyen ikincil oynatıcı paneli.
+- **Tamamlandı:** Oynatıcı OSD'sinde aktif çözünürlük, ses dili ve altyazı durumunun görünür sunumu.
+- **Tamamlandı:** Tanılamada kullanıcı dostu bağlantı özeti ile isteğe bağlı teknik ayrıntı ayrımı.
+- **Tamamlandı:** 1-2 GB TV cihazlarında 16 MB sert medya buffer tavanı ve bellek öncelikli yükleme politikası.
+- **Tamamlandı:** Oynatıcı kontrol ve sunum sorumluluklarının ayrı native sınıflara çıkarılması.
+
 - **Tamamlandı:** Telefon, tablet ve yön tuşlu Android TV için merkezi cihaz profili.
 - **Tamamlandı:** Yatay telefonların yanlışlıkla TV yan menüsüne geçmesini engelleyen navigasyon ayrımı.
 - **Tamamlandı:** Mobil alt navigasyonun beş ana öğeye sadeleştirilmesi ve ek hedeflerin erişilebilir alt menüye taşınması.
@@ -56,3 +62,10 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
   ancak test koşusu normal kullanıcı terminalinde ayrıca çalıştırılmalıdır.
 - **Eksik:** Telefon otomasyonunda kart boyutu ayarının görsel doğrulaması. Telefon yatay
   TV düzeninde senkronizasyon ekranında kaldığı için ayar satırına otomatik odaklanılamadı.
+# Product completion follow-up
+
+- [Tamamlandı] Favoriler, ana sayfa rafları, arama, geçmiş ve oynatma kuyrukları için ortak mantıksal içerik kimliği
+- [Tamamlandı] Dizi favorilerini tek karta indirme; oynatma sırasında sezon/bölüm ayrımını koruma
+- [Tamamlandı] Alternatif URL ve HD/FHD/Yedek kaynaklarını veri silmeden tekilleştirme
+- [Tamamlandı] Favori durumunu aynı içeriğin bütün kaynaklarına düşük bellekli, toplu taramayla uygulama
+- [Tamamlandı] Film yeniden yapımlarını yıl bilgisiyle birbirinden ayırma

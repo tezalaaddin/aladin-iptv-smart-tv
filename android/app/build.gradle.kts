@@ -54,6 +54,11 @@ android {
             // Madde 2: Fallback KALDIRILDI. key.properties yoksa build kasıtlı olarak hata verir.
             // Hatalı/debug-imzalı AAB'nin Play Store'a gitmesini engeller.
             signingConfig = signingConfigs.getByName("release")
+            // Publish native symbol tables for Play crash reports while the
+            // shared libraries delivered to users stay stripped and compact.
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
             isMinifyEnabled    = true
             isShrinkResources  = true
             proguardFiles(
