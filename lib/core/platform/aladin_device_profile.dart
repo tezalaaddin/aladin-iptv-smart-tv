@@ -18,8 +18,12 @@ class AladinDeviceProfile {
   bool get isTablet => deviceClass == AladinDeviceClass.tablet;
   bool get isTelevision => deviceClass == AladinDeviceClass.television;
   bool get isPortrait => orientation == Orientation.portrait;
-  bool get useTvNavigation => isTelevision;
-  bool get useCompactNavigation => !isTelevision;
+  // Large fixed landscape surfaces (including touch-first car head units)
+  // benefit from the same side navigation as televisions. Landscape phones
+  // stay compact because their shortest side remains below the tablet limit.
+  bool get useTvNavigation =>
+      isTelevision || (isTablet && orientation == Orientation.landscape);
+  bool get useCompactNavigation => !useTvNavigation;
 
   static AladinDeviceProfile of(BuildContext context) {
     final media = MediaQuery.of(context);

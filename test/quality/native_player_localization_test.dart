@@ -73,14 +73,36 @@ void main() {
     final activity = File(
       'android/app/src/main/kotlin/com/aladin/iptv/player/pro/NativePlayerActivity.kt',
     ).readAsStringSync();
+    final policy = File(
+      'android/app/src/main/kotlin/com/aladin/iptv/player/pro/CarHeadUnitPolicy.kt',
+    ).readAsStringSync();
 
     expect(activity, contains('isSteeringNavigationDevice'));
-    expect(activity, contains('PackageManager.FEATURE_AUTOMOTIVE'));
-    expect(activity, contains('model.contains("k2401")'));
+    expect(policy, contains('PackageManager.FEATURE_AUTOMOTIVE'));
+    expect(policy, contains('model.contains("k2401")'));
     expect(activity, contains('KeyEvent.KEYCODE_MEDIA_PREVIOUS'));
     expect(activity, contains('KeyEvent.KEYCODE_MEDIA_NEXT'));
     expect(activity, contains('switchChannelBy(-1)'));
     expect(activity, contains('switchChannelBy(1)'));
     expect(activity, contains('if (isSteeringNavigationDevice)'));
+  });
+
+  test('car head units use one landscape and steering device policy', () {
+    final policy = File(
+      'android/app/src/main/kotlin/com/aladin/iptv/player/pro/CarHeadUnitPolicy.kt',
+    ).readAsStringSync();
+    final mainActivity = File(
+      'android/app/src/main/kotlin/com/aladin/iptv/player/pro/MainActivity.kt',
+    ).readAsStringSync();
+    final playerActivity = File(
+      'android/app/src/main/kotlin/com/aladin/iptv/player/pro/NativePlayerActivity.kt',
+    ).readAsStringSync();
+
+    expect(policy, contains('ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE'));
+    expect(policy, contains('model.contains("k2401")'));
+    expect(policy, contains('PackageManager.FEATURE_AUTOMOTIVE'));
+    expect(mainActivity, contains('CarHeadUnitPolicy.enforceLandscape(this)'));
+    expect(playerActivity, contains('CarHeadUnitPolicy.enforceLandscape(this)'));
+    expect(playerActivity, contains('CarHeadUnitPolicy.isCarHeadUnit(this)'));
   });
 }

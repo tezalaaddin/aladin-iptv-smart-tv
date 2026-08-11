@@ -65,6 +65,8 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
 # Product completion follow-up
 
 - [Tamamlandı] Android Automotive ve K2401 sınıfı direksiyon kumandalarında önceki/sonraki kanal kontrolü
+- [Tamamlandı] Android Automotive ve K2401 sınıfı sabit araç ekranlarında uygulama genelinde yatay yön kilidi
+- [Tamamlandı] Yatay tablet ve araç ekranlarında alt menü yerine TV tipi sol yan navigasyon
 - [Tamamlandı] Favoriler, ana sayfa rafları, arama, geçmiş ve oynatma kuyrukları için ortak mantıksal içerik kimliği
 - [Tamamlandı] Dizi favorilerini tek karta indirme; oynatma sırasında sezon/bölüm ayrımını koruma
 - [Tamamlandı] Alternatif URL ve HD/FHD/Yedek kaynaklarını veri silmeden tekilleştirme

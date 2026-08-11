@@ -27,4 +27,11 @@ void main() {
     expect(profile.isTablet, isTrue);
     expect(profile.useCompactNavigation, isTrue);
   });
+
+  test('landscape tablet and car surfaces receive side navigation', () {
+    final profile = AladinDeviceProfile.fromSize(const Size(1280, 720));
+    expect(profile.isTablet, isTrue);
+    expect(profile.useTvNavigation, isTrue);
+    expect(profile.useCompactNavigation, isFalse);
+  });
 }

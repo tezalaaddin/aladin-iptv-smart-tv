@@ -26,6 +26,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var methodChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        CarHeadUnitPolicy.enforceLandscape(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         handleIntent(intent)

@@ -250,11 +250,7 @@ class NativePlayerActivity : AppCompatActivity(),
             packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
     }
     private val isSteeringNavigationDevice: Boolean by lazy {
-        val model = Build.MODEL.orEmpty().lowercase(Locale.ROOT)
-        val manufacturer = Build.MANUFACTURER.orEmpty().lowercase(Locale.ROOT)
-        packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) ||
-            model.contains("k2401") ||
-            (manufacturer.contains("allwinner") && !isTvDevice)
+        CarHeadUnitPolicy.isCarHeadUnit(this)
     }
 
     private val primaryControls: List<TextView>
@@ -429,6 +425,7 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
+        CarHeadUnitPolicy.enforceLandscape(this)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
