@@ -64,6 +64,7 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
   TV düzeninde senkronizasyon ekranında kaldığı için ayar satırına otomatik odaklanılamadı.
 # Product completion follow-up
 
+- [Tamamlandı] Android Automotive ve K2401 sınıfı direksiyon kumandalarında önceki/sonraki kanal kontrolü
 - [Tamamlandı] Favoriler, ana sayfa rafları, arama, geçmiş ve oynatma kuyrukları için ortak mantıksal içerik kimliği
 - [Tamamlandı] Dizi favorilerini tek karta indirme; oynatma sırasında sezon/bölüm ayrımını koruma
 - [Tamamlandı] Alternatif URL ve HD/FHD/Yedek kaynaklarını veri silmeden tekilleştirme

@@ -67,4 +67,20 @@ void main() {
     expect(portrait, contains('@drawable/player_seek_thumb'));
     expect(portrait, contains('@+id/tv_seek_preview'));
   });
+
+  test('steering and media buttons change channels without changing TV seek',
+      () {
+    final activity = File(
+      'android/app/src/main/kotlin/com/aladin/iptv/player/pro/NativePlayerActivity.kt',
+    ).readAsStringSync();
+
+    expect(activity, contains('isSteeringNavigationDevice'));
+    expect(activity, contains('PackageManager.FEATURE_AUTOMOTIVE'));
+    expect(activity, contains('model.contains("k2401")'));
+    expect(activity, contains('KeyEvent.KEYCODE_MEDIA_PREVIOUS'));
+    expect(activity, contains('KeyEvent.KEYCODE_MEDIA_NEXT'));
+    expect(activity, contains('switchChannelBy(-1)'));
+    expect(activity, contains('switchChannelBy(1)'));
+    expect(activity, contains('if (isSteeringNavigationDevice)'));
+  });
 }

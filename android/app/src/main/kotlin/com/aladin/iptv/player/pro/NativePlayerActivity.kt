@@ -249,6 +249,13 @@ class NativePlayerActivity : AppCompatActivity(),
         packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK) ||
             packageManager.hasSystemFeature(PackageManager.FEATURE_TELEVISION)
     }
+    private val isSteeringNavigationDevice: Boolean by lazy {
+        val model = Build.MODEL.orEmpty().lowercase(Locale.ROOT)
+        val manufacturer = Build.MANUFACTURER.orEmpty().lowercase(Locale.ROOT)
+        packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE) ||
+            model.contains("k2401") ||
+            (manufacturer.contains("allwinner") && !isTvDevice)
+    }
 
     private val primaryControls: List<TextView>
         get() = listOf(btnSubtitles, btnAudio, btnQuality, btnAspect, btnFavorite)
@@ -1033,6 +1040,28 @@ class NativePlayerActivity : AppCompatActivity(),
 
     // ── Key Handling ──────────────────────────────────────────────────────────
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Steering-wheel/head-unit navigation is handled before the focused OSD
+        // so a visible control row cannot swallow channel-change commands.
+        when (keyCode) {
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS,
+            KeyEvent.KEYCODE_CHANNEL_DOWN -> {
+                if ((event?.repeatCount ?: 0) == 0) switchChannelBy(-1)
+                return true
+            }
+            KeyEvent.KEYCODE_MEDIA_NEXT,
+            KeyEvent.KEYCODE_CHANNEL_UP -> {
+                if ((event?.repeatCount ?: 0) == 0) switchChannelBy(1)
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> if (isSteeringNavigationDevice) {
+                if ((event?.repeatCount ?: 0) == 0) switchChannelBy(-1)
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> if (isSteeringNavigationDevice) {
+                if ((event?.repeatCount ?: 0) == 0) switchChannelBy(1)
+                return true
+            }
+        }
         if (keyGuideLayout.visibility == View.VISIBLE && keyGuideLayout.hasFocus()) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
@@ -1101,7 +1130,7 @@ class NativePlayerActivity : AppCompatActivity(),
                 player?.let { if (it.duration != C.TIME_UNSET) accumulateSeek(600_000L) }; return true
             }
             KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> { toggleFavorite(); return true }
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS, KeyEvent.KEYCODE_LAST_CHANNEL -> {
+            KeyEvent.KEYCODE_LAST_CHANNEL -> {
                 if (previousIndex in 0 until size) {
                     val target = previousIndex
                     previousIndex = currentIndex
@@ -1124,6 +1153,15 @@ class NativePlayerActivity : AppCompatActivity(),
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun switchChannelBy(delta: Int) {
+        val size = channelUrls?.size ?: return
+        if (size <= 1) return
+        val target = (currentIndex + delta + size) % size
+        previousIndex = currentIndex
+        currentIndex = target
+        prepareAndPlay()
     }
 
     // ── Gesture Handling ──────────────────────────────────────────────────────
