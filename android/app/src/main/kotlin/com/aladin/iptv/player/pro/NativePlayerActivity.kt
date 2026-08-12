@@ -823,12 +823,22 @@ class NativePlayerActivity : AppCompatActivity(),
         autoPlayHandler.removeCallbacks(autoPlayRunnable)
         autoPlayOverlay.visibility = View.GONE
         releasePlayer()
+        notifyPlaybackSelected()
         tvChannelName.text = channelNames?.getOrNull(currentIndex) ?: t("channel_fallback", "Kanal")
         updateFavoriteIcon()
         channelInfoLayout.visibility = View.VISIBLE
         updatePauseInfo()
         showStatus(t("loading", "Yükleniyor..."), true)
         mainHandler.postDelayed(prepareRunnable, ZAPPING_DEBOUNCE_MS)
+    }
+
+    private fun notifyPlaybackSelected() {
+        val url = channelUrls?.getOrNull(currentIndex) ?: return
+        val selected = Intent("com.aladin.iptv.player.pro.PLAYBACK_SELECTED").apply {
+            setPackage(packageName)
+            putExtra("url", url)
+        }
+        sendBroadcast(selected)
     }
 
     private fun playCurrentChannel() {

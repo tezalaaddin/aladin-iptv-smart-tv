@@ -204,6 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
           'low_latency': s.v52('bufferLowLatency'),
           'balanced': s.v52('bufferBalanced'),
           'stable': s.v52('bufferStable'),
+          'travel': s.v52('bufferTravel'),
         }
             .entries
             .map((entry) => RadioListTile<String>(
@@ -227,6 +228,7 @@ class _SettingsPageState extends State<SettingsPage> {
       'low_latency' => s.v52('bufferLowLatency'),
       'balanced' => s.v52('bufferBalanced'),
       'stable' => s.v52('bufferStable'),
+      'travel' => s.v52('bufferTravel'),
       _ => s.v52('bufferAuto'),
     };
   }

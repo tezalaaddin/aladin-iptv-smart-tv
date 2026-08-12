@@ -37,6 +37,15 @@ class ChannelService {
     counts[key] = ((counts[key] as num?)?.toInt() ?? 0) + 1;
     await AladinPrefs.instance
         .setString('channel_play_counts_v49', jsonEncode(counts));
+    await _recordHistory(channel);
+  }
+
+  Future<void> markLastPlayedByUrl(String url) async {
+    final channel = await getByUrl(url);
+    if (channel != null) await _recordHistory(channel);
+  }
+
+  Future<void> _recordHistory(ChannelModel channel) async {
     final history = <int>[];
     try {
       history.addAll((jsonDecode(
@@ -67,13 +76,23 @@ class ChannelService {
       final channel = await _db.channelModels.get(id);
       if (channel != null &&
           channel.playlistId == playlistId &&
-          ParentalService.instance.canExpose(channel)) result.add(channel);
+          channel.url.trim().isNotEmpty &&
+          ParentalService.instance.canExpose(channel) &&
+          ContentVisibilityService.instance.isChannelVisible(channel)) {
+        result.add(channel);
+      }
     }
     return deduplicateContent(result);
   }
 
   Future<void> clearChannelHistory() =>
       AladinPrefs.instance.setString('channel_history_v1', '[]');
+
+  /// Most recently launched playable item, including live television.
+  Future<ChannelModel?> getLastPlayed(int playlistId) async {
+    final history = await getChannelHistory(playlistId);
+    return history.isEmpty ? null : history.first;
+  }
 
   Future<List<ChannelModel>> getMostWatched(int playlistId,
       {int limit = 15}) async {

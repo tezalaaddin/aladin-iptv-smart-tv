@@ -76,6 +76,11 @@ class MainActivity : FlutterFragmentActivity() {
                         "watchedDelta" to watchedDelta
                     ))
                 }
+                "com.aladin.iptv.player.pro.PLAYBACK_SELECTED" -> {
+                    methodChannel?.invokeMethod("onPlaybackSelected", mapOf(
+                        "url" to intent.getStringExtra("url")
+                    ))
+                }
                 "com.aladin.iptv.player.pro.OPEN_SETTINGS" -> {
                     methodChannel?.invokeMethod("openSettings", null)
                 }
@@ -316,6 +321,7 @@ class MainActivity : FlutterFragmentActivity() {
         val filter = IntentFilter().apply {
             addAction("com.aladin.iptv.player.pro.FAVORITE_TOGGLED")
             addAction("com.aladin.iptv.player.pro.PROGRESS_UPDATE")
+            addAction("com.aladin.iptv.player.pro.PLAYBACK_SELECTED")
             addAction("com.aladin.iptv.player.pro.OPEN_SETTINGS")
         }
         

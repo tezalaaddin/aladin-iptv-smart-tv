@@ -107,12 +107,24 @@ class _PlayerPageState extends State<PlayerPage> {
 
       // Playlist'teki boş URL'leri filtrele — native player'a sadece oynatılabilir içerik gönder
       // Keep the Android Intent safely below Binder's transaction limit.
-      final allPlayable = widget.playlist
+      // Rebuild context from the selected item's real category. Entry points
+      // such as Home, Favorites and startup may only provide one visible card.
+      final categoryQueue =
+          await ChannelService.instance.getPlaybackQueue(widget.channel);
+      final sourceQueue = categoryQueue.length > 1
+          ? categoryQueue
+          : (widget.playlist.isNotEmpty ? widget.playlist : [widget.channel]);
+      final allPlayable = sourceQueue
           .where((e) => e.url.trim().isNotEmpty)
           .where(ParentalService.instance.canExpose)
-          .toList(growable: false);
+          .toList(growable: true);
       if (allPlayable.isEmpty) return;
-      final selectedIndex = allPlayable.indexOf(widget.channel);
+      var selectedIndex = allPlayable.indexWhere((item) =>
+          item.id == widget.channel.id || item.url == widget.channel.url);
+      if (selectedIndex < 0 && widget.channel.url.trim().isNotEmpty) {
+        allPlayable.insert(0, widget.channel);
+        selectedIndex = 0;
+      }
       final safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
       const radius = 50;
       final start = math.max(0, safeIndex - radius);

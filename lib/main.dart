@@ -155,6 +155,11 @@ class _AladinAppState extends State<AladinApp>
             await ChannelService.instance.addToWatchNext(channel);
           }
         }
+      } else if (call.method == 'onPlaybackSelected') {
+        final url = call.arguments['url'] as String?;
+        if (url != null && url.isNotEmpty) {
+          await ChannelService.instance.markLastPlayedByUrl(url);
+        }
       } else if (call.method == 'openSettings') {
         AppState.instance.navigateToPage(6);
       } else if (call.method == 'playUrl') {

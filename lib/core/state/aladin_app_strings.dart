@@ -209,6 +209,16 @@ class AppStrings {
       '稳定',
       'مستقر'
     ],
+    'bufferTravel': [
+      'Yolculuk (kesintili internet)',
+      'Travel (intermittent internet)',
+      'Reise (instabiles Internet)',
+      'Voyage (Internet intermittent)',
+      'Viaje (Internet intermitente)',
+      'Поездка (нестабильный интернет)',
+      '旅途中（网络不稳定）',
+      'السفر (إنترنت متقطع)'
+    ],
     'diagnostics': [
       'YAYIN TANILAMA',
       'STREAM DIAGNOSTICS',
@@ -2023,7 +2033,7 @@ class AppStrings {
     'swDecoder': 'Yazılımsal (Software)',
     'autoDecoder': 'Otomatik',
     'autoPlayStartup': 'Başlangıçta Oynat',
-    'autoPlayActiveSub': 'Yarım kalan film veya bölümü kaldığı yerden açar',
+    'autoPlayActiveSub': 'En son izlenen TV kanalı, film veya bölümü açar',
     'autoPlayInactiveSub': 'Uygulama ana sayfada açılır',
     'shuffleLaunch': 'Her Açılışta Listeyi Karıştır',
     'shuffleActiveSub': 'Film ve dizi listeleri her açılışta yenilenir',
@@ -2231,7 +2241,7 @@ class AppStrings {
     'swDecoder': 'Software',
     'autoDecoder': 'Auto',
     'autoPlayStartup': 'Resume on Startup',
-    'autoPlayActiveSub': 'Resumes an unfinished movie or episode',
+    'autoPlayActiveSub': 'Opens the last watched TV channel, movie or episode',
     'autoPlayInactiveSub': 'Opens on the home screen',
     'shuffleLaunch': 'Shuffle Lists on Every Launch',
     'shuffleActiveSub': 'Movie and series lists refresh on every launch',
@@ -2433,7 +2443,7 @@ class AppStrings {
     'autoDecoder': 'Auto',
     'autoPlayStartup': 'Beim Start fortsetzen',
     'autoPlayActiveSub':
-        'Setzt einen nicht beendeten Film oder eine Folge fort',
+        'Öffnet den zuletzt gesehenen TV-Sender, Film oder die Folge',
     'autoPlayInactiveSub': 'Öffnet die Startseite',
     'shuffleLaunch': 'Listen bei jedem Start mischen',
     'shuffleActiveSub':
@@ -2644,7 +2654,8 @@ class AppStrings {
     'swDecoder': 'Logiciel',
     'autoDecoder': 'Auto',
     'autoPlayStartup': 'Reprendre au démarrage',
-    'autoPlayActiveSub': 'Reprend un film ou un épisode non terminé',
+    'autoPlayActiveSub':
+        'Ouvre la dernière chaîne TV, le dernier film ou épisode regardé',
     'autoPlayInactiveSub': 'Ouvre l’écran d’accueil',
     'shuffleLaunch': 'Mélanger les listes à chaque lancement',
     'shuffleActiveSub':
@@ -2851,7 +2862,8 @@ class AppStrings {
     'swDecoder': 'Software',
     'autoDecoder': 'Auto',
     'autoPlayStartup': 'Reanudar al iniciar',
-    'autoPlayActiveSub': 'Reanuda una película o episodio sin terminar',
+    'autoPlayActiveSub':
+        'Abre el último canal de TV, película o episodio visto',
     'autoPlayInactiveSub': 'Abre la pantalla principal',
     'shuffleLaunch': 'Mezclar listas en cada inicio',
     'shuffleActiveSub':
@@ -3058,7 +3070,7 @@ class AppStrings {
     'swDecoder': 'Программный',
     'autoDecoder': 'Авто',
     'autoPlayStartup': 'Продолжать при запуске',
-    'autoPlayActiveSub': 'Продолжает незавершённый фильм или серию',
+    'autoPlayActiveSub': 'Открывает последний телеканал, фильм или эпизод',
     'autoPlayInactiveSub': 'Открывает главный экран',
     'shuffleLaunch': 'Перемешивать списки при каждом запуске',
     'shuffleActiveSub':
@@ -3263,7 +3275,7 @@ class AppStrings {
     'swDecoder': '软件解码',
     'autoDecoder': '自动',
     'autoPlayStartup': '启动时继续播放',
-    'autoPlayActiveSub': '继续未看完的电影或剧集',
+    'autoPlayActiveSub': '打开最近观看的电视频道、电影或剧集',
     'autoPlayInactiveSub': '打开主屏幕',
     'shuffleLaunch': '每次启动时随机排列列表',
     'shuffleActiveSub': '电影和剧集列表每次启动都会更新',
@@ -3466,7 +3478,7 @@ class AppStrings {
     'swDecoder': 'برمجي (Software)',
     'autoDecoder': 'تلقائي',
     'autoPlayStartup': 'متابعة التشغيل عند البدء',
-    'autoPlayActiveSub': 'يتابع فيلماً أو حلقة غير مكتملة',
+    'autoPlayActiveSub': 'يفتح آخر قناة تلفزيونية أو فيلم أو حلقة تمت مشاهدتها',
     'autoPlayInactiveSub': 'يفتح الشاشة الرئيسية',
     'shuffleLaunch': 'خلط القوائم عند كل تشغيل',
     'shuffleActiveSub': 'تتجدد قوائم الأفلام والمسلسلات عند كل تشغيل',

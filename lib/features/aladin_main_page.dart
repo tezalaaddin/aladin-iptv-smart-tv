@@ -156,14 +156,15 @@ class _MainPageState extends State<MainPage> {
         sl<AladinPrefs>().getBool('auto_play_last', def: false);
     if (!autoPlay) return;
 
-    final last = await ChannelService.instance.getLastResumable(playlistId);
+    final last = await ChannelService.instance.getLastPlayed(playlistId) ??
+        await ChannelService.instance.getLastResumable(playlistId);
     if (last != null && mounted) {
       Navigator.push(
           context,
           MaterialPageRoute(
               builder: (_) => PlayerPage(
                     channel: last,
-                    playlist: [last],
+                    playlist: const [],
                     playlistModel: AppState.instance.active,
                   )));
     }
