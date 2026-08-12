@@ -70,6 +70,7 @@ kumanda kullanılabilirliği ve yayın güvenilirliği gözetilerek tutulur.
 - [Tamamlandı] Tüm oynatma giriş noktalarında seçilen içeriğin kategori kuyruğunu merkezi olarak oluşturma
 - [Tamamlandı] Canlı TV ve native kanal geçişleri dahil gerçek son izlenen içeriği başlangıçta oynatma
 - [Tamamlandı] Hareketli araç ve kesintili mobil internet için bellek sınırlı Yolculuk buffer profili
+- [Tamamlandı] Android TV 14 üretici klavyelerinde Xtream/M3U metin alanı IME bağlantısı ve odak koruması
 - [Tamamlandı] Favoriler, ana sayfa rafları, arama, geçmiş ve oynatma kuyrukları için ortak mantıksal içerik kimliği
 - [Tamamlandı] Dizi favorilerini tek karta indirme; oynatma sırasında sezon/bölüm ayrımını koruma
 - [Tamamlandı] Alternatif URL ve HD/FHD/Yedek kaynaklarını veri silmeden tekilleştirme

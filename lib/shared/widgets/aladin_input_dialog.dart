@@ -89,9 +89,21 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
 
   // ── Klavye aç ──────────────────────────────────────────────────────────────
   Future<void> _openKeyboard(FocusNode node) async {
-    node.requestFocus();
-    await Future.delayed(const Duration(milliseconds: 80));
-    await SystemChannels.textInput.invokeMethod('TextInput.show');
+    if (!mounted || !node.canRequestFocus) return;
+    FocusScope.of(context).requestFocus(node);
+
+    // Android TV 14 IMEs may ignore TextInput.show until EditableText has
+    // completed a frame and registered its platform input connection.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !node.hasFocus) return;
+    await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+
+    // Some vendor TV keyboards attach one frame later. Retrying is harmless
+    // and avoids a visible-but-disconnected keyboard on those devices.
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    if (mounted && node.hasFocus) {
+      await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    }
   }
 
   // ── Klavyeyi kapat ─────────────────────────────────────────────────────────
@@ -282,7 +294,12 @@ class _AladinFormDialogState extends State<AladinFormDialog> {
             controller: _controllers[i],
             focusNode: _fieldNodes[i],
             onTap: () => _openKeyboard(_fieldNodes[i]),
+            onTapOutside: (_) {},
             obscureText: field.obscure,
+            enableInteractiveSelection: true,
+            textInputAction: i < widget.fields.length - 1
+                ? TextInputAction.next
+                : TextInputAction.done,
             style: const TextStyle(color: Colors.white, fontSize: 18),
             decoration: InputDecoration(
               labelText: field.label,
@@ -464,9 +481,15 @@ class _AladinInputDialogState extends State<AladinInputDialog> {
   }
 
   Future<void> _openKeyboard(FocusNode node) async {
-    node.requestFocus();
-    await Future.delayed(const Duration(milliseconds: 80));
-    await SystemChannels.textInput.invokeMethod('TextInput.show');
+    if (!mounted || !node.canRequestFocus) return;
+    FocusScope.of(context).requestFocus(node);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !node.hasFocus) return;
+    await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    if (mounted && node.hasFocus) {
+      await SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    }
   }
 
   Future<void> _closeKeyboard() async {
@@ -557,7 +580,10 @@ class _AladinInputDialogState extends State<AladinInputDialog> {
                               controller: _controller,
                               focusNode: _fieldNode,
                               onTap: () => _openKeyboard(_fieldNode),
+                              onTapOutside: (_) {},
                               obscureText: widget.obscure,
+                              enableInteractiveSelection: true,
+                              textInputAction: TextInputAction.done,
                               style: const TextStyle(
                                   color: Colors.white, fontSize: 18),
                               decoration: InputDecoration(
@@ -720,7 +746,10 @@ class _DialogBtnState extends State<_DialogBtn> {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: widget.focusNode,
-      autofocus: widget.isPrimary,
+      // The text field owns initial focus. A primary button with autofocus can
+      // steal Android TV's platform input connection while still leaving the
+      // field painted as focused.
+      autofocus: false,
       onFocusChange: (v) => setState(() => _focused = v),
       onKeyEvent: (_, event) {
         if (event is KeyDownEvent &&

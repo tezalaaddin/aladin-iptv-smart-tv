@@ -124,6 +124,16 @@ class _SettingsPageState extends State<SettingsPage> {
   KeyEventResult _handleGlobalKey(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
+    // Never reinterpret editing keys (especially Backspace) as TV navigation
+    // while an EditableText owns focus. This also protects physical keyboards
+    // attached to Android TV devices.
+    final focusedContext = FocusManager.instance.primaryFocus?.context;
+    final editingText = focusedContext != null &&
+        (focusedContext.widget is EditableText ||
+            focusedContext.findAncestorWidgetOfExactType<EditableText>() !=
+                null);
+    if (editingText) return KeyEventResult.ignored;
+
     final key = event.logicalKey;
     final state = context.read<AppState>();
 
